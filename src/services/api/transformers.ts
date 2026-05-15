@@ -157,6 +157,10 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
       record?.excluded_models
   );
   if (excludedModels.length) config.excludedModels = excludedModels;
+  const disableCooling = normalizeBoolean(
+    record?.['disable-cooling'] ?? record?.disableCooling ?? record?.['disable_cooling']
+  );
+  if (disableCooling !== undefined) config.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     record?.['auth-index'] ?? record?.authIndex ?? record?.['auth_index']
   );
@@ -219,6 +223,10 @@ const normalizeGeminiKeyConfig = (item: unknown): GeminiKeyConfig | null => {
   if (headers) config.headers = headers;
   const excludedModels = normalizeExcludedModels(record?.['excluded-models'] ?? record?.excludedModels);
   if (excludedModels.length) config.excludedModels = excludedModels;
+  const disableCooling = normalizeBoolean(
+    record?.['disable-cooling'] ?? record?.disableCooling ?? record?.['disable_cooling']
+  );
+  if (disableCooling !== undefined) config.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     record?.['auth-index'] ?? record?.authIndex ?? record?.['auth_index']
   );
@@ -262,6 +270,10 @@ const normalizeOpenAIProvider = (provider: unknown): OpenAIProviderConfig | null
   if (models.length) result.models = models;
   if (priority !== undefined) result.priority = Number(priority);
   if (testModel) result.testModel = String(testModel);
+  const disableCooling = normalizeBoolean(
+    provider['disable-cooling'] ?? provider.disableCooling ?? provider['disable_cooling']
+  );
+  if (disableCooling !== undefined) result.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     provider['auth-index'] ?? provider.authIndex ?? provider['auth_index']
   );

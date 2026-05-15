@@ -77,6 +77,7 @@ const serializeProviderKey = (config: ProviderKeyConfig) => {
   if (config.excludedModels && config.excludedModels.length) {
     payload['excluded-models'] = config.excludedModels;
   }
+  if (config.disableCooling) payload['disable-cooling'] = true;
   if (config.cloak) {
     const cloakPayload: Record<string, unknown> = {};
     const mode = config.cloak.mode?.trim();
@@ -117,6 +118,7 @@ const serializeVertexKey = (config: ProviderKeyConfig) => {
   if (config.excludedModels && config.excludedModels.length) {
     payload['excluded-models'] = config.excludedModels;
   }
+  if (config.disableCooling) payload['disable-cooling'] = true;
   return payload;
 };
 
@@ -133,6 +135,7 @@ const serializeGeminiKey = (config: GeminiKeyConfig) => {
   if (config.excludedModels && config.excludedModels.length) {
     payload['excluded-models'] = config.excludedModels;
   }
+  if (config.disableCooling) payload['disable-cooling'] = true;
   return payload;
 };
 
@@ -146,6 +149,7 @@ const serializeOpenAIProvider = (provider: OpenAIProviderConfig) => {
   };
   if (provider.prefix?.trim()) payload.prefix = provider.prefix.trim();
   if (provider.disabled !== undefined) payload.disabled = provider.disabled;
+  if (provider.disableCooling) payload['disable-cooling'] = true;
   const headers = serializeHeaders(provider.headers);
   if (headers) payload.headers = headers;
   const models = serializeModelAliases(provider.models);

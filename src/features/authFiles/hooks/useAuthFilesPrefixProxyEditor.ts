@@ -475,17 +475,9 @@ export function useAuthFilesPrefixProxyEditor(
   const handlePrefixProxySave = async () => {
     if (!prefixProxyEditor?.json) return;
     if (!prefixProxyDirty) return;
+    if (!prefixProxyUpdatedText) return;
 
     const name = prefixProxyEditor.fileName;
-    let payload: AuthFileFieldsPatch;
-    try {
-      payload = buildAuthFileFieldsPatch(prefixProxyEditor, (key) => t(key));
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Invalid format';
-      showNotification(errorMessage, 'error');
-      return;
-    }
-    if (!hasKeys(payload)) return;
 
     setPrefixProxyEditor((prev) => {
       if (!prev || prev.fileName !== name) return prev;
@@ -493,7 +485,7 @@ export function useAuthFilesPrefixProxyEditor(
     });
 
     try {
-      await authFilesApi.patchFields(name, payload);
+      await authFilesApi.saveText(name, prefixProxyUpdatedText);
       showNotification(t('auth_files.prefix_proxy_saved_success', { name }), 'success');
       await loadFiles();
       setPrefixProxyEditor(null);
