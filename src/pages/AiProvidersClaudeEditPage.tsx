@@ -477,6 +477,17 @@ export function AiProvidersClaudeEditPage() {
               <div className="hint">{t('ai_providers.excluded_models_hint')}</div>
             </div>
 
+            <div className="form-group">
+              <label>{t('auth_files.disable_cooling_label')}</label>
+              <ToggleSwitch
+                checked={Boolean(form.disableCooling)}
+                onChange={(value) => setForm((prev) => ({ ...prev, disableCooling: value }))}
+                disabled={saving || disableControls || isTesting}
+                ariaLabel={t('auth_files.disable_cooling_label')}
+              />
+              <div className="hint">{t('auth_files.disable_cooling_hint')}</div>
+            </div>
+
             <div className={styles.modelConfigSection}>
               <div className={styles.modelConfigHeader}>
                 <label className={styles.modelConfigTitle}>{t('ai_providers.claude_cloak_title')}</label>

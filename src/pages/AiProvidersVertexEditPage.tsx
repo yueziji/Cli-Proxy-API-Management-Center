@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { HeaderInputList } from '@/components/ui/HeaderInputList';
 import { ModelInputList } from '@/components/ui/ModelInputList';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { modelsToEntries } from '@/components/ui/modelInputListUtils';
 import { useEdgeSwipeBack } from '@/hooks/useEdgeSwipeBack';
 import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard';
@@ -54,6 +55,7 @@ type VertexFormBaseline = {
   prefix: string;
   baseUrl: string;
   proxyUrl: string;
+  disableCooling: boolean;
   headers: ReturnType<typeof normalizeHeaderEntries>;
   models: ReturnType<typeof normalizeModelEntries>;
   excludedModels: string[];
@@ -66,6 +68,7 @@ const buildVertexBaseline = (form: VertexFormState): VertexFormBaseline => ({
   prefix: String(form.prefix ?? '').trim(),
   baseUrl: String(form.baseUrl ?? '').trim(),
   proxyUrl: String(form.proxyUrl ?? '').trim(),
+  disableCooling: Boolean(form.disableCooling),
   headers: normalizeHeaderEntries(form.headers),
   models: normalizeModelEntries(form.modelEntries),
   excludedModels: parseExcludedModels(form.excludedText ?? ''),
@@ -213,6 +216,7 @@ export function AiProvidersVertexEditPage() {
     baseline.prefix !== String(form.prefix ?? '').trim() ||
     baseline.baseUrl !== String(form.baseUrl ?? '').trim() ||
     baseline.proxyUrl !== String(form.proxyUrl ?? '').trim() ||
+    baseline.disableCooling !== Boolean(form.disableCooling) ||
     isHeadersDirty ||
     isModelsDirty ||
     isExcludedModelsDirty;
@@ -249,6 +253,7 @@ export function AiProvidersVertexEditPage() {
         prefix: form.prefix?.trim() || undefined,
         baseUrl,
         proxyUrl: form.proxyUrl?.trim() || undefined,
+        disableCooling: form.disableCooling || undefined,
         headers: buildHeaderObject(form.headers),
         models: form.modelEntries
           .map((entry) => {
@@ -399,6 +404,17 @@ export function AiProvidersVertexEditPage() {
                 disabled={disableControls || saving}
               />
               <div className="hint">{t('ai_providers.excluded_models_hint')}</div>
+            </div>
+
+            <div className="form-group">
+              <label>{t('auth_files.disable_cooling_label')}</label>
+              <ToggleSwitch
+                checked={Boolean(form.disableCooling)}
+                onChange={(value) => setForm((prev) => ({ ...prev, disableCooling: value }))}
+                disabled={disableControls || saving}
+                ariaLabel={t('auth_files.disable_cooling_label')}
+              />
+              <div className="hint">{t('auth_files.disable_cooling_hint')}</div>
             </div>
           </>
         )}

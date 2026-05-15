@@ -98,6 +98,7 @@ const buildClaudeBaseline = (form: ProviderFormState): ClaudeEditBaseline => ({
   prefix: String(form.prefix ?? '').trim(),
   baseUrl: String(form.baseUrl ?? '').trim(),
   proxyUrl: String(form.proxyUrl ?? '').trim(),
+  disableCooling: Boolean(form.disableCooling),
   headers: normalizeHeaderEntries(form.headers),
   models: normalizeClaudeModelEntries(form.modelEntries),
   excludedModels: parseExcludedModels(form.excludedText ?? ''),
@@ -314,6 +315,7 @@ export function AiProvidersClaudeEditLayout() {
       baseline.prefix !== String(form.prefix ?? '').trim() ||
       baseline.baseUrl !== String(form.baseUrl ?? '').trim() ||
       baseline.proxyUrl !== String(form.proxyUrl ?? '').trim() ||
+      baseline.disableCooling !== Boolean(form.disableCooling) ||
       isHeadersDirty ||
       isModelsDirty ||
       isExcludedModelsDirty ||
@@ -409,6 +411,7 @@ export function AiProvidersClaudeEditLayout() {
         prefix: form.prefix?.trim() || undefined,
         baseUrl: (form.baseUrl ?? '').trim() || undefined,
         proxyUrl: form.proxyUrl?.trim() || undefined,
+        disableCooling: form.disableCooling || undefined,
         headers: buildHeaderObject(form.headers),
         models: form.modelEntries
           .map((entry) => {

@@ -3,6 +3,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Input } from '@/components/ui/Input';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import type {
   PrefixProxyEditorField,
   PrefixProxyEditorFieldValue,
@@ -153,6 +154,28 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                   disabled={disableControls || editor.saving || !editor.json}
                   onChange={(e) => onChange('note', e.target.value)}
                 />
+                {editor.fileType === 'codex' && (
+                  <div className="form-group">
+                    <label>{t('ai_providers.codex_websockets_label')}</label>
+                    <ToggleSwitch
+                      checked={editor.websockets}
+                      onChange={(value) => onChange('websockets', value)}
+                      disabled={disableControls || editor.saving || !editor.json}
+                      ariaLabel={t('ai_providers.codex_websockets_label')}
+                    />
+                    <div className="hint">{t('ai_providers.codex_websockets_hint')}</div>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label>{t('auth_files.disable_cooling_label')}</label>
+                  <ToggleSwitch
+                    checked={editor.disableCooling}
+                    onChange={(value) => onChange('disableCooling', value)}
+                    disabled={disableControls || editor.saving || !editor.json}
+                    ariaLabel={t('auth_files.disable_cooling_label')}
+                  />
+                  <div className="hint">{t('auth_files.disable_cooling_hint')}</div>
+                </div>
               </div>
             </>
           )}

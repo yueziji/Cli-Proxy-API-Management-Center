@@ -3,7 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { authFilesApi, type AuthFileFieldsPatch } from '@/services/api';
 import type { AuthFileItem } from '@/types';
 import { useNotificationStore } from '@/stores';
-import { parsePriorityValue } from '@/features/authFiles/constants';
+import {
+  parsePriorityValue,
+  parseDisableCoolingValue,
+  readCodexAuthFileWebsockets,
+  applyCodexAuthFileWebsockets,
+} from '@/features/authFiles/constants';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -11,12 +16,13 @@ type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_object'
   | 'auth_files.headers_invalid_value';
 
-export type PrefixProxyEditorField = 'prefix' | 'proxyUrl' | 'priority' | 'note' | 'headersText';
+export type PrefixProxyEditorField = 'prefix' | 'proxyUrl' | 'priority' | 'note' | 'headersText' | 'websockets' | 'disableCooling';
 
-export type PrefixProxyEditorFieldValue = string;
+export type PrefixProxyEditorFieldValue = string | boolean;
 
 export type PrefixProxyEditorState = {
   fileName: string;
+  fileType: string;
   fileInfoText: string;
   loading: boolean;
   saving: boolean;
@@ -32,6 +38,10 @@ export type PrefixProxyEditorState = {
   headersText: string;
   headersTouched: boolean;
   headersError: string | null;
+  websockets: boolean;
+  websocketsTouched: boolean;
+  disableCooling: boolean;
+  disableCoolingTouched: boolean;
 };
 
 export type UseAuthFilesPrefixProxyEditorOptions = {
@@ -211,6 +221,20 @@ const buildAuthFileFieldsPatch = (
     }
   }
 
+  if (editor.websocketsTouched) {
+    const originalWs = readCodexAuthFileWebsockets(original);
+    if (editor.websockets !== originalWs) {
+      patch.websockets = editor.websockets;
+    }
+  }
+
+  if (editor.disableCoolingTouched) {
+    const originalDc = parseDisableCoolingValue(original.disable_cooling) ?? false;
+    if (editor.disableCooling !== originalDc) {
+      patch.disable_cooling = editor.disableCooling;
+    }
+  }
+
   return patch;
 };
 
@@ -254,6 +278,20 @@ const buildPrefixProxyUpdatedText = (
 
   applyHeadersPatch(next, patch.headers);
 
+  if (patch.websockets !== undefined) {
+    const applied = applyCodexAuthFileWebsockets(next, patch.websockets);
+    Object.keys(next).forEach((k) => delete next[k]);
+    Object.assign(next, applied);
+  }
+
+  if (patch.disable_cooling !== undefined) {
+    if (patch.disable_cooling) {
+      next.disable_cooling = true;
+    } else {
+      delete next.disable_cooling;
+    }
+  }
+
   return JSON.stringify(next);
 };
 
@@ -296,6 +334,7 @@ export function useAuthFilesPrefixProxyEditor(
 
     setPrefixProxyEditor({
       fileName: name,
+      fileType: (file.type || '').toLowerCase(),
       fileInfoText: JSON.stringify(file, null, 2),
       loading: true,
       saving: false,
@@ -311,6 +350,10 @@ export function useAuthFilesPrefixProxyEditor(
       headersText: '',
       headersTouched: false,
       headersError: null,
+      websockets: false,
+      websocketsTouched: false,
+      disableCooling: false,
+      disableCoolingTouched: false,
     });
 
     try {
@@ -363,6 +406,9 @@ export function useAuthFilesPrefixProxyEditor(
         headersError = errorKey ? t(errorKey) : null;
       }
 
+      const websockets = readCodexAuthFileWebsockets(json);
+      const disableCooling = parseDisableCoolingValue(json.disable_cooling) ?? false;
+
       setPrefixProxyEditor((prev) => {
         if (!prev || prev.fileName !== name) return prev;
         return {
@@ -379,6 +425,10 @@ export function useAuthFilesPrefixProxyEditor(
           headersText,
           headersTouched: false,
           headersError,
+          websockets,
+          websocketsTouched: false,
+          disableCooling,
+          disableCoolingTouched: false,
           error: null,
         };
       });
@@ -411,6 +461,12 @@ export function useAuthFilesPrefixProxyEditor(
           headersTouched: true,
           headersError: errorKey ? t(errorKey) : null,
         };
+      }
+      if (field === 'websockets') {
+        return { ...prev, websockets: Boolean(value), websocketsTouched: true };
+      }
+      if (field === 'disableCooling') {
+        return { ...prev, disableCooling: Boolean(value), disableCoolingTouched: true };
       }
       return prev;
     });
