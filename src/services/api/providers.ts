@@ -41,6 +41,9 @@ const PROVIDER_KEY_FIELDS = [
   'excluded-models',
   'excludedModels',
   'excluded_models',
+  'disable-cooling',
+  'disableCooling',
+  'disable_cooling',
   'cloak',
 ] as const;
 
@@ -68,6 +71,9 @@ const OPENAI_PROVIDER_FIELDS = [
   'test-model',
   'testModel',
   'test_model',
+  'disable-cooling',
+  'disableCooling',
+  'disable_cooling',
 ] as const;
 
 const MODEL_ALIAS_FIELDS = [
