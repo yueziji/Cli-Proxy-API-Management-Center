@@ -100,6 +100,18 @@ export const buildClaudeMessagesEndpoint = (baseUrl: string): string => {
   return `${trimmed}/v1/messages`;
 };
 
+export const buildCodexResponsesEndpoint = (baseUrl: string): string => {
+  const trimmed = normalizeOpenAIBaseUrl(baseUrl);
+  if (!trimmed) return '';
+  if (trimmed.endsWith('/v1/responses')) {
+    return trimmed;
+  }
+  if (trimmed.endsWith('/v1')) {
+    return `${trimmed}/responses`;
+  }
+  return `${trimmed}/v1/responses`;
+};
+
 export type ProviderRecentUsageMap = Map<string, Map<string, RecentRequestUsageEntry>>;
 
 const EMPTY_RECENT_USAGE_ENTRY: RecentRequestUsageEntry = {
