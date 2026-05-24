@@ -295,8 +295,36 @@ const buildPreservedList = async <T>(
 const extractArrayPayload = (data: unknown, key: string): unknown[] => {
   if (Array.isArray(data)) return data;
   if (!isRecord(data)) return [];
-  const candidate = data[key] ?? data.items ?? data.data ?? data;
+  const candidate = data[key] ?? data.items ?? data.value ?? data.data ?? data;
   return Array.isArray(candidate) ? candidate : [];
+};
+
+const normalizeOpenAIProviderList = (data: unknown): OpenAIProviderConfig[] => {
+  const list = extractArrayPayload(data, 'openai-compatibility');
+  return list
+    .map((item) => normalizeOpenAIProvider(item))
+    .filter(Boolean) as OpenAIProviderConfig[];
+};
+
+const mergeOpenAIProviderConfigFields = (
+  providers: OpenAIProviderConfig[],
+  rawProviders: OpenAIProviderConfig[]
+) => {
+  if (!rawProviders.length) return providers;
+  if (!providers.length) return rawProviders;
+
+  const rawByName = new Map(
+    rawProviders.map((provider) => [provider.name.trim(), provider])
+  );
+
+  return providers.map((provider, index) => {
+    const rawProvider = rawByName.get(provider.name.trim()) ?? rawProviders[index];
+    if (!rawProvider || rawProvider.disableCooling === undefined) {
+      return provider;
+    }
+    // The provider endpoint may omit config-only fields that still exist in /config.
+    return { ...provider, disableCooling: rawProvider.disableCooling };
+  });
 };
 
 const buildProviderDeleteQuery = (apiKey: string, baseUrl?: string) => {
@@ -536,10 +564,15 @@ export const providersApi = {
 
   async getOpenAIProviders(): Promise<OpenAIProviderConfig[]> {
     const data = await apiClient.get('/openai-compatibility');
-    const list = extractArrayPayload(data, 'openai-compatibility');
-    return list
-      .map((item) => normalizeOpenAIProvider(item))
-      .filter(Boolean) as OpenAIProviderConfig[];
+    const providers = normalizeOpenAIProviderList(data);
+
+    try {
+      const rawConfig = await apiClient.get('/config');
+      const rawProviders = normalizeOpenAIProviderList(rawConfig);
+      return mergeOpenAIProviderConfigFields(providers, rawProviders);
+    } catch {
+      return providers;
+    }
   },
 
   saveOpenAIProviders: async (providers: OpenAIProviderConfig[]) =>
