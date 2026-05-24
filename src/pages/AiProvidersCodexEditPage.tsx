@@ -855,7 +855,6 @@ export function AiProvidersCodexEditPage() {
                       saving ||
                       disableControls ||
                       isTesting ||
-                      testStatus === 'loading' ||
                       availableModels.length === 0
                     }
                   />
@@ -868,7 +867,6 @@ export function AiProvidersCodexEditPage() {
                       saving ||
                       disableControls ||
                       isTesting ||
-                      testStatus === 'loading' ||
                       availableModels.length === 0
                     }
                     className={styles.modelTestAllButton}
