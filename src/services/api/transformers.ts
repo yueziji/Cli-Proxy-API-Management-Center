@@ -27,6 +27,23 @@ const normalizeBoolean = (value: unknown): boolean | undefined => {
   return Boolean(value);
 };
 
+const normalizeBooleanAliasValue = (
+  record: Record<string, unknown> | null,
+  keys: readonly string[]
+): boolean | undefined => {
+  if (!record) return undefined;
+  let hasFalse = false;
+  for (const key of keys) {
+    const parsed = normalizeBoolean(record[key]);
+    if (parsed === true) return true;
+    if (parsed === false) hasFalse = true;
+  }
+  return hasFalse ? false : undefined;
+};
+
+const normalizeDisableCooling = (record: Record<string, unknown> | null) =>
+  normalizeBooleanAliasValue(record, ['disable-cooling', 'disableCooling', 'disable_cooling']);
+
 const normalizeModelAliases = (models: unknown): ModelAlias[] => {
   if (!Array.isArray(models)) return [];
   return models
@@ -157,9 +174,7 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
       record?.excluded_models
   );
   if (excludedModels.length) config.excludedModels = excludedModels;
-  const disableCooling = normalizeBoolean(
-    record?.['disable-cooling'] ?? record?.disableCooling ?? record?.['disable_cooling']
-  );
+  const disableCooling = normalizeDisableCooling(record);
   if (disableCooling !== undefined) config.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     record?.['auth-index'] ?? record?.authIndex ?? record?.['auth_index']
@@ -223,9 +238,7 @@ const normalizeGeminiKeyConfig = (item: unknown): GeminiKeyConfig | null => {
   if (headers) config.headers = headers;
   const excludedModels = normalizeExcludedModels(record?.['excluded-models'] ?? record?.excludedModels);
   if (excludedModels.length) config.excludedModels = excludedModels;
-  const disableCooling = normalizeBoolean(
-    record?.['disable-cooling'] ?? record?.disableCooling ?? record?.['disable_cooling']
-  );
+  const disableCooling = normalizeDisableCooling(record);
   if (disableCooling !== undefined) config.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     record?.['auth-index'] ?? record?.authIndex ?? record?.['auth_index']
@@ -270,9 +283,7 @@ const normalizeOpenAIProvider = (provider: unknown): OpenAIProviderConfig | null
   if (models.length) result.models = models;
   if (priority !== undefined) result.priority = Number(priority);
   if (testModel) result.testModel = String(testModel);
-  const disableCooling = normalizeBoolean(
-    provider['disable-cooling'] ?? provider.disableCooling ?? provider['disable_cooling']
-  );
+  const disableCooling = normalizeDisableCooling(provider);
   if (disableCooling !== undefined) result.disableCooling = disableCooling;
   const authIndex = normalizeAuthIndex(
     provider['auth-index'] ?? provider.authIndex ?? provider['auth_index']
