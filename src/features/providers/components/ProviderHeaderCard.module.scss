@@ -4,7 +4,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .row {
@@ -28,7 +28,7 @@
 
 .title {
   margin: 0;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   color: var(--text-primary);
 }
@@ -54,12 +54,12 @@
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color $transition-fast, border-color $transition-fast,
     color $transition-fast;
@@ -111,12 +111,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  min-height: 32px;
+  padding: 0 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--muted-bg);
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
 }
 

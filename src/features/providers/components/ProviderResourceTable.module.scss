@@ -1,51 +1,68 @@
 @use '../../../styles/mixins' as *;
 @use '../../../styles/variables' as *;
 
+.resourceTable {
+  th {
+    height: 46px;
+    padding: 0 15px;
+    font-size: 13px;
+  }
+
+  td {
+    height: 88px;
+    padding: 15px;
+    vertical-align: middle;
+    font-size: 14px;
+  }
+}
+
 .primaryCell {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
 .primaryName {
   font-weight: 500;
   color: var(--text-primary);
+  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 220px;
+  max-width: 240px;
 }
 
 .primarySub {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   font-family: $font-mono;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 220px;
+  max-width: 240px;
 }
 
 .baseUrl {
   font-family: $font-mono;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 220px;
+  max-width: 240px;
 }
 
 .chip {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  min-height: 26px;
+  padding: 0 9px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--muted-bg);
   color: var(--muted-foreground);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .priorityValue {
@@ -53,13 +70,14 @@
   align-items: center;
   justify-content: center;
   min-width: 28px;
-  padding: 2px 8px;
+  min-height: 28px;
+  padding: 0 9px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-family: $font-mono;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
@@ -77,11 +95,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  min-height: 26px;
+  padding: 0 9px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--muted-bg);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -99,12 +118,13 @@
 .flagTag {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  min-height: 26px;
+  padding: 0 9px;
   border-radius: var(--radius-md);
   border: 1px solid var(--primary-30);
   background: var(--primary-10);
   color: var(--primary-color);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
@@ -113,11 +133,12 @@
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
   border-radius: var(--radius-md);
   border: 1px solid;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -125,7 +146,7 @@
 .statusCell {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   align-items: flex-start;
   min-width: 0;
 }
@@ -139,10 +160,11 @@
 .statPill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 11px;
+  gap: 5px;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.4;
   border: 1px solid transparent;
@@ -176,7 +198,7 @@
 
 .actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
   justify-content: flex-end;
 }
@@ -184,15 +206,15 @@
 .toggleWrap {
   display: inline-flex;
   align-items: center;
-  margin-right: 4px;
+  margin-right: 6px;
 }
 
 .iconBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--radius-md);

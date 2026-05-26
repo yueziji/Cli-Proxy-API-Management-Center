@@ -219,6 +219,7 @@ export function ProviderResourceTable({
 
   return (
     <Table
+      className={styles.resourceTable}
       cols={columnWidths.map((w, i) => (
         <col key={i} style={{ width: w }} />
       ))}
