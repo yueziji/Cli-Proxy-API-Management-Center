@@ -44,6 +44,7 @@ export interface ProviderResource {
   baseUrl: string | null;
   proxyUrl: string | null;
   prefix: string | null;
+  priority: number | null;
   modelCount: number;
   headerCount: number;
   excludedModelCount: number;

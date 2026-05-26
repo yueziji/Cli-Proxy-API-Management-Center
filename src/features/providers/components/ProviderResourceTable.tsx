@@ -41,7 +41,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['18%', '18%', '6%', '14%', '24%', '20%'];
+const columnWidths = ['17%', '17%', '7%', '8%', '13%', '22%', '16%'];
 
 const resolveStatusBarData = (
   resource: ProviderResource,
@@ -210,6 +210,13 @@ export function ProviderResourceTable({
     );
   };
 
+  const renderPriority = (r: ProviderResource) =>
+    r.priority === null ? (
+      <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
+    ) : (
+      <span className={styles.priorityValue}>{r.priority}</span>
+    );
+
   return (
     <Table
       cols={columnWidths.map((w, i) => (
@@ -221,6 +228,7 @@ export function ProviderResourceTable({
           <TableHead>{t('providersPage.table.key')}</TableHead>
           <TableHead>{t('providersPage.table.baseUrl')}</TableHead>
           <TableHead>{t('providersPage.table.prefix')}</TableHead>
+          <TableHead>{t('common.priority')}</TableHead>
           <TableHead>{t('providersPage.table.models')}</TableHead>
           <TableHead>{t('providersPage.table.status')}</TableHead>
           <TableHead alignRight>{t('providersPage.table.actions')}</TableHead>
@@ -242,6 +250,7 @@ export function ProviderResourceTable({
                   <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
                 )}
               </TableCell>
+              <TableCell>{renderPriority(resource)}</TableCell>
               <TableCell>{renderModelsSummary(resource)}</TableCell>
               <TableCell>
                 <div className={styles.statusCell}>
