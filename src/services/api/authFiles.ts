@@ -15,8 +15,8 @@ export type AuthFileFieldsPatch = {
   proxy_url?: string;
   headers?: Record<string, string>;
   priority?: number;
-  note?: string;
   websockets?: boolean;
+  note?: string;
   disable_cooling?: boolean;
 };
 type AuthFileBatchFailure = { name: string; error: string };
