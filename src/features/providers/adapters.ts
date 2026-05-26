@@ -28,6 +28,9 @@ const truncateForId = (value: string | undefined | null): string => {
   return trimmed.slice(0, 8);
 };
 
+const normalizePriority = (priority?: number): number | null =>
+  typeof priority === 'number' && Number.isFinite(priority) ? priority : null;
+
 function providerKeyToResource(
   brand: 'gemini' | 'codex' | 'claude' | 'vertex',
   config: GeminiKeyConfig | ProviderKeyConfig,
@@ -65,6 +68,7 @@ function providerKeyToResource(
     baseUrl: config.baseUrl ?? null,
     proxyUrl: config.proxyUrl ?? null,
     prefix: config.prefix ?? null,
+    priority: normalizePriority(config.priority),
     modelCount: config.models?.length ?? 0,
     headerCount: countHeaders(config.headers),
     excludedModelCount: stripDisableAllModelsRule(config.excludedModels).length,
@@ -111,6 +115,7 @@ export function openaiToResource(
     baseUrl: config.baseUrl ?? null,
     proxyUrl: null,
     prefix: config.prefix ?? null,
+    priority: normalizePriority(config.priority),
     modelCount: config.models?.length ?? 0,
     headerCount: countHeaders(config.headers),
     excludedModelCount: 0,
@@ -142,6 +147,7 @@ export function ampcodeToResource(config?: AmpcodeConfig | null): ProviderResour
     baseUrl: upstreamUrl || null,
     proxyUrl: null,
     prefix: null,
+    priority: null,
     modelCount: safe.modelMappings?.length ?? 0,
     headerCount: 0,
     excludedModelCount: 0,

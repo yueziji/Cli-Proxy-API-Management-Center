@@ -434,6 +434,22 @@ export function BaseProviderForm({
         : [emptyApiKeyEntry()],
     [form.apiKeyEntries]
   );
+  const openaiAggregateStatus = useMemo<ConnectivityState>(() => {
+    if (brand !== 'openaiCompatibility') return 'idle';
+    if (connectivity.openaiStatuses.some((status) => status.state === 'loading')) {
+      return 'loading';
+    }
+    if (connectivity.openaiStatuses.some((status) => status.state === 'error')) {
+      return 'error';
+    }
+    const testableCount = apiKeyEntries.filter(
+      (entry) => entry.apiKey.trim() || (entry.authIndex ?? '').trim()
+    ).length;
+    const successCount = connectivity.openaiStatuses.filter(
+      (status) => status.state === 'success'
+    ).length;
+    return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
+  }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
 
   return (
     <form id={formId} className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -569,7 +585,29 @@ export function BaseProviderForm({
               disabled={mutating}
               ariaLabel={t('providersPage.form.testModel')}
             />
-            {brand === 'claude' || brand === 'codex' ? (
+            {brand === 'openaiCompatibility' ? (
+              <div className={styles.connectivityRow}>
+                <button
+                  type="button"
+                  className={styles.connectivityBtn}
+                  disabled={mutating || connectivity.isTestingAny}
+                  onClick={() => void connectivity.runOpenAIAllKeys()}
+                >
+                  {openaiAggregateStatus === 'loading' ? (
+                    <span className={`${styles.statusIcon} ${styles.statusIconLoading}`}>
+                      <IconLoader2 size={14} />
+                    </span>
+                  ) : null}
+                  <span>{t('providersPage.connectivity.testAll')}</span>
+                </button>
+                <ConnectivityStatusIcon state={openaiAggregateStatus} />
+                {openaiAggregateStatus === 'success' ? (
+                  <span className={styles.connectivityHintSuccess}>
+                    {t('providersPage.connectivity.success')}
+                  </span>
+                ) : null}
+              </div>
+            ) : brand === 'claude' || brand === 'codex' ? (
               <div className={styles.connectivityRow}>
                 <button
                   type="button"
