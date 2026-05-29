@@ -137,7 +137,7 @@ function buildInitialForm(
   const disabled = hasDisableAllModelsRule(cfg.excludedModels);
   const excludedList = stripDisableAllRule(cfg.excludedModels);
   return {
-    apiKey: '',
+    apiKey: cfg.apiKey ?? '',
     name: '',
     baseUrl: cfg.baseUrl ?? '',
     proxyUrl: cfg.proxyUrl ?? '',
