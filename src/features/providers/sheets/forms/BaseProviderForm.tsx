@@ -478,7 +478,7 @@ export function BaseProviderForm({
             <input
               id={`${fid}-apiKey`}
               className={styles.input}
-              type="password"
+              type="text"
               value={form.apiKey}
               onChange={(e) => updateField('apiKey', e.target.value)}
               placeholder={
