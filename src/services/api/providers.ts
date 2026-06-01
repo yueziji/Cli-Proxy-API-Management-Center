@@ -22,28 +22,19 @@ const serializeHeaders = (headers?: Record<string, string>) =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
-const RESPONSE_ONLY_FIELDS = ['auth-index', 'authIndex', 'auth_index'] as const;
+const RESPONSE_ONLY_FIELDS = ['auth-index'] as const;
 
 const PROVIDER_KEY_FIELDS = [
   'api-key',
-  'apiKey',
   'priority',
   'prefix',
   'base-url',
-  'baseUrl',
-  'base_url',
   'websockets',
   'proxy-url',
-  'proxyUrl',
-  'proxy_url',
   'headers',
   'models',
   'excluded-models',
-  'excludedModels',
-  'excluded_models',
   'disable-cooling',
-  'disableCooling',
-  'disable_cooling',
   'cloak',
 ] as const;
 
@@ -58,63 +49,18 @@ const OPENAI_PROVIDER_FIELDS = [
   'disabled',
   'prefix',
   'base-url',
-  'baseUrl',
-  'base_url',
   'api-key-entries',
-  'apiKeyEntries',
-  'api_key_entries',
-  'api-keys',
-  'apiKeys',
-  'api_keys',
   'headers',
   'models',
   'test-model',
-  'testModel',
-  'test_model',
   'disable-cooling',
-  'disableCooling',
-  'disable_cooling',
 ] as const;
 
-const MODEL_ALIAS_FIELDS = [
-  'name',
-  'id',
-  'model',
-  'alias',
-  'display_name',
-  'displayName',
-  'priority',
-  'test-model',
-  'testModel',
-  'test_model',
-] as const;
+const MODEL_ALIAS_FIELDS = ['name', 'alias', 'priority', 'test-model'] as const;
 
-const API_KEY_ENTRY_FIELDS = [
-  'api-key',
-  'apiKey',
-  'key',
-  'proxy-url',
-  'proxyUrl',
-  'proxy_url',
-] as const;
+const API_KEY_ENTRY_FIELDS = ['api-key', 'proxy-url'] as const;
 
-const CLOAK_FIELDS = [
-  'mode',
-  'strict-mode',
-  'strictMode',
-  'strict_mode',
-  'sensitive-words',
-  'sensitiveWords',
-  'sensitive_words',
-] as const;
-
-const RAW_SECTION_ALIASES: Record<string, readonly string[]> = {
-  'gemini-api-key': ['gemini-api-key', 'geminiApiKey', 'geminiApiKeys'],
-  'codex-api-key': ['codex-api-key', 'codexApiKey', 'codexApiKeys'],
-  'claude-api-key': ['claude-api-key', 'claudeApiKey', 'claudeApiKeys'],
-  'vertex-api-key': ['vertex-api-key', 'vertexApiKey', 'vertexApiKeys'],
-  'openai-compatibility': ['openai-compatibility', 'openaiCompatibility', 'openAICompatibility'],
-};
+const CLOAK_FIELDS = ['mode', 'strict-mode', 'sensitive-words'] as const;
 
 const getStringField = (record: Record<string, unknown>, keys: readonly string[]) => {
   for (const key of keys) {
@@ -127,20 +73,19 @@ const getStringField = (record: Record<string, unknown>, keys: readonly string[]
 };
 
 const providerKeyIdentity = (record: Record<string, unknown>) => {
-  const apiKey = getStringField(record, ['api-key', 'apiKey']);
+  const apiKey = getStringField(record, ['api-key']);
   if (!apiKey) return '';
-  const baseUrl = getStringField(record, ['base-url', 'baseUrl', 'base_url']);
+  const baseUrl = getStringField(record, ['base-url']);
   return `${apiKey}\u0000${baseUrl}`;
 };
 
 const openAIProviderIdentity = (record: Record<string, unknown>) =>
-  getStringField(record, ['name', 'id']);
+  getStringField(record, ['name']);
 
-const modelIdentity = (record: Record<string, unknown>) =>
-  getStringField(record, ['name', 'id', 'model']);
+const modelIdentity = (record: Record<string, unknown>) => getStringField(record, ['name']);
 
 const apiKeyEntryIdentity = (record: Record<string, unknown>) =>
-  getStringField(record, ['api-key', 'apiKey', 'key']);
+  getStringField(record, ['api-key']);
 
 const cloneWithoutKnownFields = (
   raw: unknown,
@@ -212,14 +157,10 @@ const mergeKnownRecordList = (
   });
 };
 
-const getRawSectionList = (rawConfig: unknown, section: string) => {
+const getRawSectionList = (rawConfig: unknown, section: string): unknown[] => {
   if (!isRecord(rawConfig)) return [];
-  const aliases = RAW_SECTION_ALIASES[section] ?? [section];
-  for (const alias of aliases) {
-    const value = rawConfig[alias];
-    if (Array.isArray(value)) return value;
-  }
-  return [];
+  const value = rawConfig[section];
+  return Array.isArray(value) ? value : [];
 };
 
 const mergeModelPayloads = (raw: unknown, models: unknown) =>
@@ -252,9 +193,7 @@ const mergeProviderKeyPayload = (
 
 const mergeOpenAIProviderPayload = (raw: unknown, payload: Record<string, unknown>) => {
   const next = mergeKnownFields(raw, payload, OPENAI_PROVIDER_FIELDS);
-  const rawApiKeyEntries = isRecord(raw)
-    ? (raw['api-key-entries'] ?? raw.apiKeyEntries)
-    : undefined;
+  const rawApiKeyEntries = isRecord(raw) ? raw['api-key-entries'] : undefined;
   const apiKeyEntries = payload['api-key-entries'];
   if (Array.isArray(apiKeyEntries)) {
     next['api-key-entries'] = mergeKnownRecordList(
@@ -293,10 +232,9 @@ const buildPreservedList = async <T>(
 };
 
 const extractArrayPayload = (data: unknown, key: string): unknown[] => {
-  if (Array.isArray(data)) return data;
   if (!isRecord(data)) return [];
-  const candidate = data[key] ?? data.items ?? data.value ?? data.data ?? data;
-  return Array.isArray(candidate) ? candidate : [];
+  const list = data[key];
+  return Array.isArray(list) ? list : [];
 };
 
 const normalizeOpenAIProviderList = (data: unknown): OpenAIProviderConfig[] => {
@@ -357,8 +295,6 @@ const serializeModelAliases = (models?: ModelAlias[]) =>
 const serializeApiKeyEntry = (entry: ApiKeyEntry) => {
   const payload: Record<string, unknown> = { 'api-key': entry.apiKey };
   if (entry.proxyUrl) payload['proxy-url'] = entry.proxyUrl;
-  const headers = serializeHeaders(entry.headers);
-  if (headers) payload.headers = headers;
   return payload;
 };
 
