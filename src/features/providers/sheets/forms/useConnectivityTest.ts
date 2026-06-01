@@ -10,6 +10,20 @@ import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../typ
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
+const DEFAULT_MAX_TOKENS = 32;
+
+const TEST_PROMPTS = [
+  'Tell me a fun fact about the ocean.',
+  'What are a few tips for staying focused while working?',
+  'Suggest a good book to read on a rainy day.',
+  'Explain the water cycle in simple terms.',
+  'What is a creative way to use leftover vegetables?',
+  'Give me a short, upbeat quote to start the day.',
+  'What are some benefits of taking a short walk?',
+  'Recommend a relaxing weekend activity.',
+];
+
+const pickPrompt = (): string => TEST_PROMPTS[Math.floor(Math.random() * TEST_PROMPTS.length)];
 
 export type ConnectivityState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -228,9 +242,9 @@ export function useConnectivityTest(
             header: headerObj,
             data: JSON.stringify({
               model,
-              messages: [{ role: 'user', content: 'Hi' }],
+              messages: [{ role: 'user', content: pickPrompt() }],
               stream: false,
-              max_tokens: 5,
+              max_tokens: DEFAULT_MAX_TOKENS,
             }),
           },
           { timeout: DEFAULT_TIMEOUT_MS }
@@ -330,8 +344,8 @@ export function useConnectivityTest(
           header: headerObj,
           data: JSON.stringify({
             model,
-            max_tokens: 8,
-            messages: [{ role: 'user', content: 'Hi' }],
+            max_tokens: DEFAULT_MAX_TOKENS,
+            messages: [{ role: 'user', content: pickPrompt() }],
           }),
         },
         { timeout: DEFAULT_TIMEOUT_MS }
@@ -408,9 +422,9 @@ export function useConnectivityTest(
           header: headerObj,
           data: JSON.stringify({
             model,
-            input: 'Hi',
+            input: pickPrompt(),
             stream: false,
-            max_output_tokens: 8,
+            max_output_tokens: DEFAULT_MAX_TOKENS,
           }),
         },
         { timeout: DEFAULT_TIMEOUT_MS }
