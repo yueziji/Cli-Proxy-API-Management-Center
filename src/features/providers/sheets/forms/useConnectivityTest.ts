@@ -6,11 +6,7 @@ import {
   buildOpenAIChatCompletionsEndpoint,
 } from '@/components/providers/utils';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
-import type {
-  ApiKeyEntryInput,
-  ModelEntryInput,
-  ProviderBrand,
-} from '../../types';
+import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
@@ -30,10 +26,7 @@ const errorMessage = (err: unknown): string => {
   return '';
 };
 
-const pickModel = (
-  testModel: string | undefined,
-  models: ModelEntryInput[]
-): string => {
+const pickModel = (testModel: string | undefined, models: ModelEntryInput[]): string => {
   const trimmed = (testModel ?? '').trim();
   if (trimmed) return trimmed;
   for (const m of models) {
@@ -43,27 +36,8 @@ const pickModel = (
   return '';
 };
 
-const parseHeadersText = (text: string): Record<string, string> => {
-  const out: Record<string, string> = {};
-  String(text ?? '')
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .forEach((line) => {
-      const sep = line.indexOf(':');
-      if (sep <= 0) return;
-      const key = line.slice(0, sep).trim();
-      const value = line.slice(sep + 1).trim();
-      if (!key) return;
-      out[key] = value;
-    });
-  return out;
-};
-
 const resolveBearerToken = (headers: Record<string, string>): string => {
-  const auth = Object.entries(headers).find(
-    ([k]) => k.toLowerCase() === 'authorization'
-  )?.[1];
+  const auth = Object.entries(headers).find(([k]) => k.toLowerCase() === 'authorization')?.[1];
   if (!auth) return '';
   const match = String(auth).match(/^Bearer\s+(.+)$/i);
   return match ? match[1].trim() : '';
@@ -119,8 +93,8 @@ export function useConnectivityTest(
 
   const entriesCount = apiKeyEntries?.length ?? 0;
 
-  const [openaiStatuses, setOpenaiStatuses] = useState<ConnectivityStatus[]>(
-    () => Array.from({ length: entriesCount }, () => IDLE)
+  const [openaiStatuses, setOpenaiStatuses] = useState<ConnectivityStatus[]>(() =>
+    Array.from({ length: entriesCount }, () => IDLE)
   );
   const [claudeStatus, setClaudeStatus] = useState<ConnectivityStatus>(IDLE);
   const [codexStatus, setCodexStatus] = useState<ConnectivityStatus>(IDLE);
@@ -128,14 +102,13 @@ export function useConnectivityTest(
 
   const entrySignatures = useMemo(
     () =>
-      (apiKeyEntries ?? []).map(
-        (entry) =>
-          [
-            entry.apiKey ?? '',
-            entry.authIndex ?? '',
-            entry.proxyUrl ?? '',
-            entry.headersText ?? '',
-          ].join('||')
+      (apiKeyEntries ?? []).map((entry) =>
+        [
+          entry.apiKey ?? '',
+          entry.existingApiKey ?? '',
+          entry.authIndex ?? '',
+          entry.proxyUrl ?? '',
+        ].join('||')
       ),
     [apiKeyEntries]
   );
@@ -184,16 +157,13 @@ export function useConnectivityTest(
     setCodexStatus(IDLE);
   }, [signature]);
 
-  const updateOpenaiStatus = useCallback(
-    (idx: number, value: ConnectivityStatus) => {
-      setOpenaiStatuses((prev) => {
-        const next = [...prev];
-        next[idx] = value;
-        return next;
-      });
-    },
-    []
-  );
+  const updateOpenaiStatus = useCallback((idx: number, value: ConnectivityStatus) => {
+    setOpenaiStatuses((prev) => {
+      const next = [...prev];
+      next[idx] = value;
+      return next;
+    });
+  }, []);
 
   const runOpenAIKey = useCallback(
     async (idx: number): Promise<boolean> => {
@@ -216,7 +186,7 @@ export function useConnectivityTest(
         return false;
       }
       const entry = apiKeyEntries?.[idx];
-      const entryKey = (entry?.apiKey ?? '').trim();
+      const entryKey = (entry?.apiKey ?? '').trim() || (entry?.existingApiKey ?? '').trim();
       const resolvedAuthIndex =
         (entry?.authIndex ?? '').trim() || (authIndex ?? '').trim() || undefined;
       if (!entryKey && !resolvedAuthIndex) {
@@ -238,7 +208,6 @@ export function useConnectivityTest(
       const headerObj: Record<string, string> = {
         'Content-Type': 'application/json',
         ...buildHeaderObject(formHeaders),
-        ...parseHeadersText(entry?.headersText ?? ''),
       };
       if (!hasHeader(headerObj, 'authorization')) {
         if (entryKey) {
@@ -388,17 +357,7 @@ export function useConnectivityTest(
     } finally {
       setInFlight((n) => n - 1);
     }
-  }, [
-    apiKey,
-    authIndex,
-    baseUrl,
-    brand,
-    fallbackApiKey,
-    formHeaders,
-    messages,
-    models,
-    testModel,
-  ]);
+  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
 
   const runCodex = useCallback(async (): Promise<void> => {
     if (brand !== 'codex') return;
