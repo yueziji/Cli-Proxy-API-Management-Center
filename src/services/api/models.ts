@@ -6,6 +6,7 @@ import axios from 'axios';
 import { normalizeModelList } from '@/utils/models';
 import { normalizeApiBase } from '@/utils/connection';
 import { apiCallApi, getApiCallErrorMessage } from './apiCall';
+import { TEST_USER_AGENTS } from '@/utils/constants';
 
 const DEFAULT_CLAUDE_BASE_URL = 'https://api.anthropic.com';
 const DEFAULT_GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com';
@@ -127,6 +128,9 @@ export const modelsApi = {
     } else if (trimmedAuthIndex && !hasHeader(resolvedHeaders, 'authorization')) {
       resolvedHeaders.Authorization = 'Bearer $TOKEN$';
     }
+    if (!hasHeader(resolvedHeaders, 'user-agent')) {
+      resolvedHeaders['User-Agent'] = TEST_USER_AGENTS.codex;
+    }
 
     const result = await apiCallApi.request({
       authIndex: trimmedAuthIndex,
@@ -163,6 +167,9 @@ export const modelsApi = {
       resolvedHeaders.Authorization = `Bearer ${apiKey}`;
     } else if (trimmedAuthIndex && !hasHeader(resolvedHeaders, 'authorization')) {
       resolvedHeaders.Authorization = 'Bearer $TOKEN$';
+    }
+    if (!hasHeader(resolvedHeaders, 'user-agent')) {
+      resolvedHeaders['User-Agent'] = TEST_USER_AGENTS.openai;
     }
 
     const result = await apiCallApi.request({
@@ -222,6 +229,9 @@ export const modelsApi = {
     if (!hasHeader(resolvedHeaders, 'anthropic-version')) {
       resolvedHeaders['anthropic-version'] = DEFAULT_ANTHROPIC_VERSION;
     }
+    if (!hasHeader(resolvedHeaders, 'user-agent')) {
+      resolvedHeaders['User-Agent'] = TEST_USER_AGENTS.claude;
+    }
 
     const signature = buildRequestSignature(endpoint, resolvedHeaders, trimmedAuthIndex);
     const existing = CLAUDE_MODELS_IN_FLIGHT.get(signature);
@@ -273,6 +283,9 @@ export const modelsApi = {
       resolvedHeaders['x-goog-api-key'] = resolvedApiKey;
     } else if (trimmedAuthIndex && !hasHeader(resolvedHeaders, 'x-goog-api-key')) {
       resolvedHeaders['x-goog-api-key'] = '$TOKEN$';
+    }
+    if (!hasHeader(resolvedHeaders, 'user-agent')) {
+      resolvedHeaders['User-Agent'] = TEST_USER_AGENTS.gemini;
     }
 
     const signature = buildRequestSignature(endpoint, resolvedHeaders, trimmedAuthIndex);
