@@ -6,9 +6,11 @@ import geminiLogo from '@/assets/icons/gemini.svg';
 import openaiLogo from '@/assets/icons/openai-light.svg';
 import vertexLogo from '@/assets/icons/vertex.svg';
 import { IconPlus, IconSearch } from '@/components/ui/icons';
+import { useContainerNarrow } from '@/hooks/useContainerNarrow';
 import type { ProviderRecentUsageMap } from '@/components/providers/utils';
 import type { ProviderBrand, ProviderGroup, ProviderResource } from '../types';
 import { ProviderResourceTable } from './ProviderResourceTable';
+import { ProviderResourceCards } from './ProviderResourceCards';
 import {
   OpenAIBrandToolbar,
   type OpenAISortBy,
@@ -68,11 +70,12 @@ export function ProviderResourcePanel({
 }: ProviderResourcePanelProps) {
   const { t } = useTranslation();
   const logo = LOGOS[group.id];
+  const [useCards, panelRef] = useContainerNarrow(760);
 
   const realResources = filteredResources.filter((r) => !r.flags.isPlaceholder);
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} ref={panelRef}>
       <div className={styles.header}>
         <div className={styles.headerMain}>
           <div className={styles.titleArea}>
@@ -154,6 +157,17 @@ export function ProviderResourcePanel({
             </button>
           </div>
         </div>
+      ) : useCards ? (
+        <ProviderResourceCards
+          resources={filteredResources}
+          selectedId={selectedId}
+          disableMutations={disableMutations}
+          usageByProvider={usageByProvider}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onToggleDisabled={onToggleDisabled}
+        />
       ) : (
         <ProviderResourceTable
           resources={filteredResources}
