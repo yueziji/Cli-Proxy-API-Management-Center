@@ -6,6 +6,7 @@ import {
   buildOpenAIChatCompletionsEndpoint,
 } from '@/components/providers/utils';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
+import { TEST_USER_AGENTS } from '@/utils/constants';
 import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -230,6 +231,9 @@ export function useConnectivityTest(
           headerObj.Authorization = 'Bearer $TOKEN$';
         }
       }
+      if (!hasHeader(headerObj, 'user-agent')) {
+        headerObj['User-Agent'] = TEST_USER_AGENTS.openai;
+      }
 
       updateOpenaiStatus(idx, { state: 'loading', message: '' });
       setInFlight((n) => n + 1);
@@ -332,6 +336,9 @@ export function useConnectivityTest(
     } else if (!hasApiKeyHeader && resolvedAuthIndex) {
       headerObj['x-api-key'] = '$TOKEN$';
     }
+    if (!hasHeader(headerObj, 'user-agent')) {
+      headerObj['User-Agent'] = TEST_USER_AGENTS.claude;
+    }
 
     setClaudeStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);
@@ -409,6 +416,9 @@ export function useConnectivityTest(
     };
     if (!hasHeader(headerObj, 'authorization')) {
       headerObj.Authorization = resolvedKey ? `Bearer ${resolvedKey}` : 'Bearer $TOKEN$';
+    }
+    if (!hasHeader(headerObj, 'user-agent')) {
+      headerObj['User-Agent'] = TEST_USER_AGENTS.codex;
     }
 
     setCodexStatus({ state: 'loading', message: '' });

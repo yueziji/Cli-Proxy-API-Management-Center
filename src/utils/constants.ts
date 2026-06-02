@@ -54,3 +54,11 @@ export const SUPPORTED_LANGUAGES = LANGUAGE_ORDER;
 
 // 通知持续时间
 export const NOTIFICATION_DURATION_MS = 3000;
+
+// 测试请求默认 User-Agent(模拟真实客户端,避免 Go-http-client 被识别为探测)
+export const TEST_USER_AGENTS = {
+  claude: 'claude-cli/2.1.70 (external, cli)',
+  codex: 'codex_cli_rs/0.118.0 (Mac OS 26.3.1; arm64) iTerm.app/3.6.9',
+  gemini: 'GeminiCLI/0.34.0/unknown (darwin; arm64; terminal)',
+  openai: 'OpenAI/Python 1.109.1',
+} as const;
