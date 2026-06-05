@@ -1333,7 +1333,15 @@
       "validation": {
         "nameRequired": "名称必填",
         "apiKeyRequired": "至少填写一个 API 密钥",
-        "baseUrlRequired": "服务地址必填"
+        "baseUrlRequired": "服务地址必填",
+        "baseUrlInvalid": "服务地址不是合法的 URL",
+        "baseUrlProtocol": "服务地址必须以 http:// 或 https:// 开头",
+        "baseUrlNoHost": "服务地址缺少主机名",
+        "baseUrlHasWhitespace": "服务地址不能包含空格",
+        "baseUrlDoubleSlash": "路径中包含多余的斜杠（//），通常会导致请求失败",
+        "baseUrlHasQuery": "服务地址包含查询参数（?…），通常不需要填写。",
+        "baseUrlHasFragment": "服务地址包含锚点（#…），通常不需要填写。",
+        "baseUrlEndpointSuffix": "服务地址末尾似乎已包含接口路径，网关会自动拼接，可能导致路径重复。"
       }
     },
     "ampcode": {

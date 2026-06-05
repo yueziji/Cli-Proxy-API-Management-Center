@@ -1359,7 +1359,15 @@
       "validation": {
         "nameRequired": "名稱必填",
         "apiKeyRequired": "至少填寫一個 API 金鑰",
-        "baseUrlRequired": "服務位址必填"
+        "baseUrlRequired": "服務位址必填",
+        "baseUrlInvalid": "服務位址不是合法的 URL",
+        "baseUrlProtocol": "服務位址必須以 http:// 或 https:// 開頭",
+        "baseUrlNoHost": "服務位址缺少主機名稱",
+        "baseUrlHasWhitespace": "服務位址不能包含空格",
+        "baseUrlDoubleSlash": "路徑中包含多餘的斜線（//），通常會導致請求失敗",
+        "baseUrlHasQuery": "服務位址包含查詢參數（?…），通常不需要填寫。",
+        "baseUrlHasFragment": "服務位址包含錨點（#…），通常不需要填寫。",
+        "baseUrlEndpointSuffix": "服務位址結尾似乎已包含介面路徑，閘道會自動拼接，可能導致路徑重複。"
       }
     },
     "ampcode": {

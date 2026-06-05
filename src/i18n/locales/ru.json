@@ -1330,7 +1330,15 @@
       "validation": {
         "nameRequired": "Название обязательно",
         "apiKeyRequired": "Нужен хотя бы один API-ключ",
-        "baseUrlRequired": "Base URL обязателен"
+        "baseUrlRequired": "Base URL обязателен",
+        "baseUrlInvalid": "Base URL не является корректным URL",
+        "baseUrlProtocol": "Base URL должен начинаться с http:// или https://",
+        "baseUrlNoHost": "В Base URL отсутствует имя хоста",
+        "baseUrlHasWhitespace": "Base URL не должен содержать пробелов",
+        "baseUrlDoubleSlash": "Путь содержит лишние слэши (//), что обычно приводит к ошибкам запросов",
+        "baseUrlHasQuery": "Base URL содержит строку запроса (?…); обычно она не нужна.",
+        "baseUrlHasFragment": "Base URL содержит фрагмент (#…); обычно он не нужен.",
+        "baseUrlEndpointSuffix": "Base URL, похоже, уже содержит путь эндпоинта; шлюз добавит его автоматически, что может привести к дублированию пути."
       }
     },
     "ampcode": {

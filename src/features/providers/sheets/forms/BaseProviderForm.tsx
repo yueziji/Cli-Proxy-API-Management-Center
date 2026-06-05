@@ -13,6 +13,7 @@ import {
 import { Collapsible } from '@/components/ui/Collapsible';
 import { Select } from '@/components/ui/Select';
 import { hasDisableAllModelsRule } from '@/components/providers/utils';
+import { validateBaseUrl } from '@/utils/validation';
 import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import { PROVIDER_DESCRIPTORS } from '../../descriptors';
@@ -229,6 +230,17 @@ export function BaseProviderForm({
     onDirtyChange?.(isDirty);
   }, [isDirty, onDirtyChange]);
 
+  // baseUrl 实时校验：硬错误用于阻止保存，软提示展示在输入框下方。
+  const baseUrlValidation = useMemo(() => validateBaseUrl(form.baseUrl), [form.baseUrl]);
+  const baseUrlError =
+    descriptor.supportsBaseUrl && form.baseUrl.trim() && baseUrlValidation.errorKey
+      ? baseUrlValidation.errorKey
+      : null;
+  const baseUrlWarnings =
+    descriptor.supportsBaseUrl && form.baseUrl.trim() && !baseUrlValidation.errorKey
+      ? baseUrlValidation.warningKeys
+      : [];
+
   const fallbackApiKey = useMemo(() => {
     if (mode !== 'edit' || !resource) return '';
     if (brand === 'openaiCompatibility') return '';
@@ -386,6 +398,9 @@ export function BaseProviderForm({
     if (descriptor.baseUrlRequired && !form.baseUrl.trim()) {
       return t('providersPage.form.validation.baseUrlRequired');
     }
+    if (descriptor.supportsBaseUrl && form.baseUrl.trim() && baseUrlValidation.errorKey) {
+      return t(`providersPage.form.validation.${baseUrlValidation.errorKey}`);
+    }
     if (
       brand === 'openaiCompatibility' &&
       mode === 'create' &&
@@ -405,7 +420,13 @@ export function BaseProviderForm({
     }
     try {
       setError(null);
-      await onSubmit(form);
+      // 用规整后的 baseUrl 提交（裸域名补 https://、去掉末尾斜杠），
+      // 与后端各 executor 的 URL 拼接行为对齐。
+      const payload =
+        descriptor.supportsBaseUrl && form.baseUrl.trim()
+          ? { ...form, baseUrl: baseUrlValidation.normalized }
+          : form;
+      await onSubmit(payload);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -544,7 +565,19 @@ export function BaseProviderForm({
               onChange={(e) => updateField('baseUrl', e.target.value)}
               placeholder="https://api.example.com"
               disabled={mutating}
+              aria-invalid={baseUrlError ? true : undefined}
             />
+            {baseUrlError ? (
+              <span className={styles.fieldError}>
+                {t(`providersPage.form.validation.${baseUrlError}`)}
+              </span>
+            ) : baseUrlWarnings.length ? (
+              <span className={styles.fieldWarning}>
+                {baseUrlWarnings
+                  .map((key) => t(`providersPage.form.validation.${key}`))
+                  .join(' ')}
+              </span>
+            ) : null}
           </div>
         ) : null}
 

@@ -1333,7 +1333,15 @@
       "validation": {
         "nameRequired": "Name is required",
         "apiKeyRequired": "At least one API key is required",
-        "baseUrlRequired": "Base URL is required"
+        "baseUrlRequired": "Base URL is required",
+        "baseUrlInvalid": "Base URL is not a valid URL",
+        "baseUrlProtocol": "Base URL must start with http:// or https://",
+        "baseUrlNoHost": "Base URL is missing a host",
+        "baseUrlHasWhitespace": "Base URL must not contain spaces",
+        "baseUrlDoubleSlash": "The path contains duplicate slashes (//), which usually causes request failures",
+        "baseUrlHasQuery": "Base URL contains a query string (?…); it is usually not needed.",
+        "baseUrlHasFragment": "Base URL contains a fragment (#…); it is usually not needed.",
+        "baseUrlEndpointSuffix": "Base URL appears to already include an endpoint path; the gateway appends it automatically, which may cause a duplicated path."
       }
     },
     "ampcode": {
