@@ -162,6 +162,22 @@
   line-height: 1.5;
 }
 
+.fieldError {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--destructive-color);
+  word-break: break-word;
+}
+
+.fieldWarning {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--amber-text, #92400e);
+  word-break: break-word;
+}
+
 .dl {
   display: grid;
   grid-template-columns: 1fr 1fr;
