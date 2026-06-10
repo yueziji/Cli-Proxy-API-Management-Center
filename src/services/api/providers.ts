@@ -117,7 +117,8 @@ const findRawRecord = (
   usedIndexes: Set<number>,
   payload: Record<string, unknown>,
   index: number,
-  getIdentity: (record: Record<string, unknown>) => string
+  getIdentity: (record: Record<string, unknown>) => string,
+  fallbackByIndex = true
 ) => {
   const identity = getIdentity(payload);
   if (identity) {
@@ -131,10 +132,12 @@ const findRawRecord = (
     }
   }
 
-  const fallback = rawRecords[index];
-  if (fallback && !usedIndexes.has(index)) {
-    usedIndexes.add(index);
-    return fallback;
+  if (fallbackByIndex) {
+    const fallback = rawRecords[index];
+    if (fallback && !usedIndexes.has(index)) {
+      usedIndexes.add(index);
+      return fallback;
+    }
   }
 
   return undefined;
@@ -144,7 +147,8 @@ const mergeKnownRecordList = (
   rawItems: unknown,
   payloadItems: Record<string, unknown>[],
   knownFields: readonly string[],
-  getIdentity: (record: Record<string, unknown>) => string
+  getIdentity: (record: Record<string, unknown>) => string,
+  fallbackByIndex = true
 ) => {
   const rawRecords = Array.isArray(rawItems)
     ? rawItems.map((item) => (isRecord(item) ? item : undefined))
@@ -152,7 +156,14 @@ const mergeKnownRecordList = (
   const usedIndexes = new Set<number>();
 
   return payloadItems.map((payload, index) => {
-    const raw = findRawRecord(rawRecords, usedIndexes, payload, index, getIdentity);
+    const raw = findRawRecord(
+      rawRecords,
+      usedIndexes,
+      payload,
+      index,
+      getIdentity,
+      fallbackByIndex
+    );
     return mergeKnownFields(raw, payload, knownFields);
   });
 };
@@ -169,7 +180,8 @@ const mergeModelPayloads = (raw: unknown, models: unknown) =>
         isRecord(raw) ? raw.models : undefined,
         models.filter(isRecord),
         MODEL_ALIAS_FIELDS,
-        modelIdentity
+        modelIdentity,
+        false
       )
     : undefined;
 
@@ -529,6 +541,6 @@ export const providersApi = {
   updateOpenAIProviderDisabled: (index: number, disabled: boolean) =>
     apiClient.patch('/openai-compatibility', { index, value: { disabled } }),
 
-  deleteOpenAIProvider: (name: string) =>
-    apiClient.delete(`/openai-compatibility?name=${encodeURIComponent(name)}`),
+  deleteOpenAIProvider: (index: number) =>
+    apiClient.delete(`/openai-compatibility?index=${encodeURIComponent(String(index))}`),
 };
