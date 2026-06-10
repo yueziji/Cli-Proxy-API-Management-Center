@@ -81,11 +81,13 @@ function buildInitialForm(
           ? { mode: '', strictMode: false, sensitiveWordsText: '' }
           : undefined,
       testModel:
-        brand === 'openaiCompatibility' || brand === 'claude' || brand === 'codex'
+        brand === 'openaiCompatibility' ||
+        brand === 'claude' ||
+        brand === 'codex' ||
+        brand === 'gemini'
           ? ''
           : undefined,
-      apiKeyEntries:
-        brand === 'openaiCompatibility' ? [emptyApiKeyEntry()] : undefined,
+      apiKeyEntries: brand === 'openaiCompatibility' ? [emptyApiKeyEntry()] : undefined,
     };
   }
 
@@ -156,9 +158,9 @@ function buildInitialForm(
             mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',
             strictMode: (cfg as ProviderKeyConfig).cloak?.strictMode === true,
             sensitiveWordsText: (cfg as ProviderKeyConfig).cloak?.sensitiveWords?.join('\n') ?? '',
-          }
+        }
         : undefined,
-    testModel: brand === 'claude' || brand === 'codex' ? '' : undefined,
+    testModel: brand === 'claude' || brand === 'codex' || brand === 'gemini' ? '' : undefined,
   };
 }
 
@@ -447,6 +449,7 @@ export function BaseProviderForm({
       form.apiKeyEntries && form.apiKeyEntries.length ? form.apiKeyEntries : [emptyApiKeyEntry()],
     [form.apiKeyEntries]
   );
+  const actualApiKeyEntries = form.apiKeyEntries ?? [];
   const openaiAggregateStatus = useMemo<ConnectivityState>(() => {
     if (brand !== 'openaiCompatibility') return 'idle';
     if (connectivity.openaiStatuses.some((status) => status.state === 'loading')) {
@@ -463,6 +466,14 @@ export function BaseProviderForm({
     ).length;
     return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
   }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
+  const singleConnectivity =
+    brand === 'gemini'
+      ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
+      : brand === 'claude'
+        ? { status: connectivity.claudeStatus, run: connectivity.runClaude }
+        : brand === 'codex'
+          ? { status: connectivity.codexStatus, run: connectivity.runCodex }
+        : null;
 
   const removeApiKeyEntry = (removeIdx: number) => {
     setShowPasswords((prev) => {
@@ -479,7 +490,7 @@ export function BaseProviderForm({
     });
     updateField(
       'apiKeyEntries',
-      apiKeyEntries.filter((_, i) => i !== removeIdx)
+      actualApiKeyEntries.filter((_, i) => i !== removeIdx)
     );
   };
 
@@ -638,7 +649,7 @@ export function BaseProviderForm({
           <div className={styles.field}>
             <label className={styles.label} htmlFor={`${fid}-testModel`}>
               {t('providersPage.form.testModel')}
-              {brand === 'claude' || brand === 'codex' ? (
+              {brand === 'claude' || brand === 'codex' || brand === 'gemini' ? (
                 <span className={styles.labelHint}>
                   {' '}
                   · {t('providersPage.form.testModelClaudeHint')}
@@ -675,50 +686,31 @@ export function BaseProviderForm({
                   </span>
                 ) : null}
               </div>
-            ) : brand === 'claude' || brand === 'codex' ? (
+            ) : singleConnectivity ? (
               <div className={styles.connectivityRow}>
                 <button
                   type="button"
                   className={styles.connectivityBtn}
                   disabled={mutating || connectivity.isTestingAny}
-                  onClick={() =>
-                    brand === 'codex'
-                      ? void connectivity.runCodex()
-                      : void connectivity.runClaude()
-                  }
+                  onClick={() => void singleConnectivity.run()}
                 >
-                  {(brand === 'codex'
-                    ? connectivity.codexStatus.state
-                    : connectivity.claudeStatus.state) === 'loading' ? (
+                  {singleConnectivity.status.state === 'loading' ? (
                     <span className={`${styles.statusIcon} ${styles.statusIconLoading}`}>
                       <IconLoader2 size={14} />
                     </span>
                   ) : null}
                   <span>{t('providersPage.connectivity.test')}</span>
                 </button>
-                <ConnectivityStatusIcon
-                  state={
-                    brand === 'codex'
-                      ? connectivity.codexStatus.state
-                      : connectivity.claudeStatus.state
-                  }
-                />
-                {(brand === 'codex'
-                  ? connectivity.codexStatus.state
-                  : connectivity.claudeStatus.state) === 'success' ? (
+                <ConnectivityStatusIcon state={singleConnectivity.status.state} />
+                {singleConnectivity.status.state === 'success' ? (
                   <span className={styles.connectivityHintSuccess}>
                     {t('providersPage.connectivity.success')}
                   </span>
                 ) : null}
               </div>
             ) : null}
-            {brand === 'claude' && connectivity.claudeStatus.state === 'error' ? (
-              <div className={styles.connectivityError}>{connectivity.claudeStatus.message}</div>
-            ) : null}
-            {brand === 'codex' && connectivity.codexStatus.state === 'error' ? (
-              <div className={styles.connectivityError}>
-                {connectivity.codexStatus.message}
-              </div>
+            {singleConnectivity?.status.state === 'error' ? (
+              <div className={styles.connectivityError}>{singleConnectivity.status.message}</div>
             ) : null}
           </div>
         ) : null}
@@ -785,7 +777,9 @@ export function BaseProviderForm({
                 type="button"
                 className={styles.addBtn}
                 disabled={mutating}
-                onClick={() => updateField('apiKeyEntries', [...apiKeyEntries, emptyApiKeyEntry()])}
+                onClick={() =>
+                  updateField('apiKeyEntries', [...actualApiKeyEntries, emptyApiKeyEntry()])
+                }
               >
                 <IconPlus size={12} />
                 <span>{t('providersPage.form.addApiKeyEntry')}</span>
@@ -833,7 +827,7 @@ export function BaseProviderForm({
                       <button
                         type="button"
                         className={styles.removeBtn}
-                        disabled={mutating || apiKeyEntries.length <= 1}
+                        disabled={mutating || actualApiKeyEntries.length === 0}
                         onClick={() => removeApiKeyEntry(realIdx)}
                       >
                         <IconX size={12} />

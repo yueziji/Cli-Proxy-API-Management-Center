@@ -124,7 +124,7 @@ export interface ProviderEntryFormInput {
   websockets?: boolean;
   /** Claude 专属 */
   cloak?: CloakInput;
-  /** 连接测试使用；OpenAI 会保存，其它 brand 仅用于测试 */
+  /** 连接测试使用；OpenAI 会保存，Gemini/Codex/Claude 仅用于测试 */
   testModel?: string;
   apiKeyEntries?: ApiKeyEntryInput[];
 }
