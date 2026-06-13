@@ -7,8 +7,8 @@ import {
   buildOpenAIChatCompletionsEndpoint,
 } from '@/components/providers/utils';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
-import { TEST_USER_AGENTS } from '@/utils/constants';
 import { getErrorMessage } from '@/utils/helpers';
+import { ensureTestUserAgent } from '@/utils/testRequestHeaders';
 import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -243,9 +243,7 @@ export function useConnectivityTest(
           headerObj.Authorization = 'Bearer $TOKEN$';
         }
       }
-      if (!hasHeader(headerObj, 'user-agent')) {
-        headerObj['User-Agent'] = TEST_USER_AGENTS.openai;
-      }
+      ensureTestUserAgent(headerObj, 'openai');
 
       updateOpenaiStatus(idx, { state: 'loading', message: '' });
       setInFlight((n) => n + 1);
@@ -338,9 +336,7 @@ export function useConnectivityTest(
         headerObj['x-goog-api-key'] = '$TOKEN$';
       }
     }
-    if (!hasHeader(headerObj, 'user-agent')) {
-      headerObj['User-Agent'] = TEST_USER_AGENTS.gemini;
-    }
+    ensureTestUserAgent(headerObj, 'gemini');
 
     setGeminiStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);
@@ -411,9 +407,7 @@ export function useConnectivityTest(
     } else if (!hasApiKeyHeader && resolvedAuthIndex) {
       headerObj['x-api-key'] = '$TOKEN$';
     }
-    if (!hasHeader(headerObj, 'user-agent')) {
-      headerObj['User-Agent'] = TEST_USER_AGENTS.claude;
-    }
+    ensureTestUserAgent(headerObj, 'claude');
 
     setClaudeStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);
@@ -483,9 +477,7 @@ export function useConnectivityTest(
     if (!hasHeader(headerObj, 'authorization')) {
       headerObj.Authorization = resolvedKey ? `Bearer ${resolvedKey}` : 'Bearer $TOKEN$';
     }
-    if (!hasHeader(headerObj, 'user-agent')) {
-      headerObj['User-Agent'] = TEST_USER_AGENTS.codex;
-    }
+    ensureTestUserAgent(headerObj, 'codex');
 
     setCodexStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);

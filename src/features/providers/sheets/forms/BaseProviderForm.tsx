@@ -25,6 +25,12 @@ import type {
   ProviderResource,
 } from '../../types';
 import {
+  supportsDisableCoolingControl,
+  supportsOpenAIModelOptions as supportsOpenAIModelOptionsForBrand,
+  supportsSingleKeyTestModel,
+  supportsTestModelSelection,
+} from '../../providerCapabilities';
+import {
   useConnectivityTest,
   type ConnectivityErrorMessages,
   type ConnectivityState,
@@ -86,13 +92,7 @@ function buildInitialForm(
           ? { mode: '', strictMode: false, sensitiveWordsText: '', cacheUserId: false }
           : undefined,
       experimentalCchSigning: brand === 'claude' ? false : undefined,
-      testModel:
-        brand === 'openaiCompatibility' ||
-        brand === 'claude' ||
-        brand === 'codex' ||
-        brand === 'gemini'
-          ? ''
-          : undefined,
+      testModel: supportsTestModelSelection(brand) ? '' : undefined,
       apiKeyEntries: brand === 'openaiCompatibility' ? [emptyApiKeyEntry()] : undefined,
     };
   }
@@ -173,7 +173,7 @@ function buildInitialForm(
       brand === 'claude'
         ? (cfg as ProviderKeyConfig).experimentalCchSigning === true
         : undefined,
-    testModel: brand === 'claude' || brand === 'codex' || brand === 'gemini' ? '' : undefined,
+    testModel: supportsSingleKeyTestModel(brand) ? '' : undefined,
   };
 }
 
@@ -484,12 +484,8 @@ export function BaseProviderForm({
     ).length;
     return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
   }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
-  const supportsDisableCooling =
-    brand === 'gemini' ||
-    brand === 'codex' ||
-    brand === 'claude' ||
-    brand === 'openaiCompatibility';
-  const supportsOpenAIModelOptions = brand === 'openaiCompatibility';
+  const supportsDisableCooling = supportsDisableCoolingControl(brand);
+  const supportsOpenAIModelOptions = supportsOpenAIModelOptionsForBrand(brand);
   const singleConnectivity =
     brand === 'gemini'
       ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
@@ -687,7 +683,7 @@ export function BaseProviderForm({
           <div className={styles.field}>
             <label className={styles.label} htmlFor={`${fid}-testModel`}>
               {t('providersPage.form.testModel')}
-              {brand === 'claude' || brand === 'codex' || brand === 'gemini' ? (
+              {supportsSingleKeyTestModel(brand) ? (
                 <span className={styles.labelHint}>
                   {' '}
                   · {t('providersPage.form.testModelClaudeHint')}
