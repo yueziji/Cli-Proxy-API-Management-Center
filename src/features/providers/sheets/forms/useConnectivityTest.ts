@@ -8,6 +8,7 @@ import {
 } from '@/components/providers/utils';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
 import { TEST_USER_AGENTS } from '@/utils/constants';
+import { getErrorMessage } from '@/utils/helpers';
 import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -36,14 +37,8 @@ export interface ConnectivityStatus {
 
 const IDLE: ConnectivityStatus = { state: 'idle', message: '' };
 
-const errorMessage = (err: unknown): string => {
-  if (err instanceof Error) return err.message;
-  if (typeof err === 'string') return err;
-  return '';
-};
-
 const requestFailureMessage = (err: unknown, messages: ConnectivityErrorMessages): string => {
-  const raw = errorMessage(err);
+  const raw = getErrorMessage(err);
   const isTimeout =
     (typeof err === 'object' &&
       err !== null &&
@@ -343,6 +338,9 @@ export function useConnectivityTest(
         headerObj['x-goog-api-key'] = '$TOKEN$';
       }
     }
+    if (!hasHeader(headerObj, 'user-agent')) {
+      headerObj['User-Agent'] = TEST_USER_AGENTS.gemini;
+    }
 
     setGeminiStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);
@@ -512,18 +510,9 @@ export function useConnectivityTest(
       }
       setCodexStatus({ state: 'success', message: '' });
     } catch (err) {
-      const raw = errorMessage(err);
-      const isTimeout =
-        (typeof err === 'object' &&
-          err !== null &&
-          'code' in err &&
-          String((err as { code?: string }).code) === 'ECONNABORTED') ||
-        raw.toLowerCase().includes('timeout');
       setCodexStatus({
         state: 'error',
-        message: isTimeout
-          ? messages.timeout(DEFAULT_TIMEOUT_MS / 1000)
-          : raw || messages.requestFailed,
+        message: requestFailureMessage(err, messages),
       });
     } finally {
       setInFlight((n) => n - 1);

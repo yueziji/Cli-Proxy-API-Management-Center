@@ -11,9 +11,7 @@ import type {
 } from '@/types';
 import type { Config } from '@/types/config';
 import { buildHeaderObject } from '@/utils/headers';
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === 'object' && !Array.isArray(value);
+import { isRecord } from '@/utils/helpers';
 
 const normalizeBoolean = (value: unknown): boolean | undefined =>
   typeof value === 'boolean' ? value : undefined;
@@ -35,6 +33,9 @@ const normalizeBooleanAliasValue = (
 const normalizeDisableCooling = (record: Record<string, unknown> | null) =>
   normalizeBooleanAliasValue(record, ['disable-cooling', 'disableCooling', 'disable_cooling']);
 
+const normalizeRecord = (value: unknown): Record<string, unknown> | undefined =>
+  isRecord(value) ? value : undefined;
+
 const normalizeModelAliases = (models: unknown): ModelAlias[] => {
   if (!Array.isArray(models)) return [];
   return models
@@ -51,6 +52,8 @@ const normalizeModelAliases = (models: unknown): ModelAlias[] => {
       const alias = item.alias;
       const priority = item.priority;
       const testModel = item['test-model'];
+      const image = normalizeBoolean(item.image);
+      const thinking = normalizeRecord(item.thinking);
       const entry: ModelAlias = { name: String(name) };
       if (alias && alias !== name) {
         entry.alias = String(alias);
@@ -63,6 +66,12 @@ const normalizeModelAliases = (models: unknown): ModelAlias[] => {
       }
       if (testModel) {
         entry.testModel = String(testModel);
+      }
+      if (image !== undefined) {
+        entry.image = image;
+      }
+      if (thinking) {
+        entry.thinking = thinking;
       }
       return entry;
     })
@@ -175,9 +184,17 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
     if (sensitiveWords.length) {
       cloak.sensitiveWords = sensitiveWords;
     }
+    const cacheUserId = normalizeBoolean(cloakRaw['cache-user-id']);
+    if (cacheUserId !== undefined) {
+      cloak.cacheUserId = cacheUserId;
+    }
     if (Object.keys(cloak).length) {
       config.cloak = cloak;
     }
+  }
+  const experimentalCchSigning = normalizeBoolean(record?.['experimental-cch-signing']);
+  if (experimentalCchSigning !== undefined) {
+    config.experimentalCchSigning = experimentalCchSigning;
   }
 
   return config;
