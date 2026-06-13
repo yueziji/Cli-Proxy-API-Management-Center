@@ -57,6 +57,11 @@ const emptyApiKeyEntry = (): ApiKeyEntryInput => ({
 const stripDisableAllRule = (list?: string[]): string[] =>
   (list ?? []).filter((s) => s.trim() !== '*');
 
+const formatJsonObject = (value?: Record<string, unknown>): string => {
+  if (!value || Object.keys(value).length === 0) return '';
+  return JSON.stringify(value, null, 2);
+};
+
 function buildInitialForm(
   brand: Exclude<ProviderBrand, 'ampcode'>,
   resource: ProviderResource | null,
@@ -78,8 +83,9 @@ function buildInitialForm(
       websockets: brand === 'codex' ? false : undefined,
       cloak:
         brand === 'claude'
-          ? { mode: '', strictMode: false, sensitiveWordsText: '' }
+          ? { mode: '', strictMode: false, sensitiveWordsText: '', cacheUserId: false }
           : undefined,
+      experimentalCchSigning: brand === 'claude' ? false : undefined,
       testModel:
         brand === 'openaiCompatibility' ||
         brand === 'claude' ||
@@ -109,6 +115,8 @@ function buildInitialForm(
             alias: m.alias ?? '',
             priority: m.priority,
             testModel: m.testModel,
+            image: m.image === true,
+            thinkingJson: formatJsonObject(m.thinking),
           }))
         : [emptyModel()],
       headers: cfg.headers
@@ -158,7 +166,12 @@ function buildInitialForm(
             mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',
             strictMode: (cfg as ProviderKeyConfig).cloak?.strictMode === true,
             sensitiveWordsText: (cfg as ProviderKeyConfig).cloak?.sensitiveWords?.join('\n') ?? '',
-        }
+            cacheUserId: (cfg as ProviderKeyConfig).cloak?.cacheUserId === true,
+          }
+        : undefined,
+    experimentalCchSigning:
+      brand === 'claude'
+        ? (cfg as ProviderKeyConfig).experimentalCchSigning === true
         : undefined,
     testModel: brand === 'claude' || brand === 'codex' || brand === 'gemini' ? '' : undefined,
   };
@@ -384,7 +397,12 @@ export function BaseProviderForm({
     setForm((prev) => ({
       ...prev,
       cloak: {
-        ...(prev.cloak ?? { mode: '', strictMode: false, sensitiveWordsText: '' }),
+        ...(prev.cloak ?? {
+          mode: '',
+          strictMode: false,
+          sensitiveWordsText: '',
+          cacheUserId: false,
+        }),
         [key]: value,
       },
     }));
@@ -466,6 +484,12 @@ export function BaseProviderForm({
     ).length;
     return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
   }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
+  const supportsDisableCooling =
+    brand === 'gemini' ||
+    brand === 'codex' ||
+    brand === 'claude' ||
+    brand === 'openaiCompatibility';
+  const supportsOpenAIModelOptions = brand === 'openaiCompatibility';
   const singleConnectivity =
     brand === 'gemini'
       ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
@@ -491,6 +515,20 @@ export function BaseProviderForm({
     updateField(
       'apiKeyEntries',
       actualApiKeyEntries.filter((_, i) => i !== removeIdx)
+    );
+  };
+
+  const updateModelEntry = (idx: number, patch: Partial<ModelEntryInput>) => {
+    updateField(
+      'models',
+      modelsList.map((it, i) => (i === idx ? { ...it, ...patch } : it))
+    );
+  };
+
+  const removeModelEntry = (idx: number) => {
+    updateField(
+      'models',
+      modelsList.filter((_, i) => i !== idx)
     );
   };
 
@@ -730,20 +768,6 @@ export function BaseProviderForm({
           </label>
         ) : null}
 
-        <label className={styles.checkboxRow}>
-          <input
-            type="checkbox"
-            className={styles.checkboxBox}
-            checked={form.disableCooling}
-            disabled={mutating}
-            onChange={(e) => updateField('disableCooling', e.target.checked)}
-          />
-          <span className={styles.checkboxText}>
-            <span>{t('providersPage.form.disableCooling')}</span>
-            <small>{t('providersPage.form.disableCoolingHint')}</small>
-          </span>
-        </label>
-
         {descriptor.supportsDisabled ? (
           <label className={styles.checkboxRow}>
             <input
@@ -756,6 +780,22 @@ export function BaseProviderForm({
             <span className={styles.checkboxText}>
               <span>{t('providersPage.form.disabled')}</span>
               <small>{t('providersPage.form.disabledHint')}</small>
+            </span>
+          </label>
+        ) : null}
+
+        {supportsDisableCooling ? (
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              className={styles.checkboxBox}
+              checked={form.disableCooling ?? false}
+              disabled={mutating}
+              onChange={(e) => updateField('disableCooling', e.target.checked)}
+            />
+            <span className={styles.checkboxText}>
+              <span>{t('providersPage.form.disableCooling')}</span>
+              <small>{t('providersPage.form.disableCoolingHint')}</small>
             </span>
           </label>
         ) : null}
@@ -1004,50 +1044,97 @@ export function BaseProviderForm({
                 onClose={closeDiscovery}
               />
             ) : null}
-            {modelsList.map((entry, idx) => (
-              <div
-                key={idx}
-                style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8 }}
-              >
-                <input
-                  className={styles.input}
-                  placeholder="model-name"
-                  value={entry.name}
-                  onChange={(e) =>
-                    updateField(
-                      'models',
-                      modelsList.map((it, i) => (i === idx ? { ...it, name: e.target.value } : it))
-                    )
-                  }
-                  disabled={mutating}
-                />
-                <input
-                  className={styles.input}
-                  placeholder="alias (optional)"
-                  value={entry.alias ?? ''}
-                  onChange={(e) =>
-                    updateField(
-                      'models',
-                      modelsList.map((it, i) => (i === idx ? { ...it, alias: e.target.value } : it))
-                    )
-                  }
-                  disabled={mutating}
-                />
-                <button
-                  type="button"
-                  className={styles.removeBtn}
-                  disabled={mutating || modelsList.length <= 1}
-                  onClick={() =>
-                    updateField(
-                      'models',
-                      modelsList.filter((_, i) => i !== idx)
-                    )
-                  }
+            {modelsList.map((entry, idx) =>
+              supportsOpenAIModelOptions ? (
+                <div key={idx} className={styles.entryCard}>
+                  <div className={styles.entryCardHeader}>
+                    <span>{t('providersPage.form.modelEntry', { index: idx + 1 })}</span>
+                    <button
+                      type="button"
+                      className={styles.removeBtn}
+                      disabled={mutating || modelsList.length <= 1}
+                      onClick={() => removeModelEntry(idx)}
+                    >
+                      <IconX size={12} />
+                    </button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <input
+                      className={styles.input}
+                      placeholder="model-name"
+                      value={entry.name}
+                      onChange={(e) => updateModelEntry(idx, { name: e.target.value })}
+                      disabled={mutating}
+                    />
+                    <input
+                      className={styles.input}
+                      placeholder="alias (optional)"
+                      value={entry.alias ?? ''}
+                      onChange={(e) => updateModelEntry(idx, { alias: e.target.value })}
+                      disabled={mutating}
+                    />
+                  </div>
+                  <label className={styles.checkboxRow}>
+                    <input
+                      type="checkbox"
+                      className={styles.checkboxBox}
+                      checked={entry.image === true}
+                      disabled={mutating}
+                      onChange={(e) => updateModelEntry(idx, { image: e.target.checked })}
+                    />
+                    <span className={styles.checkboxText}>
+                      <span>{t('providersPage.form.modelImage')}</span>
+                      <small>{t('providersPage.form.modelImageHint')}</small>
+                    </span>
+                  </label>
+                  <div className={styles.field}>
+                    <label className={styles.label}>
+                      {t('providersPage.form.thinkingConfig')}
+                      <span className={styles.labelHint}>
+                        {' '}
+                        · {t('providersPage.form.thinkingConfigHint')}
+                      </span>
+                    </label>
+                    <textarea
+                      className={styles.textarea}
+                      rows={4}
+                      value={entry.thinkingJson ?? ''}
+                      onChange={(e) => updateModelEntry(idx, { thinkingJson: e.target.value })}
+                      disabled={mutating}
+                      placeholder={'{"levels":["low","medium","high"]}'}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={idx}
+                  style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8 }}
                 >
-                  <IconX size={12} />
-                </button>
-              </div>
-            ))}
+                  <input
+                    className={styles.input}
+                    placeholder="model-name"
+                    value={entry.name}
+                    onChange={(e) => updateModelEntry(idx, { name: e.target.value })}
+                    disabled={mutating}
+                  />
+                  <input
+                    className={styles.input}
+                    placeholder="alias (optional)"
+                    value={entry.alias ?? ''}
+                    onChange={(e) => updateModelEntry(idx, { alias: e.target.value })}
+                    disabled={mutating}
+                  />
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    disabled={mutating || modelsList.length <= 1}
+                    onClick={() => removeModelEntry(idx)}
+                  >
+                    <IconX size={12} />
+                  </button>
+                </div>
+              )
+            )}
             <button
               type="button"
               className={styles.addBtn}
@@ -1100,6 +1187,32 @@ export function BaseProviderForm({
               />
               <span className={styles.checkboxText}>
                 <span>{t('providersPage.form.cloakStrict')}</span>
+              </span>
+            </label>
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                className={styles.checkboxBox}
+                checked={form.cloak.cacheUserId}
+                disabled={mutating}
+                onChange={(e) => updateCloak('cacheUserId', e.target.checked)}
+              />
+              <span className={styles.checkboxText}>
+                <span>{t('providersPage.form.cloakCacheUserId')}</span>
+                <small>{t('providersPage.form.cloakCacheUserIdHint')}</small>
+              </span>
+            </label>
+            <label className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                className={styles.checkboxBox}
+                checked={form.experimentalCchSigning ?? false}
+                disabled={mutating}
+                onChange={(e) => updateField('experimentalCchSigning', e.target.checked)}
+              />
+              <span className={styles.checkboxText}>
+                <span>{t('providersPage.form.experimentalCchSigning')}</span>
+                <small>{t('providersPage.form.experimentalCchSigningHint')}</small>
               </span>
             </label>
             <div className={styles.field}>

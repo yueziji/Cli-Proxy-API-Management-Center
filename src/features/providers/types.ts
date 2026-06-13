@@ -52,6 +52,8 @@ export interface ProviderResource {
   prefix: string | null;
   priority: number | null;
   modelCount: number;
+  /** 去重后的模型名(ampcode 为映射两端), 供筛选/搜索用 */
+  models: string[];
   headerCount: number;
   excludedModelCount: number;
   /** 仅 OpenAI 有意义,其它 brand 该字段不展示但保留 */
@@ -66,23 +68,14 @@ export interface ProviderResource {
   raw: unknown;
 }
 
-export interface ProviderGroupIssue {
-  status?: string;
-  message: string;
-}
-
 export interface ProviderGroup {
   id: ProviderBrand;
   resources: ProviderResource[];
-  issue: ProviderGroupIssue | null;
-  /** 描述路径,例如 /ai-providers/gemini,用于 Sheet description */
-  path: string;
 }
 
 export interface ProviderSnapshot {
   fetchedAt: string;
   groups: ProviderGroup[];
-  issues: Array<{ brand: ProviderBrand; message: string }>;
 }
 
 /**
@@ -94,6 +87,8 @@ export interface ModelEntryInput {
   alias?: string;
   priority?: number;
   testModel?: string;
+  image?: boolean;
+  thinkingJson?: string;
 }
 
 export interface ApiKeyEntryInput {
@@ -107,6 +102,7 @@ export interface CloakInput {
   mode: string;
   strictMode: boolean;
   sensitiveWordsText: string;
+  cacheUserId: boolean;
 }
 
 export interface ProviderEntryFormInput {
@@ -130,6 +126,7 @@ export interface ProviderEntryFormInput {
   websockets?: boolean;
   /** Claude 专属 */
   cloak?: CloakInput;
+  experimentalCchSigning?: boolean;
   /** 连接测试使用；OpenAI 会保存，Gemini/Codex/Claude 仅用于测试 */
   testModel?: string;
   apiKeyEntries?: ApiKeyEntryInput[];
