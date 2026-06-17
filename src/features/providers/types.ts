@@ -7,8 +7,7 @@ export type ProviderBrand =
   | 'codex'
   | 'claude'
   | 'vertex'
-  | 'openaiCompatibility'
-  | 'ampcode';
+  | 'openaiCompatibility';
 
 export const PROVIDER_SORT_BY_VALUES = ['name', 'priority', 'recent-success'] as const;
 export type ProviderSortBy = (typeof PROVIDER_SORT_BY_VALUES)[number];
@@ -21,14 +20,12 @@ export type ProviderResourceSelector =
   | { brand: 'codex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'claude'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'vertex'; apiKey: string; baseUrl?: string; index: number }
-  | { brand: 'openaiCompatibility'; name: string; index: number }
-  | { brand: 'ampcode' };
+  | { brand: 'openaiCompatibility'; name: string; index: number };
 
 export interface ProviderResourceFlags {
   cloakEnabled?: boolean;
   websockets?: boolean;
   disableCooling?: boolean;
-  forceModelMappings?: boolean;
   isPlaceholder?: boolean;
 }
 
@@ -36,7 +33,7 @@ export interface ProviderResource {
   /** 稳定 id,用作 React key 与选中态判断 */
   id: string;
   brand: ProviderBrand;
-  /** 在原数组中的下标。Ampcode 永远为 0 */
+  /** 在原数组中的下标 */
   originalIndex: number;
   /** 表格 key 列显示名(OpenAI=name,其余=null) */
   name: string | null;
@@ -52,7 +49,7 @@ export interface ProviderResource {
   prefix: string | null;
   priority: number | null;
   modelCount: number;
-  /** 去重后的模型名(ampcode 为映射两端), 供筛选/搜索用 */
+  /** 去重后的模型名, 供筛选/搜索用 */
   models: string[];
   headerCount: number;
   excludedModelCount: number;

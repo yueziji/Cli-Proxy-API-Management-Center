@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
 import {
-  buildClaudeMessagesEndpoint,
   buildCodexResponsesEndpoint,
+  buildClaudeMessagesEndpoint,
   buildGeminiGenerateContentEndpoint,
   buildOpenAIChatCompletionsEndpoint,
 } from '@/components/providers/utils';
@@ -89,15 +89,15 @@ export interface ConnectivityErrorMessages {
 
 export interface UseConnectivityTestResult {
   openaiStatuses: ConnectivityStatus[];
+  codexStatus: ConnectivityStatus;
   geminiStatus: ConnectivityStatus;
   claudeStatus: ConnectivityStatus;
-  codexStatus: ConnectivityStatus;
   isTestingAny: boolean;
   runOpenAIKey: (idx: number) => Promise<boolean>;
   runOpenAIAllKeys: () => Promise<void>;
+  runCodex: () => Promise<void>;
   runGemini: () => Promise<void>;
   runClaude: () => Promise<void>;
-  runCodex: () => Promise<void>;
 }
 
 export function useConnectivityTest(
@@ -121,9 +121,9 @@ export function useConnectivityTest(
   const [openaiStatuses, setOpenaiStatuses] = useState<ConnectivityStatus[]>(() =>
     Array.from({ length: entriesCount }, () => IDLE)
   );
+  const [codexStatus, setCodexStatus] = useState<ConnectivityStatus>(IDLE);
   const [geminiStatus, setGeminiStatus] = useState<ConnectivityStatus>(IDLE);
   const [claudeStatus, setClaudeStatus] = useState<ConnectivityStatus>(IDLE);
-  const [codexStatus, setCodexStatus] = useState<ConnectivityStatus>(IDLE);
   const [inFlight, setInFlight] = useState(0);
 
   const entrySignatures = useMemo(
@@ -179,6 +179,7 @@ export function useConnectivityTest(
     if (lastSignatureRef.current === signature) return;
     lastSignatureRef.current = signature;
     setOpenaiStatuses((prev) => prev.map(() => IDLE));
+    setCodexStatus(IDLE);
     setGeminiStatus(IDLE);
     setClaudeStatus(IDLE);
     setCodexStatus(IDLE);
@@ -523,14 +524,14 @@ export function useConnectivityTest(
 
   return {
     openaiStatuses,
+    codexStatus,
     geminiStatus,
     claudeStatus,
-    codexStatus,
     isTestingAny: inFlight > 0,
     runOpenAIKey,
     runOpenAIAllKeys,
+    runCodex,
     runGemini,
     runClaude,
-    runCodex,
   };
 }

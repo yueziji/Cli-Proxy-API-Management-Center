@@ -1,6 +1,6 @@
 import type { ProviderBrand } from './types';
 
-type FormProviderBrand = Exclude<ProviderBrand, 'ampcode'>;
+type FormProviderBrand = ProviderBrand;
 
 const DISABLE_COOLING_BRANDS = new Set<FormProviderBrand>([
   'gemini',
