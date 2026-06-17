@@ -2,6 +2,8 @@
 @use '../../../styles/variables' as *;
 
 .resourceTable {
+  table-layout: fixed;
+
   th {
     height: 46px;
     padding: 0 15px;
@@ -24,33 +26,42 @@
 }
 
 .primaryName {
+  display: block;
+  width: 100%;
+  min-width: 0;
   font-weight: 500;
   color: var(--text-primary);
   font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 240px;
+  max-width: 100%;
 }
 
 .primarySub {
+  display: block;
+  width: 100%;
+  min-width: 0;
   font-size: 12px;
   color: var(--muted-foreground);
   font-family: $font-mono;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 240px;
+  max-width: 100%;
 }
 
 .baseUrl {
+  display: block;
+  width: 100%;
+  min-width: 0;
   font-family: $font-mono;
   font-size: 12px;
   color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 240px;
+  max-width: 100%;
 }
 
 .chip {
