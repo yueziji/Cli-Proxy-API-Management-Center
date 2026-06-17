@@ -44,7 +44,7 @@ export interface BaseProviderFormHandle {
 }
 
 interface BaseProviderFormProps {
-  brand: Exclude<ProviderBrand, 'ampcode'>;
+  brand: ProviderBrand;
   resource: ProviderResource | null;
   mode: 'create' | 'edit';
   mutating: boolean;
@@ -69,7 +69,7 @@ const formatJsonObject = (value?: Record<string, unknown>): string => {
 };
 
 function buildInitialForm(
-  brand: Exclude<ProviderBrand, 'ampcode'>,
+  brand: ProviderBrand,
   resource: ProviderResource | null,
   mode: 'create' | 'edit'
 ): ProviderEntryFormInput {

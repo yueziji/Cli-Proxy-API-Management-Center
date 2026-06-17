@@ -59,11 +59,6 @@ export function ProviderResourceCards({
         renderMetric('keys', t('providersPage.table.metrics.keys'), r.apiKeyEntryCount),
         renderMetric('headers', t('providersPage.table.metrics.headers'), r.headerCount),
       );
-    } else if (r.brand === 'ampcode') {
-      items.push(
-        renderMetric('mappings', t('providersPage.table.metrics.mappings'), r.modelCount),
-        renderMetric('keys', t('providersPage.table.metrics.keys'), r.apiKeyEntryCount),
-      );
     } else {
       items.push(
         renderMetric('models', t('providersPage.table.metrics.models'), r.modelCount),
@@ -83,14 +78,6 @@ export function ProviderResourceCards({
   };
 
   const renderStatus = (r: ProviderResource) => {
-    if (r.brand === 'ampcode' && r.flags.isPlaceholder) {
-      return (
-        <span className={`${styles.statusBadge} ${styles.statusDisabled}`}>
-          <IconAlertTriangle size={14} />
-          {t('providersPage.status.notConfigured')}
-        </span>
-      );
-    }
     if (r.disabled) {
       return (
         <span className={`${styles.statusBadge} ${styles.statusDisabled}`}>
@@ -117,16 +104,6 @@ export function ProviderResourceCards({
         </div>
       );
     }
-    if (r.brand === 'ampcode') {
-      return (
-        <div className={styles.primaryCell}>
-          <span className={styles.primaryName}>Amp CLI</span>
-          <span className={styles.primarySub}>
-            {r.apiKeyPreview ?? t('providersPage.table.noFallbackKey')}
-          </span>
-        </div>
-      );
-    }
     return (
       <div className={styles.primaryCell}>
         <span className={styles.primaryName}>{r.apiKeyPreview ?? '—'}</span>
@@ -143,9 +120,6 @@ export function ProviderResourceCards({
         </span>
       );
     }
-    if (r.brand === 'ampcode' && !r.baseUrl) {
-      return <span className={styles.baseUrl}>{t('providersPage.status.notConfigured')}</span>;
-    }
     return <span className={styles.baseUrl}>{r.baseUrl ?? t('providersPage.status.notSet')}</span>;
   };
 
@@ -159,8 +133,7 @@ export function ProviderResourceCards({
   return (
     <div className={styles.cardList}>
       {resources.map((resource) => {
-        const isAmpcode = resource.brand === 'ampcode';
-        const showStats = usageByProvider && resource.brand !== 'ampcode';
+        const showStats = usageByProvider;
         const stats = showStats ? resolveTotalStats(resource, usageByProvider) : null;
 
         return (
@@ -170,7 +143,7 @@ export function ProviderResourceCards({
           >
             <div className={styles.cardHeader}>
               {renderPrimary(resource)}
-              {!isAmpcode && onToggleDisabled ? (
+              {onToggleDisabled ? (
                 <span className={styles.toggleWrap} onClick={(e) => e.stopPropagation()}>
                   <ToggleSwitch
                     checked={!resource.disabled}
@@ -190,9 +163,7 @@ export function ProviderResourceCards({
               {renderField(t('providersPage.table.baseUrl'), renderBaseUrl(resource))}
               {renderField(
                 t('providersPage.table.prefix'),
-                isAmpcode ? (
-                  <span className={styles.baseUrl}>—</span>
-                ) : resource.prefix ? (
+                resource.prefix ? (
                   <span className={styles.chip}>{resource.prefix}</span>
                 ) : (
                   <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
@@ -256,35 +227,19 @@ export function ProviderResourceCards({
               >
                 <IconPencil size={16} />
               </button>
-              {isAmpcode ? (
-                <button
-                  type="button"
-                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                  aria-label={t('providersPage.actions.clear')}
-                  title={t('providersPage.actions.clear')}
-                  disabled={disableMutations || resource.flags.isPlaceholder}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(resource);
-                  }}
-                >
-                  <IconTrash2 size={16} />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                  aria-label={t('providersPage.actions.delete')}
-                  title={t('providersPage.actions.delete')}
-                  disabled={disableMutations}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(resource);
-                  }}
-                >
-                  <IconTrash2 size={16} />
-                </button>
-              )}
+              <button
+                type="button"
+                className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                aria-label={t('providersPage.actions.delete')}
+                title={t('providersPage.actions.delete')}
+                disabled={disableMutations}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(resource);
+                }}
+              >
+                <IconTrash2 size={16} />
+              </button>
             </div>
           </article>
         );
