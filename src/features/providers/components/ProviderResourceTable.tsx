@@ -34,7 +34,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['17%', '17%', '7%', '8%', '13%', '22%', '16%'];
+const columnWidths = ['16%', '21%', '7%', '8%', '13%', '20%', '15%'];
 
 export function ProviderResourceTable({
   resources,
@@ -127,17 +127,17 @@ export function ProviderResourceTable({
   };
 
   const renderBaseUrl = (r: ProviderResource) => {
-    if (r.brand === 'claude' && !r.baseUrl) {
-      return (
-        <span className={styles.baseUrl}>
-          https://api.anthropic.com {t('providersPage.status.defaultSuffix')}
-        </span>
-      );
-    }
+    const value =
+      r.brand === 'claude' && !r.baseUrl
+        ? `https://api.anthropic.com ${t('providersPage.status.defaultSuffix')}`
+        : (r.baseUrl ?? t('providersPage.status.notSet'));
+
     return (
-      <span className={styles.baseUrl}>
-        {r.baseUrl ?? t('providersPage.status.notSet')}
-      </span>
+      <div className={styles.baseUrlWrap}>
+        <span className={styles.baseUrl} title={value}>
+          {value}
+        </span>
+      </div>
     );
   };
 
@@ -171,7 +171,7 @@ export function ProviderResourceTable({
           return (
             <TableRow key={resource.id} selected={resource.id === selectedId}>
               <TableCell>{renderPrimary(resource)}</TableCell>
-              <TableCell>{renderBaseUrl(resource)}</TableCell>
+              <TableCell className={styles.baseUrlCell}>{renderBaseUrl(resource)}</TableCell>
               <TableCell>
                 {resource.prefix ? (
                   <span className={styles.chip}>{resource.prefix}</span>

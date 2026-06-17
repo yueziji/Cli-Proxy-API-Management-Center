@@ -51,17 +51,32 @@
   max-width: 100%;
 }
 
-.baseUrl {
-  display: block;
+.baseUrlCell {
+  vertical-align: middle;
+}
+
+.baseUrlWrap {
+  display: flex;
+  justify-content: center;
   width: 100%;
   min-width: 0;
+}
+
+.baseUrl {
+  display: -webkit-box;
+  min-width: 0;
+  max-width: 100%;
   font-family: $font-mono;
   font-size: 12px;
   color: var(--muted-foreground);
+  line-height: 1.35;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .chip {
