@@ -34,7 +34,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['12%', '25%', '7%', '8%', '13%', '20%', '15%'];
+const columnWidths = ['180px', '220px', '72px', '96px', '174px', '176px', '176px'];
 
 export function ProviderResourceTable({
   resources,
@@ -63,6 +63,12 @@ export function ProviderResourceTable({
 
   const renderModelsSummary = (r: ProviderResource) => {
     const items: ReactNode[] = [];
+    if (r.brand === 'apikeyFun') {
+      (r.flags.protocols ?? []).forEach((protocol) => {
+        items.push(renderFlagTag(protocol, t(`providersPage.sponsor.protocols.${protocol}`)));
+      });
+      return <div className={styles.metricsCell}>{items}</div>;
+    }
     if (r.brand === 'openaiCompatibility') {
       items.push(
         renderMetric('models', t('providersPage.table.metrics.models'), r.modelCount),
@@ -105,6 +111,16 @@ export function ProviderResourceTable({
   };
 
   const renderPrimary = (r: ProviderResource) => {
+    if (r.brand === 'apikeyFun') {
+      return (
+        <div className={styles.primaryCell}>
+          <span className={styles.primaryName}>{r.name ?? r.identifier}</span>
+          <span className={styles.primarySub}>
+            {r.apiKeyPreview ?? t('providersPage.status.notConfigured')}
+          </span>
+        </div>
+      );
+    }
     if (r.brand === 'openaiCompatibility') {
       const extra = r.apiKeyEntryCount > 1 ? ` · +${r.apiKeyEntryCount - 1}` : '';
       return (
@@ -127,11 +143,21 @@ export function ProviderResourceTable({
   };
 
   const renderBaseUrl = (r: ProviderResource) => {
-    const value =
-      r.brand === 'claude' && !r.baseUrl
-        ? `https://api.anthropic.com ${t('providersPage.status.defaultSuffix')}`
-        : (r.baseUrl ?? t('providersPage.status.notSet'));
-
+    if (r.brand === 'apikeyFun') {
+      return (
+        <span className={styles.baseUrl}>
+          {t('providersPage.sponsor.protocolSummary')}
+        </span>
+      );
+    }
+    if (r.brand === 'claude' && !r.baseUrl) {
+      return (
+        <span className={styles.baseUrl}>
+          https://api.anthropic.com {t('providersPage.status.defaultSuffix')}
+        </span>
+      );
+    }
+    const value = r.baseUrl ?? t('providersPage.status.notSet');
     return (
       <div className={styles.baseUrlWrap}>
         <span className={styles.baseUrl} title={value}>
@@ -150,7 +176,7 @@ export function ProviderResourceTable({
 
   return (
     <Table
-      className={styles.resourceTable}
+      className={styles.providerTable}
       cols={columnWidths.map((w, i) => (
         <col key={i} style={{ width: w }} />
       ))}
@@ -163,7 +189,9 @@ export function ProviderResourceTable({
           <TableHead>{t('common.priority')}</TableHead>
           <TableHead>{t('providersPage.table.models')}</TableHead>
           <TableHead>{t('providersPage.table.status')}</TableHead>
-          <TableHead alignRight>{t('providersPage.table.actions')}</TableHead>
+          <TableHead alignRight className={styles.actionsHead}>
+            {t('providersPage.table.actions')}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -184,7 +212,7 @@ export function ProviderResourceTable({
               <TableCell>
                 <div className={styles.statusCell}>
                   {renderStatus(resource)}
-                  {usageByProvider ? (
+                  {usageByProvider && resource.brand !== 'apikeyFun' ? (
                     <>
                       {(() => {
                         const stats = resolveTotalStats(resource, usageByProvider);
@@ -199,15 +227,23 @@ export function ProviderResourceTable({
                           </div>
                         );
                       })()}
-                      <ProviderStatusBar
-                        statusData={resolveStatusBarData(resource, usageByProvider)}
-                        styles={statusBarStyles}
-                      />
+                      <div className={styles.statusBarWrap}>
+                        <ProviderStatusBar
+                          statusData={resolveStatusBarData(resource, usageByProvider)}
+                          styles={statusBarStyles}
+                        />
+                      </div>
                     </>
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell alignRight>
+              <TableCell
+                alignRight
+                className={[
+                  styles.actionsCell,
+                  resource.id === selectedId ? styles.actionsCellSelected : '',
+                ].filter(Boolean).join(' ')}
+              >
                 <div className={styles.actions}>
                   {onToggleDisabled ? (
                     <span
