@@ -487,13 +487,13 @@ export function BaseProviderForm({
   const supportsDisableCooling = supportsDisableCoolingControl(brand);
   const supportsOpenAIModelOptions = supportsOpenAIModelOptionsForBrand(brand);
   const singleConnectivity =
-    brand === 'gemini'
-      ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
-      : brand === 'claude'
-        ? { status: connectivity.claudeStatus, run: connectivity.runClaude }
-        : brand === 'codex'
-          ? { status: connectivity.codexStatus, run: connectivity.runCodex }
-        : null;
+    brand === 'codex'
+      ? { status: connectivity.codexStatus, run: connectivity.runCodex }
+      : brand === 'gemini'
+        ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
+        : brand === 'claude'
+          ? { status: connectivity.claudeStatus, run: connectivity.runClaude }
+          : null;
 
   const removeApiKeyEntry = (removeIdx: number) => {
     setShowPasswords((prev) => {
