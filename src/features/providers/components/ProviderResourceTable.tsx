@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle,
+  IconCheck,
   IconCheckCircle2,
   IconEye,
   IconPencil,
   IconTrash2,
+  IconX,
 } from '@/components/ui/icons';
 import {
   Table,
@@ -34,7 +36,7 @@ interface ProviderResourceTableProps {
   onToggleDisabled?: (resource: ProviderResource, disabled: boolean) => void;
 }
 
-const columnWidths = ['180px', '220px', '72px', '96px', '174px', '176px', '176px'];
+const columnWidths = ['172px', '198px', '76px', '76px', '162px', '180px', '176px'];
 
 export function ProviderResourceTable({
   resources,
@@ -142,7 +144,7 @@ export function ProviderResourceTable({
 
   const renderPriority = (r: ProviderResource) =>
     r.priority === null ? (
-      <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
+      <span className={styles.chip}>{t('providersPage.status.none')}</span>
     ) : (
       <span className={styles.priorityValue}>{r.priority}</span>
     );
@@ -158,10 +160,10 @@ export function ProviderResourceTable({
         <TableRow>
           <TableHead>{t('providersPage.table.key')}</TableHead>
           <TableHead>{t('providersPage.table.baseUrl')}</TableHead>
-          <TableHead>{t('providersPage.table.prefix')}</TableHead>
-          <TableHead>{t('common.priority')}</TableHead>
+          <TableHead alignCenter>{t('providersPage.table.prefix')}</TableHead>
+          <TableHead alignCenter>{t('common.priority')}</TableHead>
           <TableHead>{t('providersPage.table.models')}</TableHead>
-          <TableHead>{t('providersPage.table.status')}</TableHead>
+          <TableHead alignCenter>{t('providersPage.table.status')}</TableHead>
           <TableHead alignRight className={styles.actionsHead}>
             {t('providersPage.table.actions')}
           </TableHead>
@@ -169,42 +171,40 @@ export function ProviderResourceTable({
       </TableHeader>
       <TableBody>
         {resources.map((resource) => {
+          const stats = usageByProvider
+            ? {
+                total: resolveTotalStats(resource, usageByProvider),
+                bar: resolveStatusBarData(resource, usageByProvider),
+              }
+            : null;
           return (
             <TableRow key={resource.id} selected={resource.id === selectedId}>
               <TableCell>{renderPrimary(resource)}</TableCell>
-              <TableCell className={styles.baseUrlCell}>{renderBaseUrl(resource)}</TableCell>
-              <TableCell>
-                {resource.prefix ? (
-                  <span className={styles.chip}>{resource.prefix}</span>
-                ) : (
-                  <span className={styles.baseUrl}>{t('providersPage.status.none')}</span>
-                )}
+              <TableCell>{renderBaseUrl(resource)}</TableCell>
+              <TableCell alignCenter>
+                <span className={styles.chip}>
+                  {resource.prefix || t('providersPage.status.none')}
+                </span>
               </TableCell>
-              <TableCell>{renderPriority(resource)}</TableCell>
+              <TableCell alignCenter>{renderPriority(resource)}</TableCell>
               <TableCell>{renderModelsSummary(resource)}</TableCell>
-              <TableCell>
+              <TableCell alignCenter>
                 <div className={styles.statusCell}>
                   {renderStatus(resource)}
-                  {usageByProvider ? (
+                  {stats ? (
                     <>
-                      {(() => {
-                        const stats = resolveTotalStats(resource, usageByProvider);
-                        return (
-                          <div className={styles.stats}>
-                            <span className={`${styles.statPill} ${styles.statSuccess}`}>
-                              {t('stats.success')}: {stats.success}
-                            </span>
-                            <span className={`${styles.statPill} ${styles.statFailure}`}>
-                              {t('stats.failure')}: {stats.failure}
-                            </span>
-                          </div>
-                        );
-                      })()}
+                      <div className={styles.stats}>
+                        <span className={`${styles.statPill} ${styles.statSuccess}`}>
+                          <IconCheck size={13} />
+                          {stats.total.success}
+                        </span>
+                        <span className={`${styles.statPill} ${styles.statFailure}`}>
+                          <IconX size={13} />
+                          {stats.total.failure}
+                        </span>
+                      </div>
                       <div className={styles.statusBarWrap}>
-                        <ProviderStatusBar
-                          statusData={resolveStatusBarData(resource, usageByProvider)}
-                          styles={statusBarStyles}
-                        />
+                        <ProviderStatusBar statusData={stats.bar} styles={statusBarStyles} />
                       </div>
                     </>
                   ) : null}

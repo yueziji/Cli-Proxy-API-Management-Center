@@ -16,7 +16,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary);
 }
 
@@ -24,17 +24,22 @@
   background: var(--muted-bg);
 
   th {
-    color: var(--muted-foreground);
-    font-weight: 500;
-    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.01em;
     text-align: left;
-    padding: 10px 14px;
+    padding: 13px 16px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
   }
 
   th.alignRight {
     text-align: right;
+  }
+
+  th.alignCenter {
+    text-align: center;
   }
 }
 
@@ -46,9 +51,9 @@
   transition: background-color $transition-fast;
 
   td {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-bottom: 1px solid var(--border-color);
-    vertical-align: top;
+    vertical-align: middle;
     line-height: 1.5;
   }
 
@@ -67,4 +72,8 @@
 
 .alignRight {
   text-align: right;
+}
+
+.alignCenter {
+  text-align: center;
 }

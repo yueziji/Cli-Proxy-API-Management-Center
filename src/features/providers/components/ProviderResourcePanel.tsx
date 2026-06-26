@@ -53,7 +53,7 @@ export function ProviderResourcePanel({
 }: ProviderResourcePanelProps) {
   const { t } = useTranslation();
   const logo = PROVIDER_LOGOS[group.id];
-  const [useCards, panelRef] = useContainerNarrow(760);
+  const [useCards, panelRef] = useContainerNarrow(1084);
   const providerTitle = t(`providersPage.providerNames.${group.id}`);
   const logoClassName = [
     styles.logo,
