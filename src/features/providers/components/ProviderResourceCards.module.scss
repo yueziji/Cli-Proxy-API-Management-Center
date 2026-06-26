@@ -94,8 +94,7 @@
   min-height: 26px;
   padding: 0 9px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background: var(--muted-bg);
+  background: var(--tag-bg);
   color: var(--muted-foreground);
   font-size: 12px;
 }
@@ -108,8 +107,7 @@
   min-height: 28px;
   padding: 0 9px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background: var(--bg-secondary);
+  background: var(--tag-bg);
   color: var(--text-primary);
   font-family: $font-mono;
   font-size: 13px;
@@ -132,8 +130,7 @@
   min-height: 26px;
   padding: 0 9px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  background: var(--muted-bg);
+  background: var(--tag-bg);
   font-size: 12px;
   line-height: 1.4;
   white-space: nowrap;
@@ -155,11 +152,10 @@
   min-height: 26px;
   padding: 0 9px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--primary-30);
-  background: var(--primary-10);
-  color: var(--primary-color);
+  background: var(--tag-bg);
+  color: var(--text-primary);
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
 }

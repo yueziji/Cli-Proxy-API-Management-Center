@@ -2,10 +2,12 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle,
+  IconCheck,
   IconCheckCircle2,
   IconEye,
   IconPencil,
   IconTrash2,
+  IconX,
 } from '@/components/ui/icons';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { ProviderStatusBar } from '@/components/providers/ProviderStatusBar';
@@ -185,10 +187,12 @@ export function ProviderResourceCards({
               {stats ? (
                 <div className={styles.stats}>
                   <span className={`${styles.statPill} ${styles.statSuccess}`}>
-                    {t('stats.success')}: {stats.success}
+                    <IconCheck size={13} />
+                    {stats.success}
                   </span>
                   <span className={`${styles.statPill} ${styles.statFailure}`}>
-                    {t('stats.failure')}: {stats.failure}
+                    <IconX size={13} />
+                    {stats.failure}
                   </span>
                 </div>
               ) : null}

@@ -71,15 +71,19 @@ export function TableRow({
 
 interface TableHeadProps extends ThHTMLAttributes<HTMLTableCellElement> {
   alignRight?: boolean;
+  alignCenter?: boolean;
 }
 
 export function TableHead({
   children,
   className,
   alignRight,
+  alignCenter,
   ...rest
 }: PropsWithChildren<TableHeadProps>) {
-  const cls = [alignRight ? styles.alignRight : null, className].filter(Boolean).join(' ');
+  const cls = [alignRight ? styles.alignRight : null, alignCenter ? styles.alignCenter : null, className]
+    .filter(Boolean)
+    .join(' ');
   return (
     <th className={cls || undefined} {...rest}>
       {children}
@@ -89,15 +93,19 @@ export function TableHead({
 
 interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
   alignRight?: boolean;
+  alignCenter?: boolean;
 }
 
 export function TableCell({
   children,
   className,
   alignRight,
+  alignCenter,
   ...rest
 }: PropsWithChildren<TableCellProps>) {
-  const cls = [alignRight ? styles.alignRight : null, className].filter(Boolean).join(' ');
+  const cls = [alignRight ? styles.alignRight : null, alignCenter ? styles.alignCenter : null, className]
+    .filter(Boolean)
+    .join(' ');
   return (
     <td className={cls || undefined} {...rest}>
       {children}
