@@ -16,6 +16,7 @@ export type AuthFileFieldsPatch = {
   proxy_url?: string;
   headers?: Record<string, string>;
   priority?: number;
+  refresh_interval?: string;
   websockets?: boolean;
   note?: string;
   disable_cooling?: boolean;
