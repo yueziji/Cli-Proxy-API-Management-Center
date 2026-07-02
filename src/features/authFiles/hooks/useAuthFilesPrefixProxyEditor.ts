@@ -17,6 +17,7 @@ type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_json'
   | 'auth_files.headers_invalid_object'
   | 'auth_files.headers_invalid_value';
+type AuthFileRefreshIntervalErrorKey = 'auth_files.refresh_interval_invalid';
 type AuthFileContentErrorKey =
   | 'auth_files.prefix_proxy_invalid_json'
   | 'auth_files.prefix_proxy_html_challenge';
@@ -25,6 +26,7 @@ export type PrefixProxyEditorField =
   | 'prefix'
   | 'proxyUrl'
   | 'priority'
+  | 'refreshInterval'
   | 'websockets'
   | 'disableCooling'
   | 'note'
@@ -46,6 +48,9 @@ export type PrefixProxyEditorState = {
   prefix: string;
   proxyUrl: string;
   priority: string;
+  refreshInterval: string;
+  refreshIntervalTouched: boolean;
+  refreshIntervalError: string | null;
   websockets: boolean;
   websocketsTouched: boolean;
   note: string;
@@ -112,6 +117,52 @@ const parseHeadersText = (
 
 const normalizeTextField = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
+
+const REFRESH_INTERVAL_KEYS = [
+  'refresh_interval',
+  'refreshInterval',
+  'refresh_interval_seconds',
+  'refreshIntervalSeconds',
+] as const;
+
+const REFRESH_INTERVAL_SEGMENT_PATTERN = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
+
+const normalizeRefreshIntervalField = (value: unknown): string => {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return `${value}s`;
+  }
+  return '';
+};
+
+const readRefreshInterval = (value: Record<string, unknown>): string => {
+  for (const key of REFRESH_INTERVAL_KEYS) {
+    const normalized = normalizeRefreshIntervalField(value[key]);
+    if (normalized) return normalized;
+  }
+  return '';
+};
+
+const validateRefreshIntervalText = (
+  value: string
+): AuthFileRefreshIntervalErrorKey | null => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  let matchedText = '';
+  let hasPositiveSegment = false;
+  for (const match of trimmed.matchAll(REFRESH_INTERVAL_SEGMENT_PATTERN)) {
+    matchedText += match[0];
+    const amount = Number(match[1]);
+    if (Number.isFinite(amount) && amount > 0) {
+      hasPositiveSegment = true;
+    }
+  }
+
+  return matchedText === trimmed && hasPositiveSegment
+    ? null
+    : 'auth_files.refresh_interval_invalid';
+};
 
 const INVALID_CONTENT_PREVIEW_LIMIT = 1000;
 
@@ -219,7 +270,8 @@ const applyHeadersPatch = (
 
 const buildAuthFileFieldsPatch = (
   editor: PrefixProxyEditorState,
-  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string
+  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string,
+  resolveRefreshIntervalError: (key: AuthFileRefreshIntervalErrorKey) => string
 ): AuthFileFieldsPatch => {
   const original = editor.json ?? {};
   const patch: AuthFileFieldsPatch = {};
@@ -250,6 +302,18 @@ const buildAuthFileFieldsPatch = (
       }
     } else if (nextPriority !== originalPriority) {
       patch.priority = nextPriority;
+    }
+  }
+
+  if (editor.refreshIntervalTouched) {
+    const nextRefreshInterval = editor.refreshInterval.trim();
+    const errorKey = validateRefreshIntervalText(nextRefreshInterval);
+    if (errorKey) {
+      throw new Error(resolveRefreshIntervalError(errorKey));
+    }
+    const originalRefreshInterval = readRefreshInterval(original);
+    if (nextRefreshInterval !== originalRefreshInterval) {
+      patch.refresh_interval = nextRefreshInterval;
     }
   }
 
@@ -295,10 +359,15 @@ const buildAuthFileFieldsPatch = (
 
 const buildPrefixProxyUpdatedText = (
   editor: PrefixProxyEditorState | null,
-  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string
+  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string,
+  resolveRefreshIntervalError: (key: AuthFileRefreshIntervalErrorKey) => string
 ): string => {
   if (!editor?.json) return editor?.rawText ?? '';
-  const patch = buildAuthFileFieldsPatch(editor, resolveHeadersError);
+  const patch = buildAuthFileFieldsPatch(
+    editor,
+    resolveHeadersError,
+    resolveRefreshIntervalError
+  );
   let next: Record<string, unknown> = { ...editor.json };
   if (patch.prefix !== undefined) {
     if (patch.prefix) {
@@ -320,6 +389,15 @@ const buildPrefixProxyUpdatedText = (
       delete next.priority;
     } else {
       next.priority = patch.priority;
+    }
+  }
+
+  if (patch.refresh_interval !== undefined) {
+    REFRESH_INTERVAL_KEYS.forEach((key) => {
+      delete next[key];
+    });
+    if (patch.refresh_interval) {
+      next.refresh_interval = patch.refresh_interval;
     }
   }
 
@@ -358,16 +436,25 @@ export function useAuthFilesPrefixProxyEditor(
   const [prefixProxyEditor, setPrefixProxyEditor] = useState<PrefixProxyEditorState | null>(null);
 
   const hasBlockingValidationError = Boolean(
-    prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError
+    (prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError) ||
+      (prefixProxyEditor?.refreshIntervalTouched && prefixProxyEditor.refreshIntervalError)
   );
   const prefixProxyUpdatedText =
     prefixProxyEditor && !hasBlockingValidationError
-      ? buildPrefixProxyUpdatedText(prefixProxyEditor, (key) => t(key))
+      ? buildPrefixProxyUpdatedText(
+          prefixProxyEditor,
+          (key) => t(key),
+          (key) => t(key)
+        )
       : '';
 
   const prefixProxyPatch =
     prefixProxyEditor?.json && !hasBlockingValidationError
-      ? buildAuthFileFieldsPatch(prefixProxyEditor, (key) => t(key))
+      ? buildAuthFileFieldsPatch(
+          prefixProxyEditor,
+          (key) => t(key),
+          (key) => t(key)
+        )
       : null;
 
   const prefixProxyDirty = hasKeys(prefixProxyPatch);
@@ -400,6 +487,9 @@ export function useAuthFilesPrefixProxyEditor(
       prefix: '',
       proxyUrl: '',
       priority: '',
+      refreshInterval: '',
+      refreshIntervalTouched: false,
+      refreshIntervalError: null,
       websockets: false,
       websocketsTouched: false,
       note: '',
@@ -448,6 +538,8 @@ export function useAuthFilesPrefixProxyEditor(
       const prefix = typeof json.prefix === 'string' ? json.prefix : '';
       const proxyUrl = typeof json.proxy_url === 'string' ? json.proxy_url : '';
       const priority = parsePriorityValue(json.priority);
+      const refreshInterval = readRefreshInterval(json);
+      const refreshIntervalErrorKey = validateRefreshIntervalText(refreshInterval);
       const websockets = supportsAuthFileWebsockets(providerKey)
         ? readAuthFileWebsockets(json)
         : false;
@@ -476,6 +568,9 @@ export function useAuthFilesPrefixProxyEditor(
           prefix,
           proxyUrl,
           priority: priority !== undefined ? String(priority) : '',
+          refreshInterval,
+          refreshIntervalTouched: false,
+          refreshIntervalError: refreshIntervalErrorKey ? t(refreshIntervalErrorKey) : null,
           websockets,
           websocketsTouched: false,
           note,
@@ -507,6 +602,16 @@ export function useAuthFilesPrefixProxyEditor(
       if (field === 'prefix') return { ...prev, prefix: String(value) };
       if (field === 'proxyUrl') return { ...prev, proxyUrl: String(value) };
       if (field === 'priority') return { ...prev, priority: String(value) };
+      if (field === 'refreshInterval') {
+        const refreshInterval = String(value);
+        const errorKey = validateRefreshIntervalText(refreshInterval);
+        return {
+          ...prev,
+          refreshInterval,
+          refreshIntervalTouched: true,
+          refreshIntervalError: errorKey ? t(errorKey) : null,
+        };
+      }
       if (field === 'websockets') {
         return { ...prev, websockets: Boolean(value), websocketsTouched: true };
       }

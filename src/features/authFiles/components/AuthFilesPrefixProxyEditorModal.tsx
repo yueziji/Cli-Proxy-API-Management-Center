@@ -72,7 +72,10 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
               editor?.saving === true ||
               !dirty ||
               !editor?.json ||
-              Boolean(editor?.headersTouched && editor.headersError)
+              Boolean(
+                (editor?.headersTouched && editor.headersError) ||
+                  (editor?.refreshIntervalTouched && editor.refreshIntervalError)
+              )
             }
           >
             {t('common.save')}
@@ -142,6 +145,15 @@ export function AuthFilesPrefixProxyEditorModal(props: AuthFilesPrefixProxyEdito
                     hint={t('auth_files.priority_hint')}
                     disabled={disableControls || editor.saving || !editor.json}
                     onChange={(e) => onChange('priority', e.target.value)}
+                  />
+                  <Input
+                    label={t('auth_files.refresh_interval_label')}
+                    value={editor.refreshInterval}
+                    placeholder={t('auth_files.refresh_interval_placeholder')}
+                    hint={t('auth_files.refresh_interval_hint')}
+                    error={editor.refreshIntervalError ?? undefined}
+                    disabled={disableControls || editor.saving || !editor.json}
+                    onChange={(e) => onChange('refreshInterval', e.target.value)}
                   />
                   {supportsAuthFileWebsockets(editor.providerKey) && (
                     <div className="form-group">
