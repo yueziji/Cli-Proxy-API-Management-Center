@@ -9,9 +9,6 @@ import type { OpenAIProviderConfig } from '@/types';
 import type { StatusBarData } from '@/utils/recentRequests';
 import type { ProviderResource } from './types';
 
-const getUsageProvider = (resource: ProviderResource): string =>
-  resource.brand === 'claudeApi' ? 'claude' : resource.brand;
-
 export const resolveStatusBarData = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
@@ -24,7 +21,7 @@ export const resolveStatusBarData = (
   }
   return getProviderRecentStatusData(
     usageByProvider,
-    getUsageProvider(resource),
+    resource.brand,
     resource.apiKey ?? undefined,
     resource.baseUrl ?? undefined
   );
@@ -42,7 +39,7 @@ export const resolveTotalStats = (
   }
   return getProviderTotalStats(
     usageByProvider,
-    getUsageProvider(resource),
+    resource.brand,
     resource.apiKey ?? undefined,
     resource.baseUrl ?? undefined
   );
