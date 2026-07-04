@@ -6,7 +6,6 @@ const DISABLE_COOLING_BRANDS = new Set<FormProviderBrand>([
   'gemini',
   'codex',
   'claude',
-  'claudeApi',
   'openaiCompatibility',
 ]);
 
@@ -14,7 +13,6 @@ const SINGLE_KEY_TEST_MODEL_BRANDS = new Set<FormProviderBrand>([
   'gemini',
   'codex',
   'claude',
-  'claudeApi',
 ]);
 
 export const supportsDisableCoolingControl = (brand: ProviderBrand): boolean =>

@@ -72,7 +72,7 @@ export function ProviderResourceCards({
       if (r.flags.disableCooling) {
         items.push(renderFlagTag('cooling', t('providersPage.table.disableCoolingTag')));
       }
-      if ((r.brand === 'claude' || r.brand === 'claudeApi') && r.flags.cloakEnabled) {
+      if (r.brand === 'claude' && r.flags.cloakEnabled) {
         items.push(renderFlagTag('cloak', t('providersPage.table.cloakTag')));
       }
     }
