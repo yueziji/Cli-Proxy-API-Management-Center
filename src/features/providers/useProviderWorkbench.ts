@@ -184,6 +184,27 @@ const buildOpenAIConfig = (
 /* hook                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * /openai-compatibility 列表端点会丢掉仅存在于 /config 的字段（如
+ * disable-cooling）。两个列表来自后端同一份配置切片、顺序一致，按下标回填；
+ * 按 name 合并在重名 provider 时会互相污染（name 不唯一，后端也按 index 寻址）。
+ */
+const fillOpenAIConfigOnlyFields = (
+  providers: OpenAIProviderConfig[],
+  configProviders: OpenAIProviderConfig[] | undefined
+): OpenAIProviderConfig[] => {
+  if (!configProviders?.length || providers.length !== configProviders.length) {
+    return providers;
+  }
+  return providers.map((provider, index) => {
+    const fromConfig = configProviders[index];
+    if (fromConfig?.disableCooling === undefined || provider.disableCooling !== undefined) {
+      return provider;
+    }
+    return { ...provider, disableCooling: fromConfig.disableCooling };
+  });
+};
+
 export function useProviderWorkbench(): UseProviderWorkbenchResult {
   const connectionStatus = useAuthStore((s) => s.connectionStatus);
   const config = useConfigStore((s) => s.config);
@@ -217,7 +238,13 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
         updateConfigValue('vertex-api-key', vertexResult.value || []);
       }
       if (openaiResult.status === 'fulfilled') {
-        updateConfigValue('openai-compatibility', openaiResult.value || []);
+        updateConfigValue(
+          'openai-compatibility',
+          fillOpenAIConfigOnlyFields(
+            openaiResult.value || [],
+            configResult.value.openaiCompatibility
+          )
+        );
       }
       setFetchedAt(new Date().toISOString());
     } catch (err) {

@@ -182,7 +182,6 @@ export function useConnectivityTest(
     setCodexStatus(IDLE);
     setGeminiStatus(IDLE);
     setClaudeStatus(IDLE);
-    setCodexStatus(IDLE);
   }, [signature]);
 
   const updateOpenaiStatus = useCallback((idx: number, value: ConnectivityStatus) => {
@@ -349,8 +348,8 @@ export function useConnectivityTest(
           url: endpoint,
           header: headerObj,
           data: JSON.stringify({
-            contents: [{ parts: [{ text: 'Hi' }] }],
-            generationConfig: { maxOutputTokens: 8 },
+            contents: [{ parts: [{ text: pickPrompt() }] }],
+            generationConfig: { maxOutputTokens: DEFAULT_MAX_TOKENS },
           }),
         },
         { timeout: DEFAULT_TIMEOUT_MS }

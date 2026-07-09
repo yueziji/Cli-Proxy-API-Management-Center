@@ -125,11 +125,22 @@ const REFRESH_INTERVAL_KEYS = [
   'refreshIntervalSeconds',
 ] as const;
 
+/** 明确以秒计数的别名键;普通 refresh_interval 出现裸数字时单位不明,不猜。 */
+const REFRESH_INTERVAL_SECONDS_KEYS = new Set<string>([
+  'refresh_interval_seconds',
+  'refreshIntervalSeconds',
+]);
+
 const REFRESH_INTERVAL_SEGMENT_PATTERN = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
 
-const normalizeRefreshIntervalField = (value: unknown): string => {
+const normalizeRefreshIntervalField = (value: unknown, key: string): string => {
   if (typeof value === 'string') return value.trim();
-  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+  if (
+    REFRESH_INTERVAL_SECONDS_KEYS.has(key) &&
+    typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value > 0
+  ) {
     return `${value}s`;
   }
   return '';
@@ -137,7 +148,7 @@ const normalizeRefreshIntervalField = (value: unknown): string => {
 
 const readRefreshInterval = (value: Record<string, unknown>): string => {
   for (const key of REFRESH_INTERVAL_KEYS) {
-    const normalized = normalizeRefreshIntervalField(value[key]);
+    const normalized = normalizeRefreshIntervalField(value[key], key);
     if (normalized) return normalized;
   }
   return '';
@@ -268,10 +279,11 @@ const applyHeadersPatch = (
   }
 };
 
+type AuthFileEditorErrorKey = AuthFileHeadersErrorKey | AuthFileRefreshIntervalErrorKey;
+
 const buildAuthFileFieldsPatch = (
   editor: PrefixProxyEditorState,
-  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string,
-  resolveRefreshIntervalError: (key: AuthFileRefreshIntervalErrorKey) => string
+  resolveError: (key: AuthFileEditorErrorKey) => string
 ): AuthFileFieldsPatch => {
   const original = editor.json ?? {};
   const patch: AuthFileFieldsPatch = {};
@@ -309,7 +321,7 @@ const buildAuthFileFieldsPatch = (
     const nextRefreshInterval = editor.refreshInterval.trim();
     const errorKey = validateRefreshIntervalText(nextRefreshInterval);
     if (errorKey) {
-      throw new Error(resolveRefreshIntervalError(errorKey));
+      throw new Error(resolveError(errorKey));
     }
     const originalRefreshInterval = readRefreshInterval(original);
     if (nextRefreshInterval !== originalRefreshInterval) {
@@ -336,7 +348,7 @@ const buildAuthFileFieldsPatch = (
   if (editor.headersTouched) {
     const { value: parsedHeaders, errorKey } = parseHeadersText(editor.headersText);
     if (errorKey) {
-      throw new Error(resolveHeadersError(errorKey));
+      throw new Error(resolveError(errorKey));
     }
     const headersPatch = buildHeadersPatch(
       normalizeHeaders(original.headers),
@@ -359,15 +371,10 @@ const buildAuthFileFieldsPatch = (
 
 const buildPrefixProxyUpdatedText = (
   editor: PrefixProxyEditorState | null,
-  resolveHeadersError: (key: AuthFileHeadersErrorKey) => string,
-  resolveRefreshIntervalError: (key: AuthFileRefreshIntervalErrorKey) => string
+  resolveError: (key: AuthFileEditorErrorKey) => string
 ): string => {
   if (!editor?.json) return editor?.rawText ?? '';
-  const patch = buildAuthFileFieldsPatch(
-    editor,
-    resolveHeadersError,
-    resolveRefreshIntervalError
-  );
+  const patch = buildAuthFileFieldsPatch(editor, resolveError);
   let next: Record<string, unknown> = { ...editor.json };
   if (patch.prefix !== undefined) {
     if (patch.prefix) {
@@ -392,12 +399,13 @@ const buildPrefixProxyUpdatedText = (
     }
   }
 
+  // 预览必须与 PATCH /auth-files/fields 的实际效果一致：该端点只能写
+  // canonical 的 refresh_interval,无法删除别名键,预览也不能假装删了。
   if (patch.refresh_interval !== undefined) {
-    REFRESH_INTERVAL_KEYS.forEach((key) => {
-      delete next[key];
-    });
     if (patch.refresh_interval) {
       next.refresh_interval = patch.refresh_interval;
+    } else {
+      delete next.refresh_interval;
     }
   }
 
@@ -441,20 +449,12 @@ export function useAuthFilesPrefixProxyEditor(
   );
   const prefixProxyUpdatedText =
     prefixProxyEditor && !hasBlockingValidationError
-      ? buildPrefixProxyUpdatedText(
-          prefixProxyEditor,
-          (key) => t(key),
-          (key) => t(key)
-        )
+      ? buildPrefixProxyUpdatedText(prefixProxyEditor, (key) => t(key))
       : '';
 
   const prefixProxyPatch =
     prefixProxyEditor?.json && !hasBlockingValidationError
-      ? buildAuthFileFieldsPatch(
-          prefixProxyEditor,
-          (key) => t(key),
-          (key) => t(key)
-        )
+      ? buildAuthFileFieldsPatch(prefixProxyEditor, (key) => t(key))
       : null;
 
   const prefixProxyDirty = hasKeys(prefixProxyPatch);
@@ -640,11 +640,7 @@ export function useAuthFilesPrefixProxyEditor(
     const name = prefixProxyEditor.fileName;
     let payload: AuthFileFieldsPatch;
     try {
-      payload = buildAuthFileFieldsPatch(
-        prefixProxyEditor,
-        (key) => t(key),
-        (key) => t(key)
-      );
+      payload = buildAuthFileFieldsPatch(prefixProxyEditor, (key) => t(key));
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Invalid format';
       showNotification(errorMessage, 'error');

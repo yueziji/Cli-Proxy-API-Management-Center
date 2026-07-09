@@ -97,8 +97,6 @@
   },
   "nav": {
     "dashboard": "儀表板",
-    "basic_settings": "基本設定",
-    "api_keys": "API 金鑰",
     "ai_providers": "AI 供應商",
     "auth_files": "驗證檔案",
     "oauth": "OAuth 登入",
@@ -287,6 +285,8 @@
     "note_placeholder": "輸入備註資訊，例如：張三的帳號",
     "note_hint": "選填，用於標記憑證用途或歸屬；留空則不寫入。",
     "note_display": "備註",
+    "disable_cooling_label": "停用冷卻（disable_cooling）",
+    "disable_cooling_hint": "支援布林值、0/非0 數字或字串 true/false/1/0；無法解析時忽略。",
     "headers_label": "自訂請求標頭（headers）",
     "headers_placeholder": "{\n  \"Header-Name\": \"value\"\n}",
     "headers_hint": "以 JSON 物件格式輸入自訂 HTTP 請求標頭，例如：{\"X-My-Header\": \"value\"}",
