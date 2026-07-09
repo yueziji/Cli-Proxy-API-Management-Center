@@ -1,28 +1,21 @@
+import { PROVIDER_DESCRIPTORS } from './descriptors';
 import type { ProviderBrand } from './types';
 
-type FormProviderBrand = ProviderBrand;
-
-const DISABLE_COOLING_BRANDS = new Set<FormProviderBrand>([
-  'gemini',
-  'codex',
-  'claude',
-  'openaiCompatibility',
-]);
-
-const SINGLE_KEY_TEST_MODEL_BRANDS = new Set<FormProviderBrand>([
-  'gemini',
-  'codex',
-  'claude',
-]);
+/**
+ * 品牌能力查询,统一从 PROVIDER_DESCRIPTORS 派生,避免第二份能力清单
+ * 与 descriptor 漂移。新增 brand 时只需维护 descriptors.ts。
+ */
 
 export const supportsDisableCoolingControl = (brand: ProviderBrand): boolean =>
-  DISABLE_COOLING_BRANDS.has(brand as FormProviderBrand);
+  PROVIDER_DESCRIPTORS[brand].supportsDisableCooling;
 
+/** 单密钥 brand(gemini/codex/claude)的测试模型仅用于连通性测试,不持久化。 */
 export const supportsSingleKeyTestModel = (brand: ProviderBrand): boolean =>
-  SINGLE_KEY_TEST_MODEL_BRANDS.has(brand as FormProviderBrand);
+  PROVIDER_DESCRIPTORS[brand].supportsTestModel &&
+  !PROVIDER_DESCRIPTORS[brand].supportsApiKeyEntries;
 
 export const supportsTestModelSelection = (brand: ProviderBrand): boolean =>
-  brand === 'openaiCompatibility' || supportsSingleKeyTestModel(brand);
+  PROVIDER_DESCRIPTORS[brand].supportsTestModel;
 
 export const supportsOpenAIModelOptions = (brand: ProviderBrand): boolean =>
-  brand === 'openaiCompatibility';
+  PROVIDER_DESCRIPTORS[brand].supportsApiKeyEntries;

@@ -3,17 +3,11 @@ import { modelsApi } from '@/services/api';
 import { buildHeaderObject } from '@/utils/headers';
 import { getErrorMessage } from '@/utils/helpers';
 import type { ModelInfo } from '@/utils/models';
+import { PROVIDER_DESCRIPTORS } from '../../descriptors';
 import type { ApiKeyEntryInput, ProviderBrand } from '../../types';
 
-export const MODEL_DISCOVERY_BRANDS: ReadonlyArray<ProviderBrand> = [
-  'gemini',
-  'codex',
-  'claude',
-  'openaiCompatibility',
-];
-
 export const isModelDiscoveryBrand = (brand: ProviderBrand): boolean =>
-  MODEL_DISCOVERY_BRANDS.includes(brand);
+  PROVIDER_DESCRIPTORS[brand].supportsModelDiscovery;
 
 export interface UseModelDiscoveryArgs {
   brand: ProviderBrand;
