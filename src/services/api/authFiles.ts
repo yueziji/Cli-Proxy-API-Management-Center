@@ -367,11 +367,6 @@ export const authFilesApi = {
     return blob.text();
   },
 
-  saveText: async (name: string, text: string) => {
-    const file = new File([text], name, { type: 'application/json' });
-    await authFilesApi.uploadFiles([file]);
-  },
-
   // OAuth 排除模型
   async getOauthExcludedModels(): Promise<Record<string, string[]>> {
     const data = await apiClient.get('/oauth-excluded-models');
