@@ -266,27 +266,6 @@ const normalizeOpenAIProviderList = (data: unknown): OpenAIProviderConfig[] => {
     .filter(Boolean) as OpenAIProviderConfig[];
 };
 
-const mergeOpenAIProviderConfigFields = (
-  providers: OpenAIProviderConfig[],
-  rawProviders: OpenAIProviderConfig[]
-) => {
-  if (!rawProviders.length) return providers;
-  if (!providers.length) return rawProviders;
-
-  const rawByName = new Map(
-    rawProviders.map((provider) => [provider.name.trim(), provider])
-  );
-
-  return providers.map((provider, index) => {
-    const rawProvider = rawByName.get(provider.name.trim()) ?? rawProviders[index];
-    if (!rawProvider || rawProvider.disableCooling === undefined) {
-      return provider;
-    }
-    // The provider endpoint may omit config-only fields that still exist in /config.
-    return { ...provider, disableCooling: rawProvider.disableCooling };
-  });
-};
-
 const buildProviderDeleteQuery = (apiKey: string, baseUrl?: string) => {
   const params = new URLSearchParams();
   params.set('api-key', apiKey.trim());
@@ -501,15 +480,7 @@ export const providersApi = {
 
   async getOpenAIProviders(): Promise<OpenAIProviderConfig[]> {
     const data = await apiClient.get('/openai-compatibility');
-    const providers = normalizeOpenAIProviderList(data);
-
-    try {
-      const rawConfig = await apiClient.get('/config');
-      const rawProviders = normalizeOpenAIProviderList(rawConfig);
-      return mergeOpenAIProviderConfigFields(providers, rawProviders);
-    } catch {
-      return providers;
-    }
+    return normalizeOpenAIProviderList(data);
   },
 
   saveOpenAIProviders: async (providers: OpenAIProviderConfig[]) =>

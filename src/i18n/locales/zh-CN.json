@@ -97,8 +97,6 @@
   },
   "nav": {
     "dashboard": "仪表盘",
-    "basic_settings": "基础设置",
-    "api_keys": "API 密钥",
     "ai_providers": "AI 提供商",
     "auth_files": "认证文件",
     "oauth": "OAuth 登录",
@@ -287,6 +285,8 @@
     "note_placeholder": "输入备注信息，例如：张三的账号",
     "note_hint": "可选，用于标记凭证用途或归属；留空则不写入。",
     "note_display": "备注",
+    "disable_cooling_label": "禁用冷却（disable_cooling）",
+    "disable_cooling_hint": "支持布尔值、0/非0 数字或字符串 true/false/1/0；无法解析时忽略。",
     "headers_label": "自定义请求头（headers）",
     "headers_placeholder": "{\n  \"Header-Name\": \"value\"\n}",
     "headers_hint": "以 JSON 对象格式输入自定义 HTTP 请求头，例如：{\"X-My-Header\": \"value\"}",

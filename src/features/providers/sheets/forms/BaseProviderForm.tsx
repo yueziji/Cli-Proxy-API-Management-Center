@@ -205,7 +205,7 @@ export function BaseProviderForm({
   }, [isDirty, onDirtyChange]);
 
   // baseUrl 实时校验：硬错误用于阻止保存，软提示展示在输入框下方。
-  const baseUrlValidation = useMemo(() => validateBaseUrl(form.baseUrl), [form.baseUrl]);
+  const baseUrlValidation = useMemo(() => validateBaseUrl(form.baseUrl, brand), [brand, form.baseUrl]);
   const baseUrlError =
     descriptor.supportsBaseUrl && form.baseUrl.trim() && baseUrlValidation.errorKey
       ? baseUrlValidation.errorKey
@@ -435,8 +435,11 @@ export function BaseProviderForm({
     if (connectivity.openaiStatuses.some((status) => status.state === 'error')) {
       return 'error';
     }
+    // 与 runOpenAIKey 的密钥解析保持一致:清空输入框的持久化条目
+    // (existingApiKey)仍会被测试,也要计入 testable。
     const testableCount = apiKeyEntries.filter(
-      (entry) => entry.apiKey.trim() || (entry.authIndex ?? '').trim()
+      (entry) =>
+        entry.apiKey.trim() || entry.existingApiKey?.trim() || (entry.authIndex ?? '').trim()
     ).length;
     const successCount = connectivity.openaiStatuses.filter(
       (status) => status.state === 'success'

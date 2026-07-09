@@ -97,8 +97,6 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "basic_settings": "Basic Settings",
-    "api_keys": "API Keys",
     "ai_providers": "AI Providers",
     "auth_files": "Auth Files",
     "oauth": "OAuth Login",
@@ -287,6 +285,8 @@
     "note_placeholder": "Enter a note, e.g.: John's account",
     "note_hint": "Optional. Used to describe the purpose or owner of this credential; leave empty to omit.",
     "note_display": "Note",
+    "disable_cooling_label": "Disable cooling (disable_cooling)",
+    "disable_cooling_hint": "Supports booleans, numeric 0/non-0, and strings like true/false/1/0; unparseable values are ignored.",
     "headers_label": "Custom Headers (headers)",
     "headers_placeholder": "{\n  \"Header-Name\": \"value\"\n}",
     "headers_hint": "Enter custom HTTP headers as a JSON object, e.g., {\"X-My-Header\": \"value\"}",

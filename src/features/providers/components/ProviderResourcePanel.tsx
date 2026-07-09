@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { IconPlus, IconSearch } from '@/components/ui/icons';
+import { useContainerNarrow } from '@/hooks/useContainerNarrow';
 import type { ProviderRecentUsageMap } from '@/components/providers/utils';
 import { PROVIDER_LOGOS } from '../brandLogos';
 import type { ProviderGroup, ProviderResource } from '../types';
 import { ProviderResourceTable } from './ProviderResourceTable';
+import { ProviderResourceCards } from './ProviderResourceCards';
 import { ProviderResourceToolbar } from './ProviderResourceToolbar';
 import type { ProviderSortBy, SortDir } from '../types';
 import styles from './ProviderResourcePanel.module.scss';
@@ -51,6 +53,9 @@ export function ProviderResourcePanel({
 }: ProviderResourcePanelProps) {
   const { t } = useTranslation();
   const logo = PROVIDER_LOGOS[group.id];
+  // 表格 min-width(1040) + 面板左右 padding(44):容器再窄就换卡片布局,
+  // 用 ResizeObserver 而非媒体查询,以响应侧边栏开合。
+  const [useCards, panelRef] = useContainerNarrow(1084);
   const providerTitle = t(`providersPage.providerNames.${group.id}`);
   const logoClassName = [
     styles.logo,
@@ -76,7 +81,7 @@ export function ProviderResourcePanel({
   );
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} ref={panelRef}>
       <div className={styles.header}>
         <div className={styles.headerMain}>
           <div className={styles.titleArea}>
@@ -121,6 +126,17 @@ export function ProviderResourcePanel({
             </button>
           </div>
         </div>
+      ) : useCards ? (
+        <ProviderResourceCards
+          resources={filteredResources}
+          selectedId={selectedId}
+          disableMutations={disableMutations}
+          usageByProvider={usageByProvider}
+          onView={onView}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onToggleDisabled={onToggleDisabled}
+        />
       ) : (
         <ProviderResourceTable
           resources={filteredResources}
