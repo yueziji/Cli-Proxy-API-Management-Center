@@ -17,6 +17,9 @@ export interface ProviderDescriptor {
   supportsWebsockets: boolean;
   supportsCloak: boolean;
   supportsApiKeyEntries: boolean;
+  supportsDisableCooling: boolean;
+  /** 是否支持从上游 /models 端点发现模型列表 */
+  supportsModelDiscovery: boolean;
   /** Sheet 默认宽度 */
   sheetSize: 'md' | 'lg' | 'xl';
 }
@@ -39,6 +42,8 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsDisableCooling: true,
+    supportsModelDiscovery: true,
     sheetSize: 'md',
   },
   codex: {
@@ -58,6 +63,8 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: true,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsDisableCooling: true,
+    supportsModelDiscovery: true,
     sheetSize: 'md',
   },
   claude: {
@@ -77,6 +84,8 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: true,
     supportsApiKeyEntries: false,
+    supportsDisableCooling: true,
+    supportsModelDiscovery: true,
     sheetSize: 'md',
   },
   vertex: {
@@ -96,6 +105,8 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: false,
+    supportsDisableCooling: false,
+    supportsModelDiscovery: false,
     sheetSize: 'md',
   },
   openaiCompatibility: {
@@ -115,6 +126,8 @@ export const PROVIDER_DESCRIPTORS: Record<ProviderBrand, ProviderDescriptor> = {
     supportsWebsockets: false,
     supportsCloak: false,
     supportsApiKeyEntries: true,
+    supportsDisableCooling: true,
+    supportsModelDiscovery: true,
     sheetSize: 'lg',
   },
 };

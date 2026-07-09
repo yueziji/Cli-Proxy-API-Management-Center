@@ -1,7 +1,9 @@
 import {
   getOpenAIProviderRecentStatusData,
+  getOpenAIProviderRecentWindowStats,
   getOpenAIProviderTotalStats,
   getProviderRecentStatusData,
+  getProviderRecentWindowStats,
   getProviderTotalStats,
   type ProviderRecentUsageMap,
 } from '@/components/providers/utils';
@@ -38,6 +40,24 @@ export const resolveTotalStats = (
     );
   }
   return getProviderTotalStats(
+    usageByProvider,
+    resource.brand,
+    resource.apiKey ?? undefined,
+    resource.baseUrl ?? undefined
+  );
+};
+
+export const resolveRecentWindowStats = (
+  resource: ProviderResource,
+  usageByProvider: ProviderRecentUsageMap
+): { success: number; failure: number } => {
+  if (resource.brand === 'openaiCompatibility') {
+    return getOpenAIProviderRecentWindowStats(
+      resource.raw as OpenAIProviderConfig,
+      usageByProvider
+    );
+  }
+  return getProviderRecentWindowStats(
     usageByProvider,
     resource.brand,
     resource.apiKey ?? undefined,

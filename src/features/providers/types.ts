@@ -26,7 +26,6 @@ export interface ProviderResourceFlags {
   cloakEnabled?: boolean;
   websockets?: boolean;
   disableCooling?: boolean;
-  isPlaceholder?: boolean;
 }
 
 export interface ProviderResource {

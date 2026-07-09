@@ -5,17 +5,13 @@ import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuthStore, useNotificationStore } from '@/stores';
 import { useProviderRecentRequests } from '@/components/providers/hooks/useProviderRecentRequests';
-import {
-  getOpenAIProviderRecentWindowStats,
-  getProviderRecentWindowStats,
-  type ProviderRecentUsageMap,
-} from '@/components/providers/utils';
-import type { OpenAIProviderConfig } from '@/types';
+import type { ProviderRecentUsageMap } from '@/components/providers/utils';
 import { ProviderHeaderCard } from './components/ProviderHeaderCard';
 import { ProviderCategoryList } from './components/ProviderCategoryList';
 import { ProviderResourcePanel } from './components/ProviderResourcePanel';
 import type { ProviderPanelControls } from './components/ProviderResourcePanel';
 import { ProviderSheet, type ProviderSheetHandle } from './sheets/ProviderSheet';
+import { resolveRecentWindowStats } from './resourceStats';
 import { useProviderWorkbench } from './useProviderWorkbench';
 import {
   getProviderFilterState,
@@ -72,18 +68,7 @@ const getResourceSortName = (resource: ProviderResource): string =>
 const getResourceRecentSuccess = (
   resource: ProviderResource,
   usageByProvider: ProviderRecentUsageMap
-): number => {
-  if (resource.brand === 'openaiCompatibility') {
-    return getOpenAIProviderRecentWindowStats(resource.raw as OpenAIProviderConfig, usageByProvider)
-      .success;
-  }
-  return getProviderRecentWindowStats(
-    usageByProvider,
-    resource.brand,
-    resource.apiKey ?? undefined,
-    resource.baseUrl ?? undefined
-  ).success;
-};
+): number => resolveRecentWindowStats(resource, usageByProvider).success;
 
 export function ProvidersWorkbenchPage() {
   const { t, i18n } = useTranslation();
@@ -370,7 +355,6 @@ export function ProvidersWorkbenchPage() {
         updatedAtLabel={updatedAtLabel}
         isFetching={workbench.isFetching}
         isNewDisabled={disableMutations}
-        newLabel={t('providersPage.actions.new')}
         onRefresh={() => void handleRefresh()}
         onNew={openCreate}
       />

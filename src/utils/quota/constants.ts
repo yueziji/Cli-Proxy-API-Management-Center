@@ -3,6 +3,7 @@
  */
 
 import type { TypeColorSet } from '@/types';
+import { TEST_USER_AGENTS } from '@/utils/constants';
 
 // Theme colors for type badges — 与 authFiles/constants.ts 保持同步
 export const TYPE_COLORS: Record<string, TypeColorSet> = {
@@ -131,7 +132,7 @@ export const CODEX_RATE_LIMIT_RESET_CREDITS_CONSUME_URL =
 export const CODEX_REQUEST_HEADERS = {
   Authorization: 'Bearer $TOKEN$',
   'Content-Type': 'application/json',
-  'User-Agent': 'codex_cli_rs/0.76.0 (Debian 13.0.0; x86_64) WindowsTerminal',
+  'User-Agent': TEST_USER_AGENTS.codex,
 };
 
 // Kimi API configuration
