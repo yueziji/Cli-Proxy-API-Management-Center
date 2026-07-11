@@ -180,19 +180,14 @@ export function ProvidersWorkbenchPage() {
     }
 
     const sorted = [...arr].sort((a, b) => {
-      let diff = 0;
-      if (providerSortBy === 'name') {
-        diff = getResourceSortName(a).localeCompare(getResourceSortName(b));
-      } else if (providerSortBy === 'priority') {
-        diff = (a.priority ?? 0) - (b.priority ?? 0);
-      } else {
-        diff =
-          getResourceRecentSuccess(a, usageByProvider) -
-          getResourceRecentSuccess(b, usageByProvider);
-      }
-      if (diff === 0) {
-        diff = a.originalIndex - b.originalIndex;
-      }
+      const sortDiff =
+        providerSortBy === 'name'
+          ? getResourceSortName(a).localeCompare(getResourceSortName(b))
+          : providerSortBy === 'priority'
+            ? (a.priority ?? 0) - (b.priority ?? 0)
+            : getResourceRecentSuccess(a, usageByProvider) -
+              getResourceRecentSuccess(b, usageByProvider);
+      const diff = sortDiff || a.originalIndex - b.originalIndex;
       return providerSortDir === 'asc' ? diff : -diff;
     });
 
