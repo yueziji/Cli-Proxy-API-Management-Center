@@ -56,6 +56,7 @@ const emptyApiKeyEntry = (): ApiKeyEntryInput => ({
   apiKey: '',
   proxyUrl: '',
 });
+const XAI_API_BASE_URL = 'https://api.x.ai/v1';
 
 const stripDisableAllRule = (list?: string[]): string[] =>
   (list ?? []).filter((s) => s.trim() !== '*');
@@ -74,7 +75,7 @@ function buildInitialForm(
     return {
       apiKey: '',
       name: '',
-      baseUrl: '',
+      baseUrl: brand === 'xai' ? XAI_API_BASE_URL : '',
       proxyUrl: '',
       prefix: '',
       disabled: false,
@@ -83,7 +84,7 @@ function buildInitialForm(
       models: [emptyModel()],
       headers: [emptyHeader()],
       excludedModelsText: '',
-      websockets: brand === 'codex' ? false : undefined,
+      websockets: brand === 'codex' || brand === 'xai' ? false : undefined,
       cloak:
         brand === 'claude'
           ? { mode: '', strictMode: false, sensitiveWordsText: '', cacheUserId: false }
@@ -156,7 +157,10 @@ function buildInitialForm(
       ? Object.entries(cfg.headers).map(([k, v]) => ({ key: k, value: String(v) }))
       : [emptyHeader()],
     excludedModelsText: excludedList.join('\n'),
-    websockets: brand === 'codex' ? (cfg as ProviderKeyConfig).websockets === true : undefined,
+    websockets:
+      brand === 'codex' || brand === 'xai'
+        ? (cfg as ProviderKeyConfig).websockets === true
+        : undefined,
     cloak:
       brand === 'claude'
         ? {
@@ -449,7 +453,7 @@ export function BaseProviderForm({
   const supportsDisableCooling = supportsDisableCoolingControl(brand);
   const supportsOpenAIModelOptions = supportsOpenAIModelOptionsForBrand(brand);
   const singleConnectivity =
-    brand === 'codex'
+    brand === 'codex' || brand === 'xai'
       ? { status: connectivity.codexStatus, run: connectivity.runCodex }
       : brand === 'gemini'
         ? { status: connectivity.geminiStatus, run: connectivity.runGemini }

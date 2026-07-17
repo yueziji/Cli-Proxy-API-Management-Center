@@ -5,6 +5,7 @@
 export type ProviderBrand =
   | 'gemini'
   | 'codex'
+  | 'xai'
   | 'claude'
   | 'vertex'
   | 'openaiCompatibility';
@@ -18,6 +19,7 @@ export type SortDir = (typeof SORT_DIR_VALUES)[number];
 export type ProviderResourceSelector =
   | { brand: 'gemini'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'codex'; apiKey: string; baseUrl?: string; index: number }
+  | { brand: 'xai'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'claude'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'vertex'; apiKey: string; baseUrl?: string; index: number }
   | { brand: 'openaiCompatibility'; name: string; index: number };

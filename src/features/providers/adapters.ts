@@ -33,7 +33,7 @@ const normalizePriority = (priority?: number): number | null =>
   typeof priority === 'number' && Number.isFinite(priority) ? priority : null;
 
 function providerKeyToResource(
-  brand: 'gemini' | 'codex' | 'claude' | 'vertex',
+  brand: 'gemini' | 'codex' | 'xai' | 'claude' | 'vertex',
   config: GeminiKeyConfig | ProviderKeyConfig,
   index: number
 ): ProviderResource {
@@ -42,7 +42,7 @@ function providerKeyToResource(
   const flags: ProviderResource['flags'] = {
     disableCooling: config.disableCooling === true,
   };
-  if (brand === 'codex') {
+  if (brand === 'codex' || brand === 'xai') {
     flags.websockets = (config as ProviderKeyConfig).websockets === true;
   }
   if (brand === 'claude') {
@@ -88,6 +88,10 @@ export function geminiToResource(config: GeminiKeyConfig, index: number): Provid
 
 export function codexToResource(config: ProviderKeyConfig, index: number): ProviderResource {
   return providerKeyToResource('codex', config, index);
+}
+
+export function xaiToResource(config: ProviderKeyConfig, index: number): ProviderResource {
+  return providerKeyToResource('xai', config, index);
 }
 
 export function claudeToResource(config: ProviderKeyConfig, index: number): ProviderResource {
