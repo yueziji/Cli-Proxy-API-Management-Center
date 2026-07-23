@@ -99,7 +99,11 @@ export function ProvidersWorkbenchPage() {
 
   useHeaderRefresh(handleRefresh, isCurrentLayer);
 
-  const disableMutations = connectionStatus !== 'connected' || workbench.mutating;
+  const disableMutations =
+    connectionStatus !== 'connected' ||
+    workbench.mutating ||
+    workbench.isFetching ||
+    workbench.isError;
 
   const persistUiState = useCallback(
     (updater: (prev: ProvidersWorkbenchUiState) => ProvidersWorkbenchUiState) => {
@@ -235,6 +239,9 @@ export function ProvidersWorkbenchPage() {
   const updatedAtLabel = workbench.snapshot
     ? formatDateTime(workbench.snapshot.fetchedAt, i18n.language)
     : t('providersPage.modelCatalog.notLoaded');
+  const errorBanner = workbench.errorMessage ? (
+    <div className="error-box">{workbench.errorMessage}</div>
+  ) : null;
 
   const openCreate = useCallback(() => {
     const brand = activeBrand;
@@ -337,6 +344,7 @@ export function ProvidersWorkbenchPage() {
           onNew={() => {}}
           isNewDisabled
         />
+        {errorBanner}
       </div>
     );
   }
@@ -353,6 +361,8 @@ export function ProvidersWorkbenchPage() {
         onRefresh={() => void handleRefresh()}
         onNew={openCreate}
       />
+
+      {errorBanner}
 
       <div className={styles.layout}>
         <ProviderCategoryList

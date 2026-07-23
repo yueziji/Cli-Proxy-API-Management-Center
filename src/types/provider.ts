@@ -66,5 +66,7 @@ export interface OpenAIProviderConfig {
   priority?: number;
   testModel?: string;
   authIndex?: string;
+  /** Original index in the backend openai-compatibility array. */
+  sourceIndex?: number;
   [key: string]: unknown;
 }
