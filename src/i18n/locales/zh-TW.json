@@ -879,6 +879,8 @@
           "commercial_mode_desc": "停用高開銷中介軟體以支援高並行",
           "logging_to_file": "寫入記錄檔",
           "logging_to_file_desc": "將記錄儲存到檔案",
+          "request_log": "請求記錄",
+          "request_log_desc": "僅在需要排查問題時開啟，日常請保持關閉。",
           "plugins_enabled": "啟用插件系統",
           "plugins_enabled_desc": "啟用標準動態庫插件載入；具體插件實例仍在插件管理頁啟停",
           "plugin_store_sources": "第三方插件源",

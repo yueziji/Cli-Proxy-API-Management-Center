@@ -104,6 +104,7 @@ export type VisualConfigValues = {
   debug: boolean;
   commercialMode: boolean;
   loggingToFile: boolean;
+  requestLog: boolean;
   logsMaxTotalSizeMb: string;
   errorLogsMaxFiles: string;
   usageStatisticsEnabled: boolean;
@@ -169,6 +170,7 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   debug: false,
   commercialMode: false,
   loggingToFile: false,
+  requestLog: false,
   logsMaxTotalSizeMb: '',
   errorLogsMaxFiles: '',
   usageStatisticsEnabled: false,
