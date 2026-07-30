@@ -4,6 +4,9 @@ import {
   buildCodexResponsesEndpoint,
   buildClaudeMessagesEndpoint,
   buildGeminiGenerateContentEndpoint,
+  buildInteractionsEndpoint,
+  buildInteractionsProbePayload,
+  INTERACTIONS_API_REVISION,
   buildOpenAIChatCompletionsEndpoint,
 } from '@/components/providers/utils';
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
@@ -299,7 +302,7 @@ export function useConnectivityTest(
   }, [apiKeyEntries, brand, runOpenAIKey]);
 
   const runGemini = useCallback(async (): Promise<void> => {
-    if (brand !== 'gemini') return;
+    if (brand !== 'gemini' && brand !== 'interactions') return;
 
     const model = pickModel(testModel, models);
     if (!model) {
@@ -307,7 +310,10 @@ export function useConnectivityTest(
       return;
     }
 
-    const endpoint = buildGeminiGenerateContentEndpoint(baseUrl ?? '', model);
+    const endpoint =
+      brand === 'interactions'
+        ? buildInteractionsEndpoint(baseUrl ?? '')
+        : buildGeminiGenerateContentEndpoint(baseUrl ?? '', model);
     if (!endpoint) {
       setGeminiStatus({ state: 'error', message: messages.endpointInvalid });
       return;
@@ -337,6 +343,9 @@ export function useConnectivityTest(
       }
     }
     ensureTestUserAgent(headerObj, 'gemini');
+    if (brand === 'interactions' && !hasHeader(headerObj, 'api-revision')) {
+      headerObj['Api-Revision'] = INTERACTIONS_API_REVISION;
+    }
 
     setGeminiStatus({ state: 'loading', message: '' });
     setInFlight((n) => n + 1);
@@ -347,10 +356,14 @@ export function useConnectivityTest(
           method: 'POST',
           url: endpoint,
           header: headerObj,
-          data: JSON.stringify({
-            contents: [{ parts: [{ text: pickPrompt() }] }],
-            generationConfig: { maxOutputTokens: DEFAULT_MAX_TOKENS },
-          }),
+          data: JSON.stringify(
+            brand === 'interactions'
+              ? buildInteractionsProbePayload(model)
+              : {
+                  contents: [{ parts: [{ text: pickPrompt() }] }],
+                  generationConfig: { maxOutputTokens: DEFAULT_MAX_TOKENS },
+                }
+          ),
         },
         { timeout: DEFAULT_TIMEOUT_MS }
       );

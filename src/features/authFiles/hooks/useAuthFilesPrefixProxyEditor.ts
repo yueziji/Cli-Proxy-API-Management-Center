@@ -14,6 +14,12 @@ import {
   supportsAuthFileWebsockets,
   supportsAuthFileUsingApi,
 } from '@/features/authFiles/constants';
+import {
+  parseCredentialWeightText,
+  readCredentialWeight,
+  validateCredentialWeightText,
+  type CredentialWeightError,
+} from '@/utils/credentialWeight';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
@@ -22,14 +28,19 @@ type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_value';
 type AuthFileRefreshIntervalErrorKey = 'auth_files.refresh_interval_invalid';
 type AuthFileContentErrorKey =
-  | 'auth_files.prefix_proxy_invalid_json'
-  | 'auth_files.prefix_proxy_html_challenge';
+  'auth_files.prefix_proxy_invalid_json' | 'auth_files.prefix_proxy_html_challenge';
+type AuthFileWeightErrorKey = 'auth_files.weight_invalid_integer' | 'auth_files.weight_invalid_max';
+type AuthFileEditorErrorKey =
+  | AuthFileHeadersErrorKey
+  | AuthFileRefreshIntervalErrorKey
+  | AuthFileWeightErrorKey;
 
 export type PrefixProxyEditorField =
   | 'prefix'
   | 'proxyUrl'
   | 'priority'
   | 'refreshInterval'
+  | 'weight'
   | 'websockets'
   | 'disableCooling'
   | 'usingApi'
@@ -55,6 +66,8 @@ export type PrefixProxyEditorState = {
   refreshInterval: string;
   refreshIntervalTouched: boolean;
   refreshIntervalError: string | null;
+  weight: string;
+  weightError: string | null;
   websockets: boolean;
   websocketsTouched: boolean;
   usingApi: boolean;
@@ -120,6 +133,9 @@ const parseHeadersText = (
 
   return { value: parsed as AuthFileHeaders, errorKey: null };
 };
+
+const credentialWeightErrorKey = (error: CredentialWeightError): AuthFileWeightErrorKey =>
+  error === 'max' ? 'auth_files.weight_invalid_max' : 'auth_files.weight_invalid_integer';
 
 const normalizeTextField = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
@@ -285,9 +301,7 @@ const applyHeadersPatch = (
   }
 };
 
-type AuthFileEditorErrorKey = AuthFileHeadersErrorKey | AuthFileRefreshIntervalErrorKey;
-
-const buildAuthFileFieldsPatch = (
+export const buildAuthFileFieldsPatch = (
   editor: PrefixProxyEditorState,
   resolveError: (key: AuthFileEditorErrorKey) => string
 ): AuthFileFieldsPatch => {
@@ -333,6 +347,18 @@ const buildAuthFileFieldsPatch = (
     if (nextRefreshInterval !== originalRefreshInterval) {
       patch.refresh_interval = nextRefreshInterval;
     }
+  }
+
+  const weightError = validateCredentialWeightText(editor.weight);
+  if (weightError) {
+    throw new Error(resolveError(credentialWeightErrorKey(weightError)));
+  }
+  const originalWeight = readCredentialWeight(original.weight);
+  const nextWeight = parseCredentialWeightText(editor.weight);
+  if (nextWeight === undefined) {
+    if (originalWeight !== undefined) patch.weight = null;
+  } else if (nextWeight !== originalWeight) {
+    patch.weight = nextWeight;
   }
 
   if (editor.noteTouched) {
@@ -423,6 +449,14 @@ const buildPrefixProxyUpdatedText = (
     }
   }
 
+  if (patch.weight !== undefined) {
+    if (patch.weight === null) {
+      delete next.weight;
+    } else {
+      next.weight = patch.weight;
+    }
+  }
+
   if (patch.note !== undefined) {
     if (patch.note) {
       next.note = patch.note;
@@ -463,7 +497,8 @@ export function useAuthFilesPrefixProxyEditor(
 
   const hasBlockingValidationError = Boolean(
     (prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError) ||
-      (prefixProxyEditor?.refreshIntervalTouched && prefixProxyEditor.refreshIntervalError)
+      (prefixProxyEditor?.refreshIntervalTouched && prefixProxyEditor.refreshIntervalError) ||
+      prefixProxyEditor?.weightError
   );
   const prefixProxyUpdatedText =
     prefixProxyEditor && !hasBlockingValidationError
@@ -508,6 +543,8 @@ export function useAuthFilesPrefixProxyEditor(
       refreshInterval: '',
       refreshIntervalTouched: false,
       refreshIntervalError: null,
+      weight: '',
+      weightError: null,
       websockets: false,
       websocketsTouched: false,
       usingApi: false,
@@ -560,6 +597,7 @@ export function useAuthFilesPrefixProxyEditor(
       const priority = parsePriorityValue(json.priority);
       const refreshInterval = readRefreshInterval(json);
       const refreshIntervalErrorKey = validateRefreshIntervalText(refreshInterval);
+      const weight = readCredentialWeight(json.weight);
       const websockets = supportsAuthFileWebsockets(providerKey)
         ? readAuthFileWebsockets(json)
         : false;
@@ -592,6 +630,8 @@ export function useAuthFilesPrefixProxyEditor(
           refreshInterval,
           refreshIntervalTouched: false,
           refreshIntervalError: refreshIntervalErrorKey ? t(refreshIntervalErrorKey) : null,
+          weight: weight !== undefined ? String(weight) : '',
+          weightError: null,
           websockets,
           websocketsTouched: false,
           usingApi,
@@ -633,6 +673,15 @@ export function useAuthFilesPrefixProxyEditor(
           refreshInterval,
           refreshIntervalTouched: true,
           refreshIntervalError: errorKey ? t(errorKey) : null,
+        };
+      }
+      if (field === 'weight') {
+        const weight = String(value);
+        const error = validateCredentialWeightText(weight);
+        return {
+          ...prev,
+          weight,
+          weightError: error ? t(credentialWeightErrorKey(error)) : null,
         };
       }
       if (field === 'websockets') {

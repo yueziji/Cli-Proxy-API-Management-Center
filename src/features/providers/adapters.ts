@@ -33,7 +33,7 @@ const normalizePriority = (priority?: number): number | null =>
   typeof priority === 'number' && Number.isFinite(priority) ? priority : null;
 
 function providerKeyToResource(
-  brand: 'gemini' | 'codex' | 'xai' | 'claude' | 'vertex',
+  brand: 'gemini' | 'interactions' | 'codex' | 'xai' | 'claude' | 'vertex',
   config: GeminiKeyConfig | ProviderKeyConfig,
   index: number
 ): ProviderResource {
@@ -84,6 +84,10 @@ function providerKeyToResource(
 
 export function geminiToResource(config: GeminiKeyConfig, index: number): ProviderResource {
   return providerKeyToResource('gemini', config, index);
+}
+
+export function interactionsToResource(config: GeminiKeyConfig, index: number): ProviderResource {
+  return providerKeyToResource('interactions', config, index);
 }
 
 export function codexToResource(config: ProviderKeyConfig, index: number): ProviderResource {
