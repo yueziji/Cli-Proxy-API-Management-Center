@@ -63,11 +63,11 @@ export interface OpenAIProviderConfig {
   baseUrl: string;
   apiKeyEntries: ApiKeyEntry[];
   disabled?: boolean;
-  disableCooling?: boolean;
   headers?: Record<string, string>;
   models?: ModelAlias[];
   priority?: number;
   testModel?: string;
+  disableCooling?: boolean;
   authIndex?: string;
   /** Original index in the backend openai-compatibility array. */
   sourceIndex?: number;

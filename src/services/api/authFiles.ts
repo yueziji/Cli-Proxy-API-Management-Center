@@ -21,15 +21,15 @@ export type AuthFileFieldsPatch = {
   proxy_url?: string;
   headers?: Record<string, string>;
   priority?: number;
-  refresh_interval?: string;
   weight?: number | null;
   websockets?: boolean;
   using_api?: boolean;
   note?: string;
-  disable_cooling?: boolean;
   excluded_models?: string[];
   'excluded-models'?: string[];
   expired?: string;
+  refresh_interval?: string;
+  disable_cooling?: boolean;
 };
 type AuthFileBatchFailure = { name: string; error: string };
 type AuthFileBatchUploadResponse = {

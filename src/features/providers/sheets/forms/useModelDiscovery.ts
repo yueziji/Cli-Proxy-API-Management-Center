@@ -3,7 +3,6 @@ import { modelsApi } from '@/services/api';
 import { buildHeaderObject } from '@/utils/headers';
 import { getErrorMessage } from '@/utils/helpers';
 import type { ModelInfo } from '@/utils/models';
-import { PROVIDER_DESCRIPTORS } from '../../descriptors';
 import type { ApiKeyEntryInput, ProviderBrand } from '../../types';
 
 export const MODEL_DISCOVERY_BRANDS: ReadonlyArray<ProviderBrand> = [
@@ -16,7 +15,7 @@ export const MODEL_DISCOVERY_BRANDS: ReadonlyArray<ProviderBrand> = [
 ];
 
 export const isModelDiscoveryBrand = (brand: ProviderBrand): boolean =>
-  PROVIDER_DESCRIPTORS[brand].supportsModelDiscovery;
+  MODEL_DISCOVERY_BRANDS.includes(brand);
 
 export interface UseModelDiscoveryArgs {
   brand: ProviderBrand;

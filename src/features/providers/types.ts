@@ -52,10 +52,10 @@ export interface ProviderResource {
   baseUrl: string | null;
   proxyUrl: string | null;
   prefix: string | null;
-  priority: number | null;
   modelCount: number;
   /** 去重后的模型名, 供筛选/搜索用 */
   models: string[];
+  priority: number | null;
   headerCount: number;
   excludedModelCount: number;
   /** 仅 OpenAI 有意义,其它 brand 该字段不展示但保留 */
