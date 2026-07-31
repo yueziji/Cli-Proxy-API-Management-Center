@@ -10,11 +10,19 @@ import {
 } from '@/components/ui/icons';
 import { Collapsible } from '@/components/ui/Collapsible';
 import { Select } from '@/components/ui/Select';
+import {
+  DISABLE_ALL_RULE,
+  ExcludedModelsPicker,
+  formatExcludedRulesText,
+  parseExcludedRulesText,
+  type ExcludedModelsCatalogState,
+} from '@/components/excludedModels';
 import { hasDisableAllModelsRule } from '@/components/providers/utils';
 import { validateBaseUrl } from '@/utils/validation';
 import type { GeminiKeyConfig, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
 import type { ModelInfo } from '@/utils/models';
 import { PROVIDER_DESCRIPTORS } from '../../descriptors';
+import { readThinkingLevels } from '../../thinkingLevels';
 import type {
   ApiKeyEntryInput,
   ModelEntryInput,
@@ -40,6 +48,9 @@ import { ApiKeyEntriesEditor } from './ApiKeyEntriesEditor';
 import { ModelEntriesEditor } from './ModelEntriesEditor';
 import styles from './sharedForm.module.scss';
 import { MAX_CREDENTIAL_WEIGHT } from '@/utils/credentialWeight';
+
+/** 模块级常量，免得每次渲染都给 picker 一个新数组引用。 */
+const DISABLE_ALL_RULES = [DISABLE_ALL_RULE];
 
 interface BaseProviderFormProps {
   brand: ProviderBrand;
@@ -118,6 +129,7 @@ function buildInitialForm(
             testModel: m.testModel,
             image: m.image === true,
             thinkingJson: formatJsonObject(m.thinking),
+            thinkingLevels: readThinkingLevels(m.thinking),
           }))
         : [emptyModel()],
       headers: cfg.headers
@@ -156,6 +168,8 @@ function buildInitialForm(
           alias: m.alias ?? '',
           priority: m.priority,
           testModel: m.testModel,
+          thinkingJson: formatJsonObject(m.thinking),
+          thinkingLevels: readThinkingLevels(m.thinking),
         }))
       : [emptyModel()],
     headers: cfg.headers
@@ -447,6 +461,39 @@ export function BaseProviderForm({
       form.apiKeyEntries && form.apiKeyEntries.length ? form.apiKeyEntries : [emptyApiKeyEntry()],
     [form.apiKeyEntries]
   );
+
+  const excludedRules = useMemo(
+    () => parseExcludedRulesText(form.excludedModelsText),
+    [form.excludedModelsText]
+  );
+  /**
+   * 候选目录 = discovery 发现的模型 ∪ 表单里已配置的模型名。
+   *
+   * 两者都可能为空——`vertex` 支持排除模型却不在 MODEL_DISCOVERY_BRANDS 里，永远没有
+   * discovery；其余 brand 在用户手动跑一次发现之前也没有。因此**无目录是常态**，
+   * picker 必须能在没有目录时退化成纯规则编辑器。
+   */
+  const excludedCandidates = useMemo(() => {
+    const byKey = new Map<string, { id: string; displayName?: string }>();
+    discovery.models.forEach((model) => {
+      const id = model.name?.trim();
+      if (id) byKey.set(id.toLowerCase(), { id, displayName: model.alias || undefined });
+    });
+    form.models.forEach((model) => {
+      const id = model.name?.trim();
+      if (id && !byKey.has(id.toLowerCase())) byKey.set(id.toLowerCase(), { id });
+    });
+    return [...byKey.values()].sort((left, right) =>
+      left.id.localeCompare(right.id, undefined, { sensitivity: 'base' })
+    );
+  }, [discovery.models, form.models]);
+  const excludedCatalogState: ExcludedModelsCatalogState = discovery.loading
+    ? 'loading'
+    : discovery.error
+      ? 'error'
+      : excludedCandidates.length === 0
+        ? 'unavailable'
+        : 'ready';
   const actualApiKeyEntries = form.apiKeyEntries ?? [];
   const openaiAggregateStatus = useMemo<ConnectivityState>(() => {
     if (brand !== 'openaiCompatibility') return 'idle';
@@ -468,7 +515,7 @@ export function BaseProviderForm({
     return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
   }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
   const supportsDisableCooling = supportsDisableCoolingControl(brand);
-  const supportsOpenAIModelOptions = supportsOpenAIModelOptionsForBrand(brand);
+  const supportsModelImage = supportsOpenAIModelOptionsForBrand(brand);
   const singleConnectivity =
     brand === 'codex' || brand === 'xai'
       ? { status: connectivity.codexStatus, run: connectivity.runCodex }
@@ -919,7 +966,8 @@ export function BaseProviderForm({
             ) : null}
             <ModelEntriesEditor
               models={modelsList}
-              extendedOptions={supportsOpenAIModelOptions}
+              supportsImage={supportsModelImage}
+              supportsThinking
               mutating={mutating}
               removeDisabled={modelsList.length <= 1}
               onUpdate={updateModelEntry}
@@ -933,14 +981,17 @@ export function BaseProviderForm({
       {descriptor.supportsExcludedModels ? (
         <Collapsible label={t('providersPage.form.excludedSection')}>
           <div className={styles.field}>
-            <span className={styles.labelHint}>{t('providersPage.form.excludedHint')}</span>
-            <textarea
-              className={styles.textarea}
-              rows={4}
-              value={form.excludedModelsText}
-              onChange={(e) => updateField('excludedModelsText', e.target.value)}
+            <ExcludedModelsPicker
+              value={excludedRules}
+              onChange={(next) => updateField('excludedModelsText', formatExcludedRulesText(next))}
+              candidates={excludedCandidates}
+              catalogState={excludedCatalogState}
+              onRetryCatalog={discovery.available ? () => void discovery.fetch() : undefined}
               disabled={mutating}
-              placeholder="model-1&#10;model-2"
+              // `'*'` = 该 provider 已停用，唯一所有者是下面的 Disabled 开关。
+              // 传进来后 picker 双向过滤它，用户手打 `*` 也会被拦下并解释原因。
+              reservedRules={DISABLE_ALL_RULES}
+              reservedRuleMessage={t('providersPage.form.excludedDisabledNote')}
             />
           </div>
         </Collapsible>
