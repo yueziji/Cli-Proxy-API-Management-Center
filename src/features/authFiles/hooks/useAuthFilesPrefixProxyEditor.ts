@@ -7,7 +7,6 @@ import {
   applyAuthFileWebsockets,
   applyAuthFileUsingApi,
   normalizeProviderKey,
-  parseDisableCoolingValue,
   parsePriorityValue,
   readAuthFileWebsockets,
   readAuthFileUsingApi,
@@ -20,33 +19,42 @@ import {
   validateCredentialWeightText,
   type CredentialWeightError,
 } from '@/utils/credentialWeight';
+import {
+  applyForkAuthFilePreview,
+  createForkAuthFileEditorState,
+  extendAuthFileFieldsPatch,
+  hasForkAuthFileValidationError,
+  readForkAuthFileEditorState,
+  updateForkAuthFileEditorState,
+  type ForkAuthFileEditorErrorKey,
+  type ForkAuthFileEditorField,
+  type ForkAuthFileEditorState,
+} from '../authFileEditorState';
 
 type AuthFileHeaders = Record<string, string>;
 type AuthFileHeadersErrorKey =
   | 'auth_files.headers_invalid_json'
   | 'auth_files.headers_invalid_object'
   | 'auth_files.headers_invalid_value';
-type AuthFileRefreshIntervalErrorKey = 'auth_files.refresh_interval_invalid';
 type AuthFileContentErrorKey =
   'auth_files.prefix_proxy_invalid_json' | 'auth_files.prefix_proxy_html_challenge';
 type AuthFileWeightErrorKey = 'auth_files.weight_invalid_integer' | 'auth_files.weight_invalid_max';
 type AuthFileEditorErrorKey =
   | AuthFileHeadersErrorKey
-  | AuthFileRefreshIntervalErrorKey
+  | ForkAuthFileEditorErrorKey
   | AuthFileWeightErrorKey;
 
 export type PrefixProxyEditorField =
   | 'prefix'
   | 'proxyUrl'
   | 'priority'
-  | 'refreshInterval'
   | 'weight'
   | 'websockets'
-  | 'disableCooling'
   | 'usingApi'
   | 'note'
   | 'excludedModelsText'
-  | 'headersText';
+  | 'headersText'
+  | ForkAuthFileEditorField;
 
 export type PrefixProxyEditorFieldValue = string | boolean;
 
@@ -64,9 +72,6 @@ export type PrefixProxyEditorState = {
   prefix: string;
   proxyUrl: string;
   priority: string;
-  refreshInterval: string;
-  refreshIntervalTouched: boolean;
-  refreshIntervalError: string | null;
   weight: string;
   weightError: string | null;
   websockets: boolean;
@@ -80,9 +85,7 @@ export type PrefixProxyEditorState = {
   headersText: string;
   headersTouched: boolean;
   headersError: string | null;
-  disableCooling: boolean;
-  disableCoolingTouched: boolean;
-};
+} & ForkAuthFileEditorState;
 
 export type UseAuthFilesPrefixProxyEditorOptions = {
   disableControls: boolean;
@@ -142,63 +145,6 @@ const credentialWeightErrorKey = (error: CredentialWeightError): AuthFileWeightE
 
 const normalizeTextField = (value: unknown): string =>
   typeof value === 'string' ? value.trim() : '';
-
-const REFRESH_INTERVAL_KEYS = [
-  'refresh_interval',
-  'refreshInterval',
-  'refresh_interval_seconds',
-  'refreshIntervalSeconds',
-] as const;
-
-/** 明确以秒计数的别名键;普通 refresh_interval 出现裸数字时单位不明,不猜。 */
-const REFRESH_INTERVAL_SECONDS_KEYS = new Set<string>([
-  'refresh_interval_seconds',
-  'refreshIntervalSeconds',
-]);
-
-const REFRESH_INTERVAL_SEGMENT_PATTERN = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
-
-const normalizeRefreshIntervalField = (value: unknown, key: string): string => {
-  if (typeof value === 'string') return value.trim();
-  if (
-    REFRESH_INTERVAL_SECONDS_KEYS.has(key) &&
-    typeof value === 'number' &&
-    Number.isFinite(value) &&
-    value > 0
-  ) {
-    return `${value}s`;
-  }
-  return '';
-};
-
-const readRefreshInterval = (value: Record<string, unknown>): string => {
-  for (const key of REFRESH_INTERVAL_KEYS) {
-    const normalized = normalizeRefreshIntervalField(value[key], key);
-    if (normalized) return normalized;
-  }
-  return '';
-};
-
-const validateRefreshIntervalText = (
-  value: string
-): AuthFileRefreshIntervalErrorKey | null => {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-
-  let matchedText = '';
-  let hasPositiveSegment = false;
-  for (const match of trimmed.matchAll(REFRESH_INTERVAL_SEGMENT_PATTERN)) {
-    matchedText += match[0];
-    const amount = Number(match[1]);
-    if (Number.isFinite(amount) && amount > 0) {
-      hasPositiveSegment = true;
-    }
-  }
-
-  return matchedText === trimmed && hasPositiveSegment
-    ? null
-    : 'auth_files.refresh_interval_invalid';
-};
 
 const normalizeExcludedModels = (value: unknown): string[] => {
   if (!Array.isArray(value)) return [];
@@ -370,18 +316,6 @@ export const buildAuthFileFieldsPatch = (
     }
   }
 
-  if (editor.refreshIntervalTouched) {
-    const nextRefreshInterval = editor.refreshInterval.trim();
-    const errorKey = validateRefreshIntervalText(nextRefreshInterval);
-    if (errorKey) {
-      throw new Error(resolveError(errorKey));
-    }
-    const originalRefreshInterval = readRefreshInterval(original);
-    if (nextRefreshInterval !== originalRefreshInterval) {
-      patch.refresh_interval = nextRefreshInterval;
-    }
-  }
-
   const weightError = validateCredentialWeightText(editor.weight);
   if (weightError) {
     throw new Error(resolveError(credentialWeightErrorKey(weightError)));
@@ -440,13 +374,7 @@ export const buildAuthFileFieldsPatch = (
     }
   }
 
-  if (editor.disableCoolingTouched) {
-    const originalDc = parseDisableCoolingValue(original.disable_cooling) ?? false;
-    if (editor.disableCooling !== originalDc) {
-      patch.disable_cooling = editor.disableCooling;
-    }
-  }
-
+  extendAuthFileFieldsPatch(editor, patch, resolveError);
   return patch;
 };
 
@@ -480,16 +408,6 @@ const buildPrefixProxyUpdatedText = (
     }
   }
 
-  // 预览必须与 PATCH /auth-files/fields 的实际效果一致：该端点只能写
-  // canonical 的 refresh_interval,无法删除别名键,预览也不能假装删了。
-  if (patch.refresh_interval !== undefined) {
-    if (patch.refresh_interval) {
-      next.refresh_interval = patch.refresh_interval;
-    } else {
-      delete next.refresh_interval;
-    }
-  }
-
   if (patch.weight !== undefined) {
     if (patch.weight === null) {
       delete next.weight;
@@ -519,19 +437,11 @@ const buildPrefixProxyUpdatedText = (
     next = applyAuthFileWebsockets(next, patch.websockets);
   }
 
-  if (patch.disable_cooling !== undefined) {
-    if (patch.disable_cooling) {
-      next.disable_cooling = true;
-    } else {
-      delete next.disable_cooling;
-    }
-  }
-
   if (patch.using_api !== undefined) {
     next = applyAuthFileUsingApi(next, patch.using_api);
   }
 
-  return JSON.stringify(next);
+  return JSON.stringify(applyForkAuthFilePreview(next, patch));
 };
 
 export function useAuthFilesPrefixProxyEditor(
@@ -545,7 +455,7 @@ export function useAuthFilesPrefixProxyEditor(
 
   const hasBlockingValidationError = Boolean(
     (prefixProxyEditor?.headersTouched && prefixProxyEditor.headersError) ||
-      (prefixProxyEditor?.refreshIntervalTouched && prefixProxyEditor.refreshIntervalError) ||
+      hasForkAuthFileValidationError(prefixProxyEditor) ||
       prefixProxyEditor?.weightError
   );
   const prefixProxyUpdatedText =
@@ -588,9 +498,6 @@ export function useAuthFilesPrefixProxyEditor(
       prefix: '',
       proxyUrl: '',
       priority: '',
-      refreshInterval: '',
-      refreshIntervalTouched: false,
-      refreshIntervalError: null,
       weight: '',
       weightError: null,
       websockets: false,
@@ -604,8 +511,7 @@ export function useAuthFilesPrefixProxyEditor(
       headersText: '',
       headersTouched: false,
       headersError: null,
-      disableCooling: false,
-      disableCoolingTouched: false,
+      ...createForkAuthFileEditorState(),
     });
 
     try {
@@ -645,8 +551,6 @@ export function useAuthFilesPrefixProxyEditor(
       const prefix = typeof json.prefix === 'string' ? json.prefix : '';
       const proxyUrl = typeof json.proxy_url === 'string' ? json.proxy_url : '';
       const priority = parsePriorityValue(json.priority);
-      const refreshInterval = readRefreshInterval(json);
-      const refreshIntervalErrorKey = validateRefreshIntervalText(refreshInterval);
       const weight = readCredentialWeight(json.weight);
       const websockets = supportsAuthFileWebsockets(providerKey)
         ? readAuthFileWebsockets(json)
@@ -663,8 +567,6 @@ export function useAuthFilesPrefixProxyEditor(
         headersError = errorKey ? t(errorKey) : null;
       }
 
-      const disableCooling = parseDisableCoolingValue(json.disable_cooling) ?? false;
-
       setPrefixProxyEditor((prev) => {
         if (!prev || prev.fileName !== name) return prev;
         return {
@@ -678,9 +580,6 @@ export function useAuthFilesPrefixProxyEditor(
           prefix,
           proxyUrl,
           priority: priority !== undefined ? String(priority) : '',
-          refreshInterval,
-          refreshIntervalTouched: false,
-          refreshIntervalError: refreshIntervalErrorKey ? t(refreshIntervalErrorKey) : null,
           weight: weight !== undefined ? String(weight) : '',
           weightError: null,
           websockets,
@@ -694,8 +593,7 @@ export function useAuthFilesPrefixProxyEditor(
           headersText,
           headersTouched: false,
           headersError,
-          disableCooling,
-          disableCoolingTouched: false,
+          ...readForkAuthFileEditorState(json, (key) => t(key)),
           error: null,
         };
       });
@@ -715,19 +613,11 @@ export function useAuthFilesPrefixProxyEditor(
   ) => {
     setPrefixProxyEditor((prev) => {
       if (!prev) return prev;
+      const forkEditor = updateForkAuthFileEditorState(prev, field, value, (key) => t(key));
+      if (forkEditor) return forkEditor;
       if (field === 'prefix') return { ...prev, prefix: String(value) };
       if (field === 'proxyUrl') return { ...prev, proxyUrl: String(value) };
       if (field === 'priority') return { ...prev, priority: String(value) };
-      if (field === 'refreshInterval') {
-        const refreshInterval = String(value);
-        const errorKey = validateRefreshIntervalText(refreshInterval);
-        return {
-          ...prev,
-          refreshInterval,
-          refreshIntervalTouched: true,
-          refreshIntervalError: errorKey ? t(errorKey) : null,
-        };
-      }
       if (field === 'weight') {
         const weight = String(value);
         const error = validateCredentialWeightText(weight);
@@ -760,9 +650,6 @@ export function useAuthFilesPrefixProxyEditor(
           headersTouched: true,
           headersError: errorKey ? t(errorKey) : null,
         };
-      }
-      if (field === 'disableCooling') {
-        return { ...prev, disableCooling: Boolean(value), disableCoolingTouched: true };
       }
       return prev;
     });

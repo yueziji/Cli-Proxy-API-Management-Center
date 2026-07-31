@@ -3,6 +3,7 @@ import {
   buildAuthFileFieldsPatch,
   type PrefixProxyEditorState,
 } from '../src/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
+import { readForkAuthFileEditorState } from '../src/features/authFiles/authFileEditorState';
 
 const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyEditorState => ({
   fileName: 'credential.json',
@@ -18,6 +19,9 @@ const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyE
   prefix: '',
   proxyUrl: '',
   priority: '',
+  refreshInterval: '',
+  refreshIntervalTouched: false,
+  refreshIntervalError: null,
   weight,
   weightError: null,
   websockets: false,
@@ -31,6 +35,8 @@ const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyE
   headersText: '',
   headersTouched: false,
   headersError: null,
+  disableCooling: false,
+  disableCoolingTouched: false,
 });
 
 const resolveError = (key: string) => key;
@@ -98,5 +104,47 @@ describe('auth-file excluded models patch', () => {
         resolveError
       )
     ).toEqual({ excluded_models: [] });
+  });
+});
+
+describe('fork auth-file fields', () => {
+  test('reads legacy refresh aliases and disable-cooling values', () => {
+    expect(
+      readForkAuthFileEditorState(
+        { refreshIntervalSeconds: 900, disable_cooling: '1' },
+        resolveError
+      )
+    ).toMatchObject({
+      refreshInterval: '900s',
+      refreshIntervalError: null,
+      disableCooling: true,
+    });
+  });
+
+  test('adds only touched fork fields to the patch', () => {
+    const editor = {
+      ...makeEditor({ refresh_interval: '5m', disable_cooling: true }, ''),
+      refreshInterval: '15m',
+      refreshIntervalTouched: true,
+      disableCooling: false,
+      disableCoolingTouched: true,
+    };
+
+    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({
+      refresh_interval: '15m',
+      disable_cooling: false,
+    });
+  });
+
+  test('rejects an invalid refresh interval before PATCH', () => {
+    const editor = {
+      ...makeEditor({}, ''),
+      refreshInterval: '900',
+      refreshIntervalTouched: true,
+    };
+
+    expect(() => buildAuthFileFieldsPatch(editor, resolveError)).toThrow(
+      'auth_files.refresh_interval_invalid'
+    );
   });
 });
