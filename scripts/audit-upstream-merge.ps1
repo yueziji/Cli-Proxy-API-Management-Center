@@ -153,6 +153,7 @@ try {
 
   Write-Host ''
   Write-Host 'Audit passed.' -ForegroundColor Green
+  $global:LASTEXITCODE = 0
 } finally {
   Pop-Location
 }
