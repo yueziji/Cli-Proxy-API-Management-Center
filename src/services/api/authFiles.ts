@@ -22,6 +22,8 @@ export type AuthFileFieldsPatch = {
   headers?: Record<string, string>;
   priority?: number;
   weight?: number | null;
+  disable_cooling?: boolean;
+  'disable-cooling'?: boolean;
   websockets?: boolean;
   using_api?: boolean;
   note?: string;
@@ -29,7 +31,6 @@ export type AuthFileFieldsPatch = {
   'excluded-models'?: string[];
   expired?: string;
   refresh_interval?: string;
-  disable_cooling?: boolean;
 };
 type AuthFileBatchFailure = { name: string; error: string };
 type AuthFileBatchUploadResponse = {

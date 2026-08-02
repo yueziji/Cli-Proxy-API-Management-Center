@@ -4,6 +4,7 @@ import {
   type PrefixProxyEditorState,
 } from '../src/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 import { readForkAuthFileEditorState } from '../src/features/authFiles/authFileEditorState';
+import { readAuthFileDisableCooling } from '../src/features/authFiles/constants';
 
 const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyEditorState => ({
   fileName: 'credential.json',
@@ -24,6 +25,8 @@ const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyE
   refreshIntervalError: null,
   weight,
   weightError: null,
+  disableCooling: false,
+  disableCoolingTouched: false,
   websockets: false,
   websocketsTouched: false,
   usingApi: false,
@@ -35,8 +38,6 @@ const makeEditor = (json: Record<string, unknown>, weight: string): PrefixProxyE
   headersText: '',
   headersTouched: false,
   headersError: null,
-  disableCooling: false,
-  disableCoolingTouched: false,
 });
 
 const resolveError = (key: string) => key;
@@ -63,6 +64,55 @@ describe('auth-file credential weight patch', () => {
     expect(() => buildAuthFileFieldsPatch(makeEditor({}, '1000001'), resolveError)).toThrow(
       'auth_files.weight_invalid_max'
     );
+  });
+});
+
+describe('auth-file disable cooling patch', () => {
+  test('reads canonical and legacy boolean-compatible metadata', () => {
+    expect(readAuthFileDisableCooling({ disable_cooling: 'true' })).toBe(true);
+    expect(readAuthFileDisableCooling({ 'disable-cooling': 1 })).toBe(true);
+    expect(
+      readAuthFileDisableCooling({ disable_cooling: 'invalid', 'disable-cooling': true })
+    ).toBe(true);
+    expect(readAuthFileDisableCooling({ disable_cooling: false, 'disable-cooling': true })).toBe(
+      false
+    );
+  });
+
+  test('writes the canonical field when enabling the per-credential override', () => {
+    const editor = {
+      ...makeEditor({}, ''),
+      disableCooling: true,
+      disableCoolingTouched: true,
+    };
+
+    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({ disable_cooling: true });
+  });
+
+  test('preserves the legacy field name and writes false when disabling it', () => {
+    const editor = {
+      ...makeEditor({ 'disable-cooling': true }, ''),
+      disableCooling: false,
+      disableCoolingTouched: true,
+    };
+
+    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({ 'disable-cooling': false });
+  });
+
+  test('does not patch an untouched or unchanged override', () => {
+    expect(buildAuthFileFieldsPatch(makeEditor({ disable_cooling: true }, ''), resolveError)).toEqual(
+      {}
+    );
+    expect(
+      buildAuthFileFieldsPatch(
+        {
+          ...makeEditor({ disable_cooling: 'true' }, ''),
+          disableCooling: true,
+          disableCoolingTouched: true,
+        },
+        resolveError
+      )
+    ).toEqual({});
   });
 });
 
@@ -108,16 +158,12 @@ describe('auth-file excluded models patch', () => {
 });
 
 describe('fork auth-file fields', () => {
-  test('reads legacy refresh aliases and disable-cooling values', () => {
+  test('reads legacy refresh aliases', () => {
     expect(
-      readForkAuthFileEditorState(
-        { refreshIntervalSeconds: 900, disable_cooling: '1' },
-        resolveError
-      )
+      readForkAuthFileEditorState({ refreshIntervalSeconds: 900 }, resolveError)
     ).toMatchObject({
       refreshInterval: '900s',
       refreshIntervalError: null,
-      disableCooling: true,
     });
   });
 

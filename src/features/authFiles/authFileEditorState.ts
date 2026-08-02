@@ -1,17 +1,14 @@
 import type { AuthFileFieldsPatch } from '@/services/api';
-import { parseDisableCoolingValue } from './constants';
 
 export type ForkAuthFileEditorErrorKey = 'auth_files.refresh_interval_invalid';
 type ResolveRefreshIntervalError = (key: ForkAuthFileEditorErrorKey) => string;
 
-export type ForkAuthFileEditorField = 'refreshInterval' | 'disableCooling';
+export type ForkAuthFileEditorField = 'refreshInterval';
 
 export type ForkAuthFileEditorState = {
   refreshInterval: string;
   refreshIntervalTouched: boolean;
   refreshIntervalError: string | null;
-  disableCooling: boolean;
-  disableCoolingTouched: boolean;
 };
 
 type ForkAuthFileEditorContext = ForkAuthFileEditorState & {
@@ -73,8 +70,6 @@ export const createForkAuthFileEditorState = (): ForkAuthFileEditorState => ({
   refreshInterval: '',
   refreshIntervalTouched: false,
   refreshIntervalError: null,
-  disableCooling: false,
-  disableCoolingTouched: false,
 });
 
 export const readForkAuthFileEditorState = (
@@ -87,8 +82,6 @@ export const readForkAuthFileEditorState = (
     refreshInterval,
     refreshIntervalTouched: false,
     refreshIntervalError: refreshIntervalError ? resolveError(refreshIntervalError) : null,
-    disableCooling: parseDisableCoolingValue(json.disable_cooling) ?? false,
-    disableCoolingTouched: false,
   };
 };
 
@@ -112,9 +105,6 @@ export const updateForkAuthFileEditorState = <T extends ForkAuthFileEditorState>
       refreshIntervalError: errorKey ? resolveError(errorKey) : null,
     };
   }
-  if (field === 'disableCooling') {
-    return { ...editor, disableCooling: Boolean(value), disableCoolingTouched: true };
-  }
   return null;
 };
 
@@ -132,13 +122,6 @@ export const extendAuthFileFieldsPatch = (
       patch.refresh_interval = refreshInterval;
     }
   }
-
-  if (editor.disableCoolingTouched) {
-    const originalDisableCooling = parseDisableCoolingValue(original.disable_cooling) ?? false;
-    if (editor.disableCooling !== originalDisableCooling) {
-      patch.disable_cooling = editor.disableCooling;
-    }
-  }
 };
 
 export const applyForkAuthFilePreview = (
@@ -148,10 +131,6 @@ export const applyForkAuthFilePreview = (
   if (patch.refresh_interval !== undefined) {
     if (patch.refresh_interval) value.refresh_interval = patch.refresh_interval;
     else delete value.refresh_interval;
-  }
-  if (patch.disable_cooling !== undefined) {
-    if (patch.disable_cooling) value.disable_cooling = true;
-    else delete value.disable_cooling;
   }
   return value;
 };
