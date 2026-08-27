@@ -29,7 +29,9 @@ import {
   isRuntimeOnlyAuthFile,
   isThemeSurfaceIconProvider,
   normalizeProviderKey,
+  readAuthFileWebsockets,
   supportsAuthFileManualRefresh,
+  supportsAuthFileWebsockets,
   type QuotaProviderType,
   type ResolvedTheme,
 } from '@/features/authFiles/constants';
@@ -117,6 +119,9 @@ export function AuthFileCard(props: AuthFileCardProps) {
 
   const priorityValue = Number.isSafeInteger(file.priority) ? file.priority : undefined;
   const weightValue = Number.isSafeInteger(file.weight) ? file.weight : undefined;
+  // websockets 是凭证的传输配置项（非实时链路状态），仅对支持该开关的供应商外显
+  const showWebsockets = !isRuntimeOnly && supportsAuthFileWebsockets(providerKey);
+  const websocketsEnabled = showWebsockets && readAuthFileWebsockets(file);
   const noteValue = typeof file.note === 'string' ? file.note.trim() : '';
   // 主行显示账号（email/项目 ID），文件名降为满卡宽的 mono 副行
   const identity = deriveAuthFileIdentity(file);
@@ -261,6 +266,25 @@ export function AuthFileCard(props: AuthFileCardProps) {
           ·
         </span>
         <span title={t('auth_files.file_modified')}>{formatModified(file)}</span>
+        {showWebsockets && (
+          <>
+            <span className={styles.metaDivider} aria-hidden="true">
+              ·
+            </span>
+            <span
+              className={`${styles.metaWs} ${websocketsEnabled ? styles.metaWsOn : ''}`}
+              title={t('auth_files.websockets_hint')}
+            >
+              {websocketsEnabled && <span className={styles.metaWsDot} aria-hidden="true" />}
+              <span className={styles.metaMetricLabel}>{t('auth_files.websockets_display')}</span>
+              <span>
+                {websocketsEnabled
+                  ? t('auth_files.websockets_state_on')
+                  : t('auth_files.websockets_state_off')}
+              </span>
+            </span>
+          </>
+        )}
         {priorityValue !== undefined && (
           <>
             <span className={styles.metaDivider} aria-hidden="true">

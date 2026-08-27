@@ -404,7 +404,7 @@
   color: var(--text-secondary);
 }
 
-/* ---------- 元数据行：size · modified · priority · WRR weight ---------- */
+/* ---------- 元数据行：size · modified · websockets · priority · WRR weight ---------- */
 
 .metaRow {
   display: flex;
@@ -452,6 +452,60 @@
   font-weight: 600;
   color: currentColor;
   opacity: 0.78;
+}
+
+/* WebSocket 传输开关外显；仅 codex / xai 这类支持 websockets 的凭证渲染。
+ * 反映的是凭证配置项，不是实时链路状态，故文案用「开 / 关」而非「已连接」。 */
+.metaWs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.metaWsOn {
+  color: var(--success-badge-text);
+}
+
+.metaWsDot {
+  position: relative;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--viz-success);
+}
+
+.metaWsDot::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--viz-success) 55%, transparent);
+  animation: ws-ping 1.9s ease-out infinite;
+}
+
+@keyframes ws-ping {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+
+  70% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metaWsDot::after {
+    animation: none;
+    opacity: 0.5;
+  }
 }
 
 /* ---------- 页脚动作区 ---------- */
