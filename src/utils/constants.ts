@@ -49,7 +49,7 @@ export const NOTIFICATION_DURATION_MS = 3000;
 // 测试请求默认 User-Agent(模拟真实客户端,避免 Go-http-client 被识别为探测)
 export const TEST_USER_AGENTS = {
   claude: 'claude-cli/2.1.215 (external, cli)',
-  codex: 'codex_cli_rs/0.144.6 (Mac OS 26.3.1; arm64) iTerm.app/3.6.9',
+  codex: 'codex-tui/0.149.1 (Mac OS 26.5.2; arm64) iTerm.app/3.6.11 (codex-tui; 0.149.1)',
   gemini: 'GeminiCLI/0.51.0/unknown (darwin; arm64; terminal)',
   openai: 'OpenAI/Python 6.48.0',
 } as const;
