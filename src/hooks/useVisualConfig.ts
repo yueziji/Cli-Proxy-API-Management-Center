@@ -16,6 +16,7 @@ import type {
   PayloadParamValidationErrorCode,
 } from '@/types/visualConfig';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
+import { CODEX_BEHAVIOR_FIELDS, readCodexBehavior } from '@/utils/codexBehavior';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return null;
@@ -891,6 +892,7 @@ function getNextDirtyFields(
       'claudeHeaderStabilizeDeviceProfile',
       'codexHeaderUserAgent',
       'codexHeaderBetaFeatures',
+      ...CODEX_BEHAVIOR_FIELDS.map(({ valueKey }) => valueKey),
       'host',
       'port',
       'tlsEnable',
@@ -1087,6 +1089,7 @@ export function useVisualConfig() {
       const codexHeaderDefaults = asRecord(parsed['codex-header-defaults']);
 
       const newValues: VisualConfigValues = {
+        ...readCodexBehavior(parsed.codex),
         host: typeof parsed.host === 'string' ? parsed.host : '',
         port: String(parsed.port ?? ''),
 
@@ -1453,6 +1456,12 @@ export function useVisualConfig() {
             );
           }
           deleteIfMapEmpty(doc, ['claude-header-defaults']);
+        }
+
+        for (const { valueKey, yamlKey } of CODEX_BEHAVIOR_FIELDS) {
+          if (!dirtyFields.has(valueKey)) continue;
+          ensureMapInDoc(doc, ['codex']);
+          doc.setIn(['codex', yamlKey], values[valueKey]);
         }
 
         const codexHeadersDirty =

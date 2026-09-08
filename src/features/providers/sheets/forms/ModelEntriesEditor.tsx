@@ -4,6 +4,7 @@ import { IconChevronDown, IconPlus, IconX } from '@/components/ui/icons';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { THINKING_LEVELS, type ThinkingLevel } from '../../thinkingLevels';
 import type { ModelEntryInput } from '../../types';
+import { ModelCompatOption } from './ModelCompatOption';
 import styles from './sharedForm.module.scss';
 
 const COLLAPSED_LIMIT = 10;
@@ -14,6 +15,7 @@ interface ModelEntriesEditorProps {
   supportsImage: boolean;
   /** Every backend provider model can override its thinking capability. */
   supportsThinking: boolean;
+  supportsCompat: boolean;
   mutating: boolean;
   removeDisabled: boolean;
   onUpdate: (idx: number, patch: Partial<ModelEntryInput>) => void;
@@ -25,6 +27,7 @@ export function ModelEntriesEditor({
   models,
   supportsImage,
   supportsThinking,
+  supportsCompat,
   mutating,
   removeDisabled,
   onUpdate,
@@ -56,7 +59,7 @@ export function ModelEntriesEditor({
   return (
     <>
       {visible.map((entry, idx) => {
-        const hasExtendedOptions = supportsImage || supportsThinking;
+        const hasExtendedOptions = supportsImage || supportsThinking || supportsCompat;
         const expanded = hasExtendedOptions && expandedIdx === idx;
         const thinkingLevels = entry.thinkingLevels ?? [];
         const hasThinking = entry.thinkingLevelsTouched
@@ -86,6 +89,9 @@ export function ModelEntriesEditor({
                 disabled={mutating}
               />
               <div className={styles.modelEntryActions}>
+                {supportsCompat && !expanded && entry.isCompat === true ? (
+                  <span className={styles.entryBadge}>{t('compatibilitySettings.modelBadge')}</span>
+                ) : null}
                 {supportsImage && !expanded && entry.image === true ? (
                   <span className={styles.entryBadge}>
                     {t('providersPage.form.modelBadgeImage')}
@@ -128,6 +134,13 @@ export function ModelEntriesEditor({
             </div>
             {expanded ? (
               <div className={styles.modelEntryDetails}>
+                {supportsCompat ? (
+                  <ModelCompatOption
+                    checked={entry.isCompat === true}
+                    disabled={mutating}
+                    onChange={(isCompat) => onUpdate(idx, { isCompat })}
+                  />
+                ) : null}
                 {supportsImage ? (
                   <label className={styles.checkboxRow}>
                     <input

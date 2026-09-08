@@ -317,6 +317,8 @@ const serializeModelAliases = (models?: ModelAlias[], includeOpenAIFields = fals
           if (model.thinking) {
             payload.thinking = model.thinking;
           }
+          // Explicit false overrides the latest value; omission preserves an unedited flag.
+          if (model.isCompat !== undefined) payload['is-compat'] = model.isCompat;
           return payload;
         })
         .filter(Boolean)

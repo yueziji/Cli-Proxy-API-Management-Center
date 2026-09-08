@@ -37,6 +37,30 @@ type Translate = (key: string) => string;
 const L = (key: string) => `config_management.visual.${key}`;
 
 export const CONFIG_FIELD_SEARCH_INDEX: ConfigFieldSearchEntry[] = [
+  {
+    fieldId: 'codexIdentityConfuse',
+    sectionId: 'advanced',
+    labelKey: 'compatibilitySettings.identityLabel',
+    hintKey: 'compatibilitySettings.identityHint',
+    qualifierKey: 'compatibilitySettings.codexTitle',
+    yamlKeys: ['codex', 'identity-confuse'],
+  },
+  {
+    fieldId: 'codexDisableCloaking',
+    sectionId: 'advanced',
+    labelKey: 'compatibilitySettings.cloakingLabel',
+    hintKey: 'compatibilitySettings.cloakingHint',
+    qualifierKey: 'compatibilitySettings.codexTitle',
+    yamlKeys: ['codex', 'disable-codex-cloaking'],
+  },
+  {
+    fieldId: 'codexStreamBootstrapBuffering',
+    sectionId: 'advanced',
+    labelKey: 'compatibilitySettings.bufferingLabel',
+    hintKey: 'compatibilitySettings.bufferingHint',
+    qualifierKey: 'compatibilitySettings.codexTitle',
+    yamlKeys: ['codex', 'stream-bootstrap-buffering'],
+  },
   // ── connectivity ──────────────────────────────────────────────────────────
   {
     fieldId: 'host',

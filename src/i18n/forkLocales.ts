@@ -1,5 +1,8 @@
+import { compatibilityLocales } from './compatibilityLocales';
+
 export const forkLocales = {
   'zh-CN': {
+    compatibilitySettings: compatibilityLocales['zh-CN'],
     auth_files: {
       refresh_interval_label: '刷新间隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
@@ -46,6 +49,7 @@ export const forkLocales = {
     },
   },
   'zh-TW': {
+    compatibilitySettings: compatibilityLocales['zh-TW'],
     auth_files: {
       refresh_interval_label: '重新整理間隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
@@ -92,6 +96,7 @@ export const forkLocales = {
     },
   },
   en: {
+    compatibilitySettings: compatibilityLocales.en,
     auth_files: {
       refresh_interval_label: 'Refresh Interval (refresh_interval)',
       refresh_interval_placeholder: 'e.g. 15m / 3h / 900s',
@@ -140,6 +145,7 @@ export const forkLocales = {
     },
   },
   ru: {
+    compatibilitySettings: compatibilityLocales.ru,
     auth_files: {
       refresh_interval_label: 'Интервал обновления (refresh_interval)',
       refresh_interval_placeholder: 'например: 15m / 3h / 900s',

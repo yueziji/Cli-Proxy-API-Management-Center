@@ -128,6 +128,7 @@ function buildInitialForm(
             priority: m.priority,
             testModel: m.testModel,
             image: m.image === true,
+            isCompat: m.isCompat,
             thinkingJson: formatJsonObject(m.thinking),
             thinkingLevels: readThinkingLevels(m.thinking),
           }))
@@ -168,6 +169,7 @@ function buildInitialForm(
           alias: m.alias ?? '',
           priority: m.priority,
           testModel: m.testModel,
+          isCompat: m.isCompat,
           thinkingJson: formatJsonObject(m.thinking),
           thinkingLevels: readThinkingLevels(m.thinking),
         }))
@@ -966,6 +968,7 @@ export function BaseProviderForm({
               models={modelsList}
               supportsImage={supportsModelImage}
               supportsThinking
+              supportsCompat={brand !== 'vertex'}
               mutating={mutating}
               removeDisabled={modelsList.length <= 1}
               onUpdate={updateModelEntry}

@@ -19,6 +19,7 @@ import {
 } from '../fields/FieldPrimitives';
 import { PluginStoreAuthEditor } from '../blocks/PluginStoreAuthEditor';
 import { StringListEditor } from '../blocks/StringListEditor';
+import { CodexBehaviorSettings } from './CodexBehaviorSettings';
 
 const Icon = CONFIG_TAB_ICONS.advanced;
 
@@ -48,6 +49,7 @@ export function SectionAdvanced({ values, disabled, animateIn, onChange }: Confi
       animateIn={animateIn}
     >
       <FieldStack>
+        <CodexBehaviorSettings values={values} disabled={disabled} onChange={onChange} />
         <Collapsible
           label={t('config_management.visual.sections.advanced.plugins_title')}
           defaultOpen={false}

@@ -108,6 +108,7 @@ const buildModelAliases = (
         alias: m.alias?.trim() || undefined,
         priority: m.priority,
         testModel: m.testModel,
+        isCompat: m.isCompat,
         thinking: m.thinkingLevelsTouched
           ? buildThinkingFromLevels(m.thinkingLevels)
           : parseThinkingJson(m.thinkingJson),

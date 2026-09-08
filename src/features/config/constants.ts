@@ -152,6 +152,9 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   claudeHeaderStabilizeDeviceProfile: ['claudeHeaderStabilizeDeviceProfile'],
   codexHeaderUserAgent: ['codexHeaderUserAgent'],
   codexHeaderBetaFeatures: ['codexHeaderBetaFeatures'],
+  codexIdentityConfuse: ['codexIdentityConfuse'],
+  codexDisableCloaking: ['codexDisableCloaking'],
+  codexStreamBootstrapBuffering: ['codexStreamBootstrapBuffering'],
   // ── payload ───────────────────────────────────────────────────────────────
   payloadDefaultRules: ['payloadDefaultRules'],
   payloadDefaultRawRules: ['payloadDefaultRawRules'],

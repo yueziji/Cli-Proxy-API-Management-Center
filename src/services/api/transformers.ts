@@ -51,6 +51,7 @@ const normalizeModelAliases = (models: unknown): ModelAlias[] => {
       const priority = item.priority;
       const testModel = item['test-model'];
       const image = normalizeBoolean(item.image);
+      const isCompat = normalizeBoolean(item['is-compat']);
       const thinking = normalizeRecord(item.thinking);
       const entry: ModelAlias = { name: String(name) };
       if (alias && alias !== name) {
@@ -71,6 +72,7 @@ const normalizeModelAliases = (models: unknown): ModelAlias[] => {
       if (thinking) {
         entry.thinking = thinking;
       }
+      if (isCompat !== undefined) entry.isCompat = isCompat;
       return entry;
     })
     .filter(Boolean) as ModelAlias[];

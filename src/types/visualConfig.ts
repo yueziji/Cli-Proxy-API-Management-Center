@@ -1,3 +1,5 @@
+import { readCodexBehavior, type CodexBehaviorValues } from '@/utils/codexBehavior';
+
 export type PayloadParamValueType = 'string' | 'number' | 'boolean' | 'json';
 export type DisableImageGenerationMode = 'false' | 'true' | 'chat' | 'passthrough';
 export type RoutingStrategy = 'round-robin' | 'weighted-round-robin' | 'fill-first';
@@ -82,7 +84,7 @@ export type PluginStoreAuthRule = {
   allowInsecure: boolean;
 };
 
-export type VisualConfigValues = {
+export type VisualConfigValues = CodexBehaviorValues & {
   host: string;
   port: string;
   tlsEnable: boolean;
@@ -149,6 +151,7 @@ export const makeClientId = () => {
 };
 
 export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
+  ...readCodexBehavior(undefined),
   host: '',
   port: '',
   tlsEnable: false,
