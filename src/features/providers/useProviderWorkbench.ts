@@ -6,7 +6,13 @@ import {
   withDisableAllModelsRule,
   withoutDisableAllModelsRule,
 } from '@/components/providers/utils';
-import type { GeminiKeyConfig, ModelAlias, OpenAIProviderConfig, ProviderKeyConfig } from '@/types';
+import type {
+  Config,
+  GeminiKeyConfig,
+  ModelAlias,
+  OpenAIProviderConfig,
+  ProviderKeyConfig,
+} from '@/types';
 import {
   claudeToResource,
   codexToResource,
@@ -194,6 +200,40 @@ const buildOpenAIConfig = (
   };
 };
 
+export const buildProviderGroups = (config: Config): ProviderGroup[] =>
+  PROVIDER_BRAND_ORDER.map((brand) => {
+    let resources: ProviderResource[] = [];
+    switch (brand) {
+      case 'gemini':
+        resources = (config.geminiApiKeys ?? []).map((c, i) => geminiToResource(c, i));
+        break;
+      case 'interactions':
+        resources = (config.interactionsApiKeys ?? []).map((item, index) =>
+          interactionsToResource(item, index)
+        );
+        break;
+      case 'codex':
+        resources = (config.codexApiKeys ?? []).map((c, i) => codexToResource(c, i));
+        break;
+      case 'xai':
+        resources = (config.xaiApiKeys ?? []).map((c, i) => xaiToResource(c, i));
+        break;
+      case 'claude':
+        resources = (config.claudeApiKeys ?? []).map((c, i) => claudeToResource(c, i));
+        break;
+      case 'vertex':
+        resources = (config.vertexApiKeys ?? []).map((c, i) => vertexToResource(c, i));
+        break;
+      case 'openaiCompatibility':
+        resources = (config.openaiCompatibility ?? []).map((c, i) => openaiToResource(c, i));
+        break;
+    }
+    return {
+      id: brand,
+      resources,
+    };
+  });
+
 /* -------------------------------------------------------------------------- */
 /* hook                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -284,41 +324,9 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
 
   const snapshot = useMemo<ProviderSnapshot | null>(() => {
     if (!config) return null;
-    const groups: ProviderGroup[] = PROVIDER_BRAND_ORDER.map((brand) => {
-      let resources: ProviderResource[] = [];
-      switch (brand) {
-        case 'gemini':
-          resources = (config.geminiApiKeys ?? []).map((c, i) => geminiToResource(c, i));
-          break;
-        case 'interactions':
-          resources = (config.interactionsApiKeys ?? []).map((item, index) =>
-            interactionsToResource(item, index)
-          );
-          break;
-        case 'codex':
-          resources = (config.codexApiKeys ?? []).map((c, i) => codexToResource(c, i));
-          break;
-        case 'xai':
-          resources = (config.xaiApiKeys ?? []).map((c, i) => xaiToResource(c, i));
-          break;
-        case 'claude':
-          resources = (config.claudeApiKeys ?? []).map((c, i) => claudeToResource(c, i));
-          break;
-        case 'vertex':
-          resources = (config.vertexApiKeys ?? []).map((c, i) => vertexToResource(c, i));
-          break;
-        case 'openaiCompatibility':
-          resources = (config.openaiCompatibility ?? []).map((c, i) => openaiToResource(c, i));
-          break;
-      }
-      return {
-        id: brand,
-        resources,
-      };
-    });
     return {
       fetchedAt,
-      groups,
+      groups: buildProviderGroups(config),
     };
   }, [config, fetchedAt]);
 

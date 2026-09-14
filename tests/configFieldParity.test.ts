@@ -14,7 +14,7 @@ import {
   FIELD_VALUE_KEYS,
   SECTION_VALIDATION_FIELDS,
 } from '@/features/config/constants';
-import { CONFIG_FIELD_SEARCH_INDEX } from '@/features/config/searchIndex';
+import { CONFIG_FIELD_SEARCH_INDEX, findConfigFieldById } from '@/features/config/searchIndex';
 import { getVisualConfigValidationErrors } from '@/hooks/useVisualConfig';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
 import { forkLocales } from '@/i18n/forkLocales';
@@ -44,6 +44,14 @@ describe('search index integrity', () => {
     for (const entry of CONFIG_FIELD_SEARCH_INDEX) {
       expect(sectionIds.has(entry.sectionId)).toBe(true);
     }
+  });
+
+  test('resolves the routing strategy deep-link target', () => {
+    expect(findConfigFieldById('routingStrategy')).toMatchObject({
+      fieldId: 'routingStrategy',
+      sectionId: 'network',
+    });
+    expect(findConfigFieldById('unknown')).toBeUndefined();
   });
 
   test('label / qualifier / hint keys resolve in the merged English locale', async () => {
