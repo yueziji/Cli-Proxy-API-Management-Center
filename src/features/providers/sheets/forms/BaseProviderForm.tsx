@@ -31,21 +31,19 @@ import type {
   ProviderResource,
 } from '../../types';
 import {
-  supportsDisableCoolingControl,
   supportsOpenAIModelOptions as supportsOpenAIModelOptionsForBrand,
   supportsSingleKeyTestModel,
   supportsTestModelSelection,
 } from '../../providerCapabilities';
-import {
-  useConnectivityTest,
-  type ConnectivityErrorMessages,
-  type ConnectivityState,
-} from './useConnectivityTest';
+import { useConnectivityTest, type ConnectivityErrorMessages } from './useConnectivityTest';
 import { useModelDiscovery } from './useModelDiscovery';
 import { ModelDiscoveryPanel } from './ModelDiscoveryPanel';
 import { ConnectivityStatusIcon } from './ConnectivityStatusIcon';
 import { ApiKeyEntriesEditor } from './ApiKeyEntriesEditor';
 import { ModelEntriesEditor } from './ModelEntriesEditor';
+import { BaseUrlValidationHint } from './BaseUrlValidationHint';
+import { DisableCoolingOption } from './DisableCoolingOption';
+import { OpenAIConnectivityTest } from './OpenAIConnectivityTest';
 import styles from './sharedForm.module.scss';
 import { MAX_CREDENTIAL_WEIGHT } from '@/utils/credentialWeight';
 
@@ -228,15 +226,10 @@ export function BaseProviderForm({
   }, [isDirty, onDirtyChange]);
 
   // baseUrl 实时校验：硬错误用于阻止保存，软提示展示在输入框下方。
-  const baseUrlValidation = useMemo(() => validateBaseUrl(form.baseUrl, brand), [brand, form.baseUrl]);
-  const baseUrlError =
-    descriptor.supportsBaseUrl && form.baseUrl.trim() && baseUrlValidation.errorKey
-      ? baseUrlValidation.errorKey
-      : null;
-  const baseUrlWarnings =
-    descriptor.supportsBaseUrl && form.baseUrl.trim() && !baseUrlValidation.errorKey
-      ? baseUrlValidation.warningKeys
-      : [];
+  const baseUrlValidation = useMemo(
+    () => validateBaseUrl(form.baseUrl, brand),
+    [brand, form.baseUrl]
+  );
 
   const fallbackApiKey = useMemo(() => {
     if (mode !== 'edit' || !resource) return '';
@@ -495,26 +488,6 @@ export function BaseProviderForm({
         ? 'unavailable'
         : 'ready';
   const actualApiKeyEntries = form.apiKeyEntries ?? [];
-  const openaiAggregateStatus = useMemo<ConnectivityState>(() => {
-    if (brand !== 'openaiCompatibility') return 'idle';
-    if (connectivity.openaiStatuses.some((status) => status.state === 'loading')) {
-      return 'loading';
-    }
-    if (connectivity.openaiStatuses.some((status) => status.state === 'error')) {
-      return 'error';
-    }
-    // 与 runOpenAIKey 的密钥解析保持一致:清空输入框的持久化条目
-    // (existingApiKey)仍会被测试,也要计入 testable。
-    const testableCount = apiKeyEntries.filter(
-      (entry) =>
-        entry.apiKey.trim() || entry.existingApiKey?.trim() || (entry.authIndex ?? '').trim()
-    ).length;
-    const successCount = connectivity.openaiStatuses.filter(
-      (status) => status.state === 'success'
-    ).length;
-    return testableCount > 0 && successCount >= testableCount ? 'success' : 'idle';
-  }, [apiKeyEntries, brand, connectivity.openaiStatuses]);
-  const supportsDisableCooling = supportsDisableCoolingControl(brand);
   const supportsModelImage = supportsOpenAIModelOptionsForBrand(brand);
   const singleConnectivity =
     brand === 'codex' || brand === 'xai'
@@ -621,19 +594,9 @@ export function BaseProviderForm({
               onChange={(e) => updateField('baseUrl', e.target.value)}
               placeholder="https://api.example.com"
               disabled={mutating}
-              aria-invalid={baseUrlError ? true : undefined}
+              aria-invalid={baseUrlValidation.errorKey ? true : undefined}
             />
-            {baseUrlError ? (
-              <span className={styles.fieldError}>
-                {t(`providersPage.form.validation.${baseUrlError}`)}
-              </span>
-            ) : baseUrlWarnings.length ? (
-              <span className={styles.fieldWarning}>
-                {baseUrlWarnings
-                  .map((key) => t(`providersPage.form.validation.${key}`))
-                  .join(' ')}
-              </span>
-            ) : null}
+            <BaseUrlValidationHint validation={baseUrlValidation} />
           </div>
         ) : null}
 
@@ -732,27 +695,12 @@ export function BaseProviderForm({
               ariaLabel={t('providersPage.form.testModel')}
             />
             {brand === 'openaiCompatibility' ? (
-              <div className={styles.connectivityRow}>
-                <button
-                  type="button"
-                  className={styles.connectivityBtn}
-                  disabled={mutating || connectivity.isTestingAny}
-                  onClick={() => void connectivity.runOpenAIAllKeys()}
-                >
-                  {openaiAggregateStatus === 'loading' ? (
-                    <span className={`${styles.statusIcon} ${styles.statusIconLoading}`}>
-                      <IconLoader2 size={14} />
-                    </span>
-                  ) : null}
-                  <span>{t('providersPage.connectivity.testAll')}</span>
-                </button>
-                <ConnectivityStatusIcon state={openaiAggregateStatus} />
-                {openaiAggregateStatus === 'success' ? (
-                  <span className={styles.connectivityHintSuccess}>
-                    {t('providersPage.connectivity.success')}
-                  </span>
-                ) : null}
-              </div>
+              <OpenAIConnectivityTest
+                entries={apiKeyEntries}
+                statuses={connectivity.openaiStatuses}
+                disabled={mutating || connectivity.isTestingAny}
+                onTest={connectivity.runOpenAIAllKeys}
+              />
             ) : singleConnectivity ? (
               <div className={styles.connectivityRow}>
                 <button
@@ -813,21 +761,12 @@ export function BaseProviderForm({
           </label>
         ) : null}
 
-        {supportsDisableCooling ? (
-          <label className={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              className={styles.checkboxBox}
-              checked={form.disableCooling ?? false}
-              disabled={mutating}
-              onChange={(e) => updateField('disableCooling', e.target.checked)}
-            />
-            <span className={styles.checkboxText}>
-              <span>{t('providersPage.form.disableCooling')}</span>
-              <small>{t('providersPage.form.disableCoolingHint')}</small>
-            </span>
-          </label>
-        ) : null}
+        <DisableCoolingOption
+          brand={brand}
+          checked={form.disableCooling ?? false}
+          disabled={mutating}
+          onChange={(checked) => updateField('disableCooling', checked)}
+        />
       </div>
 
       {/* 高级折叠区 */}

@@ -641,168 +641,171 @@ export function OAuthPage() {
     }
   };
 
+  const renderOAuthProviderCard = (provider: OAuthProviderCard) => {
+    const state = states[provider.id] || {};
+    const canSubmitCallback =
+      (provider.kind === 'plugin' || CALLBACK_SUPPORTED.has(provider.id)) && Boolean(state.url);
+    const loginButtonLabel =
+      state.status === 'success'
+        ? t('auth_login.login_another_account')
+        : getProviderText(provider, 'oauth_button');
+    const statusBadgeClassName = [
+      'status-badge',
+      state.status === 'success' ? 'success' : '',
+      state.status === 'error' ? 'error' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    return (
+      <Card
+        key={provider.id}
+        title={
+          <span className={styles.cardTitle}>
+            <OAuthProviderIcon provider={provider} theme={resolvedTheme} />
+            {getProviderTitleText(provider)}
+          </span>
+        }
+        extra={
+          <Button
+            onClick={() => startAuth(provider.id)}
+            loading={state.polling}
+            disabled={provider.id === 'devin' && Boolean(state.state)}
+          >
+            {loginButtonLabel}
+          </Button>
+        }
+      >
+        <div className={styles.cardContent}>
+          <div className={styles.cardHint}>{getProviderText(provider, 'oauth_hint')}</div>
+          {state.url && (
+            <div className={styles.authUrlBox}>
+              <div className={styles.authUrlLabel}>
+                {getProviderText(provider, 'oauth_url_label')}
+              </div>
+              <div className={styles.authUrlValue}>{state.url}</div>
+              <div className={styles.authUrlActions}>
+                <Button variant="secondary" size="sm" onClick={() => copyLink(state.url!)}>
+                  {getProviderText(provider, 'copy_link')}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => window.open(state.url, '_blank', 'noopener,noreferrer')}
+                >
+                  {getProviderText(provider, 'open_link')}
+                </Button>
+                {provider.id === 'devin' && state.state && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => cancelAuth(provider.id)}
+                    loading={state.cancelling}
+                  >
+                    {t('auth_login.devin_oauth_cancel')}
+                  </Button>
+                )}
+              </div>
+              {provider.id === 'devin' && state.state && state.status === 'error' && (
+                <div className={styles.cardHintSecondary}>
+                  {t('auth_login.devin_oauth_retry_hint')}
+                </div>
+              )}
+              {state.cancelError && (
+                <div className="status-badge error">
+                  {t('auth_login.devin_oauth_cancel_error')} {state.cancelError}
+                </div>
+              )}
+            </div>
+          )}
+          {canSubmitCallback && (
+            <div className={styles.callbackSection}>
+              <Input
+                label={t(
+                  provider.id === 'xai'
+                    ? 'auth_login.xai_callback_label'
+                    : 'auth_login.oauth_callback_label'
+                )}
+                hint={t(
+                  provider.id === 'xai'
+                    ? 'auth_login.xai_callback_hint'
+                    : provider.id === 'devin'
+                      ? 'auth_login.devin_callback_hint'
+                      : 'auth_login.oauth_callback_hint'
+                )}
+                disabled={
+                  provider.id === 'devin' && (state.cancelling || state.status !== 'waiting')
+                }
+                value={state.callbackUrl || ''}
+                onChange={(e) =>
+                  updateProviderState(provider.id, {
+                    callbackUrl: e.target.value,
+                    callbackStatus: undefined,
+                    callbackError: undefined,
+                  })
+                }
+                placeholder={t(
+                  provider.id === 'xai'
+                    ? 'auth_login.xai_callback_placeholder'
+                    : provider.id === 'devin'
+                      ? 'auth_login.devin_callback_placeholder'
+                      : 'auth_login.oauth_callback_placeholder'
+                )}
+              />
+              <div className={styles.callbackActions}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => submitCallback(provider.id)}
+                  loading={state.callbackSubmitting}
+                  disabled={
+                    provider.id === 'devin' && (state.cancelling || state.status !== 'waiting')
+                  }
+                >
+                  {t('auth_login.oauth_callback_button')}
+                </Button>
+              </div>
+              {state.callbackStatus === 'success' && state.status === 'waiting' && (
+                <div className="status-badge success">
+                  {t('auth_login.oauth_callback_status_success')}
+                </div>
+              )}
+              {state.callbackStatus === 'error' && (
+                <div className="status-badge error">
+                  {t('auth_login.oauth_callback_status_error')} {state.callbackError || ''}
+                </div>
+              )}
+            </div>
+          )}
+          {state.status && state.status !== 'idle' && (
+            <div className={statusBadgeClassName}>
+              {state.status === 'success'
+                ? getProviderText(provider, 'oauth_status_success')
+                : state.status === 'error'
+                  ? `${getProviderText(provider, 'oauth_status_error')} ${state.error || ''}`
+                  : getProviderText(provider, 'oauth_status_waiting')}
+            </div>
+          )}
+          {state.status === 'success' && (
+            <div className={styles.successActions}>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/auth-files')}>
+                {t('auth_login.view_auth_files')}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
+    );
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.pageTitle}>{t('nav.oauth', { defaultValue: 'OAuth' })}</h1>
 
       <div className={styles.content}>
-        {providerCards.map((provider) => {
-          const state = states[provider.id] || {};
-          const canSubmitCallback =
-            (provider.kind === 'plugin' || CALLBACK_SUPPORTED.has(provider.id)) &&
-            Boolean(state.url);
-          const loginButtonLabel =
-            state.status === 'success'
-              ? t('auth_login.login_another_account')
-              : getProviderText(provider, 'oauth_button');
-          const statusBadgeClassName = [
-            'status-badge',
-            state.status === 'success' ? 'success' : '',
-            state.status === 'error' ? 'error' : '',
-          ]
-            .filter(Boolean)
-            .join(' ');
-          return (
-            <div key={provider.id}>
-              <Card
-                title={
-                  <span className={styles.cardTitle}>
-                    <OAuthProviderIcon provider={provider} theme={resolvedTheme} />
-                    {getProviderTitleText(provider)}
-                  </span>
-                }
-                extra={
-                  <Button
-                    onClick={() => startAuth(provider.id)}
-                    loading={state.polling}
-                    disabled={provider.id === 'devin' && Boolean(state.state)}
-                  >
-                    {loginButtonLabel}
-                  </Button>
-                }
-              >
-                <div className={styles.cardContent}>
-                  <div className={styles.cardHint}>{getProviderText(provider, 'oauth_hint')}</div>
-                  {state.url && (
-                    <div className={styles.authUrlBox}>
-                      <div className={styles.authUrlLabel}>
-                        {getProviderText(provider, 'oauth_url_label')}
-                      </div>
-                      <div className={styles.authUrlValue}>{state.url}</div>
-                      <div className={styles.authUrlActions}>
-                        <Button variant="secondary" size="sm" onClick={() => copyLink(state.url!)}>
-                          {getProviderText(provider, 'copy_link')}
-                        </Button>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => window.open(state.url, '_blank', 'noopener,noreferrer')}
-                        >
-                          {getProviderText(provider, 'open_link')}
-                        </Button>
-                        {provider.id === 'devin' && state.state && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => cancelAuth(provider.id)}
-                            loading={state.cancelling}
-                          >
-                            {t('auth_login.devin_oauth_cancel')}
-                          </Button>
-                        )}
-                      </div>
-                      {provider.id === 'devin' && state.state && state.status === 'error' && (
-                        <div className={styles.cardHintSecondary}>
-                          {t('auth_login.devin_oauth_retry_hint')}
-                        </div>
-                      )}
-                      {state.cancelError && (
-                        <div className="status-badge error">
-                          {t('auth_login.devin_oauth_cancel_error')} {state.cancelError}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {canSubmitCallback && (
-                    <div className={styles.callbackSection}>
-                      <Input
-                        label={t(
-                          provider.id === 'xai'
-                            ? 'auth_login.xai_callback_label'
-                            : 'auth_login.oauth_callback_label'
-                        )}
-                        hint={t(
-                          provider.id === 'xai'
-                            ? 'auth_login.xai_callback_hint'
-                            : provider.id === 'devin'
-                              ? 'auth_login.devin_callback_hint'
-                              : 'auth_login.oauth_callback_hint'
-                        )}
-                        disabled={
-                          provider.id === 'devin' && (state.cancelling || state.status !== 'waiting')
-                        }
-                        value={state.callbackUrl || ''}
-                        onChange={(e) =>
-                          updateProviderState(provider.id, {
-                            callbackUrl: e.target.value,
-                            callbackStatus: undefined,
-                            callbackError: undefined,
-                          })
-                        }
-                        placeholder={t(
-                          provider.id === 'xai'
-                            ? 'auth_login.xai_callback_placeholder'
-                            : provider.id === 'devin'
-                              ? 'auth_login.devin_callback_placeholder'
-                              : 'auth_login.oauth_callback_placeholder'
-                        )}
-                      />
-                      <div className={styles.callbackActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => submitCallback(provider.id)}
-                          loading={state.callbackSubmitting}
-                          disabled={
-                            provider.id === 'devin' && (state.cancelling || state.status !== 'waiting')
-                          }
-                        >
-                          {t('auth_login.oauth_callback_button')}
-                        </Button>
-                      </div>
-                      {state.callbackStatus === 'success' && state.status === 'waiting' && (
-                        <div className="status-badge success">
-                          {t('auth_login.oauth_callback_status_success')}
-                        </div>
-                      )}
-                      {state.callbackStatus === 'error' && (
-                        <div className="status-badge error">
-                          {t('auth_login.oauth_callback_status_error')} {state.callbackError || ''}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {state.status && state.status !== 'idle' && (
-                    <div className={statusBadgeClassName}>
-                      {state.status === 'success'
-                        ? getProviderText(provider, 'oauth_status_success')
-                        : state.status === 'error'
-                          ? `${getProviderText(provider, 'oauth_status_error')} ${state.error || ''}`
-                          : getProviderText(provider, 'oauth_status_waiting')}
-                    </div>
-                  )}
-                  {state.status === 'success' && (
-                    <div className={styles.successActions}>
-                      <Button variant="secondary" size="sm" onClick={() => navigate('/auth-files')}>
-                        {t('auth_login.view_auth_files')}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            </div>
-          );
-        })}
+        {providerCards.map((provider) => (
+          <div key={provider.id}>{renderOAuthProviderCard(provider)}</div>
+        ))}
 
         {/* Vertex JSON 登录 */}
         <Card

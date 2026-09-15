@@ -12,24 +12,11 @@ import {
 import { buildHeaderObject, hasHeader } from '@/utils/headers';
 import { getErrorMessage } from '@/utils/helpers';
 import { ensureTestUserAgent } from '@/utils/testRequestHeaders';
+import { DEFAULT_TEST_MAX_TOKENS, pickTestPrompt } from '@/utils/testRequestDefaults';
 import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
-const DEFAULT_MAX_TOKENS = 32;
-
-const TEST_PROMPTS = [
-  'Tell me a fun fact about the ocean.',
-  'What are a few tips for staying focused while working?',
-  'Suggest a good book to read on a rainy day.',
-  'Explain the water cycle in simple terms.',
-  'What is a creative way to use leftover vegetables?',
-  'Give me a short, upbeat quote to start the day.',
-  'What are some benefits of taking a short walk?',
-  'Recommend a relaxing weekend activity.',
-];
-
-const pickPrompt = (): string => TEST_PROMPTS[Math.floor(Math.random() * TEST_PROMPTS.length)];
 
 export type ConnectivityState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -259,9 +246,9 @@ export function useConnectivityTest(
             header: headerObj,
             data: JSON.stringify({
               model,
-              messages: [{ role: 'user', content: pickPrompt() }],
+              messages: [{ role: 'user', content: pickTestPrompt() }],
               stream: false,
-              max_tokens: DEFAULT_MAX_TOKENS,
+              max_tokens: DEFAULT_TEST_MAX_TOKENS,
             }),
           },
           { timeout: DEFAULT_TIMEOUT_MS }
@@ -300,6 +287,77 @@ export function useConnectivityTest(
     if (!entries.length) return;
     await Promise.all(entries.map((_, idx) => runOpenAIKey(idx)));
   }, [apiKeyEntries, brand, runOpenAIKey]);
+
+  const runCodex = useCallback(async (): Promise<void> => {
+    if (brand !== 'codex' && brand !== 'xai') return;
+
+    const trimmedBase = baseUrl.trim();
+    if (!trimmedBase) {
+      setCodexStatus({ state: 'error', message: messages.baseUrlRequired });
+      return;
+    }
+    const endpoint = buildCodexResponsesEndpoint(trimmedBase);
+    if (!endpoint) {
+      setCodexStatus({ state: 'error', message: messages.endpointInvalid });
+      return;
+    }
+    const model = pickModel(testModel, models);
+    if (!model) {
+      setCodexStatus({ state: 'error', message: messages.modelRequired });
+      return;
+    }
+
+    const customHeaders = buildHeaderObject(formHeaders);
+    const explicitKey = (apiKey ?? '').trim();
+    const persistedKey = (fallbackApiKey ?? '').trim();
+    const resolvedKey = explicitKey || persistedKey || resolveBearerToken(customHeaders);
+    const resolvedAuthIndex = (authIndex ?? '').trim() || undefined;
+
+    if (!resolvedKey && !hasHeader(customHeaders, 'authorization') && !resolvedAuthIndex) {
+      setCodexStatus({ state: 'error', message: messages.apiKeyRequired });
+      return;
+    }
+
+    const headerObj: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...customHeaders,
+    };
+    if (!hasHeader(headerObj, 'authorization')) {
+      headerObj.Authorization = resolvedKey ? `Bearer ${resolvedKey}` : 'Bearer $TOKEN$';
+    }
+    ensureTestUserAgent(headerObj, 'codex');
+
+    setCodexStatus({ state: 'loading', message: '' });
+    setInFlight((n) => n + 1);
+    try {
+      const result = await apiCallApi.request(
+        {
+          authIndex: resolvedAuthIndex,
+          method: 'POST',
+          url: endpoint,
+          header: headerObj,
+          data: JSON.stringify({
+            model,
+            input: pickTestPrompt(),
+            stream: false,
+            max_output_tokens: DEFAULT_TEST_MAX_TOKENS,
+          }),
+        },
+        { timeout: DEFAULT_TIMEOUT_MS }
+      );
+      if (result.statusCode < 200 || result.statusCode >= 300) {
+        throw new Error(getApiCallErrorMessage(result));
+      }
+      setCodexStatus({ state: 'success', message: '' });
+    } catch (err) {
+      setCodexStatus({
+        state: 'error',
+        message: requestFailureMessage(err, messages),
+      });
+    } finally {
+      setInFlight((n) => n - 1);
+    }
+  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
 
   const runGemini = useCallback(async (): Promise<void> => {
     if (brand !== 'gemini' && brand !== 'interactions') return;
@@ -360,8 +418,8 @@ export function useConnectivityTest(
             brand === 'interactions'
               ? buildInteractionsProbePayload(model)
               : {
-                  contents: [{ parts: [{ text: pickPrompt() }] }],
-                  generationConfig: { maxOutputTokens: DEFAULT_MAX_TOKENS },
+                  contents: [{ parts: [{ text: pickTestPrompt() }] }],
+                  generationConfig: { maxOutputTokens: DEFAULT_TEST_MAX_TOKENS },
                 }
           ),
         },
@@ -433,8 +491,8 @@ export function useConnectivityTest(
           header: headerObj,
           data: JSON.stringify({
             model,
-            max_tokens: DEFAULT_MAX_TOKENS,
-            messages: [{ role: 'user', content: pickPrompt() }],
+            max_tokens: DEFAULT_TEST_MAX_TOKENS,
+            messages: [{ role: 'user', content: pickTestPrompt() }],
           }),
         },
         { timeout: DEFAULT_TIMEOUT_MS }
@@ -452,87 +510,6 @@ export function useConnectivityTest(
       setInFlight((n) => n - 1);
     }
   }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
-
-  const runCodex = useCallback(async (): Promise<void> => {
-    if (brand !== 'codex' && brand !== 'xai') return;
-
-    const trimmedBase = baseUrl.trim();
-    if (!trimmedBase) {
-      setCodexStatus({ state: 'error', message: messages.baseUrlRequired });
-      return;
-    }
-    const endpoint = buildCodexResponsesEndpoint(trimmedBase);
-    if (!endpoint) {
-      setCodexStatus({ state: 'error', message: messages.endpointInvalid });
-      return;
-    }
-    const model = pickModel(testModel, models);
-    if (!model) {
-      setCodexStatus({ state: 'error', message: messages.modelRequired });
-      return;
-    }
-
-    const customHeaders = buildHeaderObject(formHeaders);
-    const explicitKey = (apiKey ?? '').trim();
-    const persistedKey = (fallbackApiKey ?? '').trim();
-    const resolvedKey = explicitKey || persistedKey || resolveBearerToken(customHeaders);
-    const resolvedAuthIndex = (authIndex ?? '').trim() || undefined;
-
-    if (!resolvedKey && !hasHeader(customHeaders, 'authorization') && !resolvedAuthIndex) {
-      setCodexStatus({ state: 'error', message: messages.apiKeyRequired });
-      return;
-    }
-
-    const headerObj: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...customHeaders,
-    };
-    if (!hasHeader(headerObj, 'authorization')) {
-      headerObj.Authorization = resolvedKey ? `Bearer ${resolvedKey}` : 'Bearer $TOKEN$';
-    }
-    ensureTestUserAgent(headerObj, 'codex');
-
-    setCodexStatus({ state: 'loading', message: '' });
-    setInFlight((n) => n + 1);
-    try {
-      const result = await apiCallApi.request(
-        {
-          authIndex: resolvedAuthIndex,
-          method: 'POST',
-          url: endpoint,
-          header: headerObj,
-          data: JSON.stringify({
-            model,
-            input: pickPrompt(),
-            stream: false,
-            max_output_tokens: DEFAULT_MAX_TOKENS,
-          }),
-        },
-        { timeout: DEFAULT_TIMEOUT_MS }
-      );
-      if (result.statusCode < 200 || result.statusCode >= 300) {
-        throw new Error(getApiCallErrorMessage(result));
-      }
-      setCodexStatus({ state: 'success', message: '' });
-    } catch (err) {
-      setCodexStatus({
-        state: 'error',
-        message: requestFailureMessage(err, messages),
-      });
-    } finally {
-      setInFlight((n) => n - 1);
-    }
-  }, [
-    apiKey,
-    authIndex,
-    baseUrl,
-    brand,
-    fallbackApiKey,
-    formHeaders,
-    messages,
-    models,
-    testModel,
-  ]);
 
   return {
     openaiStatuses,
