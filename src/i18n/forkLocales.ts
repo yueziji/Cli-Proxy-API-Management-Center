@@ -1,5 +1,6 @@
 import { compatibilityLocales } from './compatibilityLocales';
 import { modelRetryLocales } from './modelRetryLocales';
+import { pluginJsonLocales } from './pluginJsonLocales';
 
 // 两个现有命名空间共用本地请求日志文案。
 const requestLogLocales = {
@@ -50,6 +51,7 @@ export const forkLocales = {
   'zh-CN': {
     compatibilitySettings: compatibilityLocales['zh-CN'],
     modelRetryOverrides: modelRetryLocales['zh-CN'],
+    pluginJsonEditor: pluginJsonLocales['zh-CN'],
     auth_files: {
       refresh_interval_label: '刷新间隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
@@ -116,6 +118,7 @@ export const forkLocales = {
   'zh-TW': {
     compatibilitySettings: compatibilityLocales['zh-TW'],
     modelRetryOverrides: modelRetryLocales['zh-TW'],
+    pluginJsonEditor: pluginJsonLocales['zh-TW'],
     auth_files: {
       refresh_interval_label: '重新整理間隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
@@ -182,6 +185,7 @@ export const forkLocales = {
   en: {
     compatibilitySettings: compatibilityLocales.en,
     modelRetryOverrides: modelRetryLocales.en,
+    pluginJsonEditor: pluginJsonLocales.en,
     auth_files: {
       refresh_interval_label: 'Refresh Interval (refresh_interval)',
       refresh_interval_placeholder: 'e.g. 15m / 3h / 900s',
@@ -252,6 +256,7 @@ export const forkLocales = {
   ru: {
     compatibilitySettings: compatibilityLocales.ru,
     modelRetryOverrides: modelRetryLocales.ru,
+    pluginJsonEditor: pluginJsonLocales.ru,
     auth_files: {
       refresh_interval_label: 'Интервал обновления (refresh_interval)',
       refresh_interval_placeholder: 'например: 15m / 3h / 900s',

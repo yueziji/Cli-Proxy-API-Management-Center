@@ -8,6 +8,7 @@ export interface PluginConfigDraft {
   priority: string;
   values: Record<string, PluginDraftValue>;
   errors: Record<string, string>;
+  editorErrors: Record<string, string>;
   enabledTouched: boolean;
   priorityTouched: boolean;
   touchedFields: Record<string, boolean>;
@@ -56,6 +57,7 @@ export function buildPluginConfigDraft(
     priority,
     values,
     errors: {},
+    editorErrors: {},
     enabledTouched: false,
     priorityTouched: false,
     touchedFields: {},
@@ -91,7 +93,9 @@ export function buildPluginConfigPatch(
   fields: PluginConfigField[],
   t: Translate
 ): { patch: PluginConfigObject; errors: Record<string, string> } {
-  const errors: Record<string, string> = {};
+  const errors: Record<string, string> = Object.fromEntries(
+    Object.entries(draft.editorErrors).filter(([, error]) => Boolean(error))
+  );
   const patch: PluginConfigObject = {};
 
   if (draft.enabledTouched) patch.enabled = draft.enabled;
@@ -108,7 +112,11 @@ export function buildPluginConfigPatch(
   }
 
   fields.forEach((field) => {
-    if (!draft.touchedFields[field.name]) return;
+    if (
+      !draft.touchedFields[field.name] ||
+      Object.prototype.hasOwnProperty.call(errors, field.name)
+    )
+      return;
 
     const fieldType = normalizePluginConfigFieldType(field);
     const value = draft.values[field.name];

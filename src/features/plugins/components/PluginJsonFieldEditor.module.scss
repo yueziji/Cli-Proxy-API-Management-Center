@@ -1,0 +1,129 @@
+.editor,
+.rows,
+.raw {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.editor {
+  p,
+  h4 {
+    margin: 0;
+  }
+
+  h4 {
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  :global(.form-group) {
+    margin: 0;
+    min-width: 0;
+  }
+}
+
+.header,
+.actions,
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header,
+.empty {
+  justify-content: space-between;
+}
+
+.hint,
+.type,
+.empty {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.empty {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.rowLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.value {
+  min-width: 0;
+}
+
+.stringInput,
+.jsonInput {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 38px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.jsonInput {
+  min-height: 180px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.addRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  > :not(button) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  > button {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .rowLabel {
+    grid-column: 1 / -1;
+  }
+
+  .addRow {
+    flex-wrap: wrap;
+
+    > :global(.form-group) {
+      flex-basis: 100%;
+    }
+  }
+}

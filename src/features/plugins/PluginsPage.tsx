@@ -35,6 +35,7 @@ import {
 import { waitForPluginState } from './pluginPolling';
 import styles from './PluginsPage.module.scss';
 import { ModelRetryOverridesEditor } from './components/ModelRetryOverridesEditor';
+import { PluginJsonFieldEditor } from './components/PluginJsonFieldEditor';
 import {
   MODEL_RETRY_OVERRIDES_FIELD,
   modelRetryFields,
@@ -457,19 +458,24 @@ export function PluginsPage() {
 
     if (fieldType === 'array' || fieldType === 'object') {
       return (
-        <div key={field.name} className={styles.formField}>
-          <label htmlFor={`plugin-field-${field.name}`}>{field.name}</label>
-          <textarea
-            id={`plugin-field-${field.name}`}
-            className={styles.textarea}
-            value={textValue}
-            onChange={handleFieldTextChange(field.name)}
-            placeholder={fieldType === 'array' ? '[]' : '{}'}
-            spellCheck={false}
-          />
-          {field.description ? <div className={styles.fieldHint}>{field.description}</div> : null}
-          {errorText ? <div className={styles.fieldError}>{errorText}</div> : null}
-        </div>
+        <PluginJsonFieldEditor
+          key={field.name}
+          name={field.name}
+          fieldType={fieldType}
+          value={textValue}
+          description={field.description}
+          error={errorText}
+          disabled={Boolean(mutatingID || openingConfigID)}
+          onChange={(nextValue, editorError = '') =>
+            updateDraft((current) => ({
+              ...current,
+              values: { ...current.values, [field.name]: nextValue },
+              errors: { ...current.errors, [field.name]: editorError },
+              editorErrors: { ...current.editorErrors, [field.name]: editorError },
+              touchedFields: { ...current.touchedFields, [field.name]: true },
+            }))
+          }
+        />
       );
     }
 
