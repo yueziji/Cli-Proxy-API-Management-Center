@@ -466,23 +466,37 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           updateConfigValue('interactions-api-key', next);
         } else if (sel.brand === 'codex') {
           await providersApi.deleteCodexConfig(sel.apiKey, sel.baseUrl);
+          const next = (config?.codexApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('codex-api-key', next);
         } else if (sel.brand === 'meta') {
           await providersApi.deleteMetaConfig(sel.apiKey, sel.baseUrl);
+          const next = (config?.metaApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('meta-api-key', next);
         } else if (sel.brand === 'xai') {
           await providersApi.deleteXAIConfig(sel.apiKey, sel.baseUrl);
+          const next = (config?.xaiApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('xai-api-key', next);
         } else if (sel.brand === 'claude') {
           await providersApi.deleteClaudeConfig(sel.apiKey, sel.baseUrl);
+          const next = (config?.claudeApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('claude-api-key', next);
         } else if (sel.brand === 'vertex') {
           await providersApi.deleteVertexConfig(sel.apiKey, sel.baseUrl);
+          const next = (config?.vertexApiKeys ?? []).filter((_, i) => i !== sel.index);
+          updateConfigValue('vertex-api-key', next);
         } else if (sel.brand === 'openaiCompatibility') {
           await providersApi.deleteOpenAIProvider(sel.index);
+          const next = (config?.openaiCompatibility ?? []).filter(
+            (item, index) => (item.sourceIndex ?? index) !== sel.index
+          );
+          updateConfigValue('openai-compatibility', next);
         }
         await refetch();
       } finally {
         setMutating(false);
       }
     },
-    [config?.geminiApiKeys, config?.interactionsApiKeys, refetch, updateConfigValue]
+    [config, refetch, updateConfigValue]
   );
 
   const toggleDisabled = useCallback(
