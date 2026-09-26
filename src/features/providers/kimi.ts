@@ -1,0 +1,2 @@
+export const KIMI_CHINESE_AFFILIATE_URL = '';
+export const KIMI_INTERNATIONAL_AFFILIATE_URL = '';
