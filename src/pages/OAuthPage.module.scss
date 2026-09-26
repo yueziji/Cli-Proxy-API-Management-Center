@@ -37,6 +37,20 @@
   gap: $spacing-xl;
 }
 
+.providerSection {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .cardContent {
   display: flex;
   flex-direction: column;

@@ -29,17 +29,27 @@ describe('provider tabs wheel scrolling', () => {
     expect(target.scrollLeft).toBe(120);
   });
 
-  test('clamps both ends and still consumes vertical scrolling', () => {
+  test('clamps both ends and releases scrolling to the page at the boundary', () => {
     const target = strip();
-    for (const [deltaY, expected] of [
-      [1000, 500],
-      [-1000, 0],
-    ]) {
-      const event = wheel({ deltaY });
-      scrollProviderTabs(target, event);
-      expect(target.scrollLeft).toBe(expected);
-      expect(event.wasPrevented()).toBe(true);
-    }
+    const toEnd = wheel({ deltaY: 1000 });
+    scrollProviderTabs(target, toEnd);
+    expect(target.scrollLeft).toBe(500);
+    expect(toEnd.wasPrevented()).toBe(true);
+
+    const pastEnd = wheel({ deltaY: 80 });
+    scrollProviderTabs(target, pastEnd);
+    expect(target.scrollLeft).toBe(500);
+    expect(pastEnd.wasPrevented()).toBe(false);
+
+    const toStart = wheel({ deltaY: -1000 });
+    scrollProviderTabs(target, toStart);
+    expect(target.scrollLeft).toBe(0);
+    expect(toStart.wasPrevented()).toBe(true);
+
+    const pastStart = wheel({ deltaY: -80 });
+    scrollProviderTabs(target, pastStart);
+    expect(target.scrollLeft).toBe(0);
+    expect(pastStart.wasPrevented()).toBe(false);
   });
 
   test('converts line and page wheel units', () => {
