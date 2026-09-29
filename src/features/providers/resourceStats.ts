@@ -5,6 +5,7 @@ import {
   getProviderRecentStatusData,
   getProviderRecentWindowStats,
   getProviderTotalStats,
+  getProviderUsageKey,
   type ProviderRecentUsageMap,
 } from '@/components/providers/utils';
 import type { OpenAIProviderConfig } from '@/types';
@@ -23,7 +24,7 @@ export const resolveStatusBarData = (
   }
   return getProviderRecentStatusData(
     usageByProvider,
-    resource.brand,
+    getProviderUsageKey(resource.brand),
     resource.apiKey ?? undefined,
     resource.baseUrl ?? undefined
   );
@@ -41,7 +42,7 @@ export const resolveTotalStats = (
   }
   return getProviderTotalStats(
     usageByProvider,
-    resource.brand,
+    getProviderUsageKey(resource.brand),
     resource.apiKey ?? undefined,
     resource.baseUrl ?? undefined
   );
@@ -59,7 +60,7 @@ export const resolveRecentWindowStats = (
   }
   return getProviderRecentWindowStats(
     usageByProvider,
-    resource.brand,
+    getProviderUsageKey(resource.brand),
     resource.apiKey ?? undefined,
     resource.baseUrl ?? undefined
   );

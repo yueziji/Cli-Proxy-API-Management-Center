@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { apiCallApi, getApiCallErrorMessage } from '@/services/api';
 import {
   buildCodexResponsesEndpoint,
@@ -13,6 +13,8 @@ import { buildHeaderObject, hasHeader } from '@/utils/headers';
 import { getErrorMessage } from '@/utils/helpers';
 import { ensureTestUserAgent } from '@/utils/testRequestHeaders';
 import { DEFAULT_TEST_MAX_TOKENS, pickTestPrompt } from '@/utils/testRequestDefaults';
+import { validateBaseUrl } from '@/utils/validation';
+import { createConnectivityAttempts } from './connectivityAttempts';
 import type { ApiKeyEntryInput, ModelEntryInput, ProviderBrand } from '../../types';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -96,7 +98,7 @@ export function useConnectivityTest(
 ): UseConnectivityTestResult {
   const {
     brand,
-    baseUrl,
+    baseUrl: rawBaseUrl,
     testModel,
     models,
     formHeaders,
@@ -106,6 +108,9 @@ export function useConnectivityTest(
     authIndex,
   } = args;
 
+  // Use the same normalization and hard errors as the save path.
+  const { normalized: baseUrl, ok: baseUrlValid } = validateBaseUrl(rawBaseUrl, brand);
+  const [attempts] = useState(createConnectivityAttempts);
   const entriesCount = apiKeyEntries?.length ?? 0;
 
   const [openaiStatuses, setOpenaiStatuses] = useState<ConnectivityStatus[]>(() =>
@@ -119,21 +124,24 @@ export function useConnectivityTest(
   const entrySignatures = useMemo(
     () =>
       (apiKeyEntries ?? []).map((entry) =>
-        [
+        JSON.stringify([
           entry.apiKey ?? '',
           entry.existingApiKey ?? '',
           entry.authIndex ?? '',
           entry.proxyUrl ?? '',
-        ].join('||')
+        ])
       ),
     [apiKeyEntries]
   );
 
   const lastEntrySignaturesRef = useRef<string[]>(entrySignatures);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const prev = lastEntrySignaturesRef.current;
     const curr = entrySignatures;
     lastEntrySignaturesRef.current = curr;
+    for (let i = 0; i < Math.max(prev.length, curr.length); i++) {
+      if (prev[i] !== curr[i]) attempts.invalidate(`openai:${i}`);
+    }
 
     setOpenaiStatuses((statuses) => {
       const nextLen = curr.length;
@@ -148,31 +156,33 @@ export function useConnectivityTest(
       }
       return mutated ? next : statuses;
     });
-  }, [entrySignatures]);
+  }, [attempts, entrySignatures]);
 
   const signature = useMemo(() => {
-    const h = formHeaders.map((it) => `${it.key}:${it.value}`).join('|');
-    const m = models.map((it) => `${it.name}:${it.alias ?? ''}`).join('|');
-    return [
+    return JSON.stringify([
+      brand,
       baseUrl,
       (testModel ?? '').trim(),
       apiKey ?? '',
       fallbackApiKey ?? '',
       authIndex ?? '',
-      h,
-      m,
-    ].join('||');
-  }, [apiKey, authIndex, baseUrl, fallbackApiKey, testModel, formHeaders, models]);
+      formHeaders,
+      models.map((it) => [it.name, it.alias ?? '']),
+    ]);
+  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, testModel, formHeaders, models]);
 
   const lastSignatureRef = useRef(signature);
-  useEffect(() => {
-    if (lastSignatureRef.current === signature) return;
-    lastSignatureRef.current = signature;
-    setOpenaiStatuses((prev) => prev.map(() => IDLE));
-    setCodexStatus(IDLE);
-    setGeminiStatus(IDLE);
-    setClaudeStatus(IDLE);
-  }, [signature]);
+  useLayoutEffect(() => {
+    if (lastSignatureRef.current !== signature) {
+      lastSignatureRef.current = signature;
+      setOpenaiStatuses((prev) => prev.map(() => IDLE));
+      setCodexStatus(IDLE);
+      setGeminiStatus(IDLE);
+      setClaudeStatus(IDLE);
+    }
+    // Runs before the next committed configuration and on unmount.
+    return () => attempts.invalidateAll();
+  }, [attempts, signature]);
 
   const updateOpenaiStatus = useCallback((idx: number, value: ConnectivityStatus) => {
     setOpenaiStatuses((prev) => {
@@ -185,6 +195,7 @@ export function useConnectivityTest(
   const runOpenAIKey = useCallback(
     async (idx: number): Promise<boolean> => {
       if (brand !== 'openaiCompatibility') return false;
+      const isCurrent = attempts.begin(`openai:${idx}`);
 
       const trimmedBase = baseUrl.trim();
       if (!trimmedBase) {
@@ -195,7 +206,7 @@ export function useConnectivityTest(
         return false;
       }
       const endpoint = buildOpenAIChatCompletionsEndpoint(trimmedBase);
-      if (!endpoint) {
+      if (!baseUrlValid || !endpoint) {
         updateOpenaiStatus(idx, {
           state: 'error',
           message: messages.endpointInvalid,
@@ -253,12 +264,14 @@ export function useConnectivityTest(
           },
           { timeout: DEFAULT_TIMEOUT_MS }
         );
+        if (!isCurrent()) return false;
         if (result.statusCode < 200 || result.statusCode >= 300) {
           throw new Error(getApiCallErrorMessage(result));
         }
         updateOpenaiStatus(idx, { state: 'success', message: '' });
         return true;
       } catch (err) {
+        if (!isCurrent()) return false;
         updateOpenaiStatus(idx, {
           state: 'error',
           message: requestFailureMessage(err, messages),
@@ -270,8 +283,10 @@ export function useConnectivityTest(
     },
     [
       apiKeyEntries,
+      attempts,
       authIndex,
       baseUrl,
+      baseUrlValid,
       brand,
       formHeaders,
       messages,
@@ -290,6 +305,7 @@ export function useConnectivityTest(
 
   const runCodex = useCallback(async (): Promise<void> => {
     if (brand !== 'codex' && brand !== 'meta' && brand !== 'xai') return;
+    const isCurrent = attempts.begin('codex');
 
     const trimmedBase = baseUrl.trim();
     if (!trimmedBase) {
@@ -297,7 +313,7 @@ export function useConnectivityTest(
       return;
     }
     const endpoint = buildCodexResponsesEndpoint(trimmedBase);
-    if (!endpoint) {
+    if (!baseUrlValid || !endpoint) {
       setCodexStatus({ state: 'error', message: messages.endpointInvalid });
       return;
     }
@@ -345,11 +361,13 @@ export function useConnectivityTest(
         },
         { timeout: DEFAULT_TIMEOUT_MS }
       );
+      if (!isCurrent()) return;
       if (result.statusCode < 200 || result.statusCode >= 300) {
         throw new Error(getApiCallErrorMessage(result));
       }
       setCodexStatus({ state: 'success', message: '' });
     } catch (err) {
+      if (!isCurrent()) return;
       setCodexStatus({
         state: 'error',
         message: requestFailureMessage(err, messages),
@@ -357,10 +375,23 @@ export function useConnectivityTest(
     } finally {
       setInFlight((n) => n - 1);
     }
-  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
+  }, [
+    apiKey,
+    attempts,
+    authIndex,
+    baseUrl,
+    baseUrlValid,
+    brand,
+    fallbackApiKey,
+    formHeaders,
+    messages,
+    models,
+    testModel,
+  ]);
 
   const runGemini = useCallback(async (): Promise<void> => {
     if (brand !== 'gemini' && brand !== 'interactions') return;
+    const isCurrent = attempts.begin('gemini');
 
     const model = pickModel(testModel, models);
     if (!model) {
@@ -372,7 +403,7 @@ export function useConnectivityTest(
       brand === 'interactions'
         ? buildInteractionsEndpoint(baseUrl ?? '')
         : buildGeminiGenerateContentEndpoint(baseUrl ?? '', model);
-    if (!endpoint) {
+    if (!baseUrlValid || !endpoint) {
       setGeminiStatus({ state: 'error', message: messages.endpointInvalid });
       return;
     }
@@ -425,11 +456,13 @@ export function useConnectivityTest(
         },
         { timeout: DEFAULT_TIMEOUT_MS }
       );
+      if (!isCurrent()) return;
       if (result.statusCode < 200 || result.statusCode >= 300) {
         throw new Error(getApiCallErrorMessage(result));
       }
       setGeminiStatus({ state: 'success', message: '' });
     } catch (err) {
+      if (!isCurrent()) return;
       setGeminiStatus({
         state: 'error',
         message: requestFailureMessage(err, messages),
@@ -437,13 +470,26 @@ export function useConnectivityTest(
     } finally {
       setInFlight((n) => n - 1);
     }
-  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
+  }, [
+    apiKey,
+    attempts,
+    authIndex,
+    baseUrl,
+    baseUrlValid,
+    brand,
+    fallbackApiKey,
+    formHeaders,
+    messages,
+    models,
+    testModel,
+  ]);
 
   const runClaude = useCallback(async (): Promise<void> => {
     if (brand !== 'claude') return;
+    const isCurrent = attempts.begin('claude');
 
     const endpoint = buildClaudeMessagesEndpoint(baseUrl ?? '');
-    if (!endpoint) {
+    if (!baseUrlValid || !endpoint) {
       setClaudeStatus({ state: 'error', message: messages.endpointInvalid });
       return;
     }
@@ -497,11 +543,13 @@ export function useConnectivityTest(
         },
         { timeout: DEFAULT_TIMEOUT_MS }
       );
+      if (!isCurrent()) return;
       if (result.statusCode < 200 || result.statusCode >= 300) {
         throw new Error(getApiCallErrorMessage(result));
       }
       setClaudeStatus({ state: 'success', message: '' });
     } catch (err) {
+      if (!isCurrent()) return;
       setClaudeStatus({
         state: 'error',
         message: requestFailureMessage(err, messages),
@@ -509,7 +557,19 @@ export function useConnectivityTest(
     } finally {
       setInFlight((n) => n - 1);
     }
-  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, formHeaders, messages, models, testModel]);
+  }, [
+    apiKey,
+    attempts,
+    authIndex,
+    baseUrl,
+    baseUrlValid,
+    brand,
+    fallbackApiKey,
+    formHeaders,
+    messages,
+    models,
+    testModel,
+  ]);
 
   return {
     openaiStatuses,
