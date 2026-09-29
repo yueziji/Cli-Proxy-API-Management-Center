@@ -386,10 +386,11 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
         const brand = resource.brand;
         const selector = resource.selector;
         if (brand === 'gemini' && selector.brand === 'gemini') {
+          const existing = resource.raw as GeminiKeyConfig;
           await providersApi.updateGeminiKey(
             selector.apiKey,
             selector.baseUrl,
-            buildProviderKeyConfig('gemini', input, resource.raw as GeminiKeyConfig) as GeminiKeyConfig
+            buildProviderKeyConfig('gemini', input, existing) as GeminiKeyConfig
           );
         } else if (brand === 'interactions' && selector.brand === 'interactions') {
           const existing = resource.raw as GeminiKeyConfig;
@@ -399,10 +400,11 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             buildProviderKeyConfig('interactions', input, existing) as GeminiKeyConfig
           );
         } else if (brand === 'codex' && selector.brand === 'codex') {
+          const existing = resource.raw as ProviderKeyConfig;
           await providersApi.updateCodexConfig(
             selector.apiKey,
             selector.baseUrl,
-            buildProviderKeyConfig('codex', input, resource.raw as ProviderKeyConfig) as ProviderKeyConfig
+            buildProviderKeyConfig('codex', input, existing) as ProviderKeyConfig
           );
         } else if (brand === 'meta' && selector.brand === 'meta') {
           const existing = resource.raw as ProviderKeyConfig;
@@ -412,26 +414,25 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             buildProviderKeyConfig('meta', input, existing) as ProviderKeyConfig
           );
         } else if (brand === 'xai' && selector.brand === 'xai') {
+          const existing = resource.raw as ProviderKeyConfig;
           await providersApi.updateXAIConfig(
             selector.apiKey,
             selector.baseUrl,
-            buildProviderKeyConfig(
-              'xai',
-              input,
-              resource.raw as ProviderKeyConfig
-            ) as ProviderKeyConfig
+            buildProviderKeyConfig('xai', input, existing) as ProviderKeyConfig
           );
         } else if (brand === 'claude' && selector.brand === 'claude') {
+          const existing = resource.raw as ProviderKeyConfig;
           await providersApi.updateClaudeConfig(
             selector.apiKey,
             selector.baseUrl,
-            buildProviderKeyConfig('claude', input, resource.raw as ProviderKeyConfig) as ProviderKeyConfig
+            buildProviderKeyConfig('claude', input, existing) as ProviderKeyConfig
           );
         } else if (brand === 'vertex' && selector.brand === 'vertex') {
+          const existing = resource.raw as ProviderKeyConfig;
           await providersApi.updateVertexConfig(
             selector.apiKey,
             selector.baseUrl,
-            buildProviderKeyConfig('vertex', input, resource.raw as ProviderKeyConfig) as ProviderKeyConfig
+            buildProviderKeyConfig('vertex', input, existing) as ProviderKeyConfig
           );
         } else if (
           brand === 'openaiCompatibility' &&

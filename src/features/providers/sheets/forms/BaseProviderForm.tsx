@@ -78,6 +78,8 @@ const formatJsonObject = (value?: Record<string, unknown>): string => {
   return JSON.stringify(value, null, 2);
 };
 
+const isClaudeLikeBrand = (brand: ProviderBrand): boolean => brand === 'claude';
+
 function buildInitialForm(
   brand: ProviderBrand,
   resource: ProviderResource | null,
@@ -98,11 +100,10 @@ function buildInitialForm(
       headers: [emptyHeader()],
       excludedModelsText: '',
       websockets: brand === 'codex' || brand === 'xai' ? false : undefined,
-      cloak:
-        brand === 'claude'
-          ? { mode: '', strictMode: false, sensitiveWordsText: '', cacheUserId: false }
-          : undefined,
-      fingerprintProfile: brand === 'claude' ? '' : undefined,
+      cloak: isClaudeLikeBrand(brand)
+        ? { mode: '', strictMode: false, sensitiveWordsText: '', cacheUserId: false }
+        : undefined,
+      fingerprintProfile: isClaudeLikeBrand(brand) ? '' : undefined,
       testModel: supportsTestModelSelection(brand) ? '' : undefined,
       apiKeyEntries: brand === 'openaiCompatibility' ? [emptyApiKeyEntry()] : undefined,
     };
@@ -181,17 +182,17 @@ function buildInitialForm(
       brand === 'codex' || brand === 'xai'
         ? (cfg as ProviderKeyConfig).websockets === true
         : undefined,
-    cloak:
-      brand === 'claude'
-        ? {
-            mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',
-            strictMode: (cfg as ProviderKeyConfig).cloak?.strictMode === true,
-            sensitiveWordsText: (cfg as ProviderKeyConfig).cloak?.sensitiveWords?.join('\n') ?? '',
-            cacheUserId: (cfg as ProviderKeyConfig).cloak?.cacheUserId === true,
-          }
-        : undefined,
-    fingerprintProfile:
-      brand === 'claude' ? ((cfg as ProviderKeyConfig).fingerprintProfile ?? '') : undefined,
+    cloak: isClaudeLikeBrand(brand)
+      ? {
+          mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',
+          strictMode: (cfg as ProviderKeyConfig).cloak?.strictMode === true,
+          sensitiveWordsText: (cfg as ProviderKeyConfig).cloak?.sensitiveWords?.join('\n') ?? '',
+          cacheUserId: (cfg as ProviderKeyConfig).cloak?.cacheUserId === true,
+        }
+      : undefined,
+    fingerprintProfile: isClaudeLikeBrand(brand)
+      ? ((cfg as ProviderKeyConfig).fingerprintProfile ?? '')
+      : undefined,
     testModel: supportsSingleKeyTestModel(brand) ? '' : undefined,
   };
 }
@@ -495,7 +496,7 @@ export function BaseProviderForm({
       ? { status: connectivity.codexStatus, run: connectivity.runCodex }
       : brand === 'gemini' || brand === 'interactions'
         ? { status: connectivity.geminiStatus, run: connectivity.runGemini }
-        : brand === 'claude'
+        : isClaudeLikeBrand(brand)
           ? { status: connectivity.claudeStatus, run: connectivity.runClaude }
           : null;
 
@@ -938,7 +939,7 @@ export function BaseProviderForm({
         </Collapsible>
       ) : null}
 
-      {brand === 'claude' ? (
+      {isClaudeLikeBrand(brand) ? (
         <div className={styles.field}>
           <label id={`${fid}-fingerprint-profile-label`} className={styles.label}>
             {t('providersPage.form.fingerprintProfile')}

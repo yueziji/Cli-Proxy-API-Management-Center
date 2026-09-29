@@ -1,9 +1,28 @@
 @use '../../../styles/mixins' as *;
 @use '../../../styles/variables' as *;
 
-.providerTable {
+table.providerTable {
   min-width: 1040px;
   table-layout: fixed;
+  font-size: 14px;
+
+  thead th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    padding: 13px 16px;
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    vertical-align: middle;
+  }
+
+  th.alignCenter,
+  td.alignCenter {
+    text-align: center;
+  }
 
   tbody tr:hover .actionsCell {
     background: color-mix(in srgb, var(--accent-bg) 50%, transparent);

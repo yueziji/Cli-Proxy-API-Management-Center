@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/icons';
 import type { VisualConfigFieldPath } from '@/types/visualConfig';
 import type { VisualSectionId } from './searchIndex';
+import { FORK_COMMON_FIELD_IDS, FORK_FIELD_VALUE_KEYS } from './forkFields';
 
 /** 编辑模式：可视化表单 or YAML 源码。 */
 export type ConfigEditorMode = 'visual' | 'source';
@@ -61,7 +62,7 @@ export const COMMON_FIELD_IDS = [
   'proxyUrl',
   'debug',
   'loggingToFile',
-  'requestLog',
+  ...FORK_COMMON_FIELD_IDS,
   'quotaSwitchProject',
   'quotaSwitchPreviewModel',
 ] as const;
@@ -123,7 +124,6 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   debug: ['debug'],
   commercialMode: ['commercialMode'],
   loggingToFile: ['loggingToFile'],
-  requestLog: ['requestLog'],
   logsMaxTotalSizeMb: ['logsMaxTotalSizeMb'],
   errorLogsMaxFiles: ['errorLogsMaxFiles'],
   redisUsageQueueRetentionSeconds: ['redisUsageQueueRetentionSeconds'],
@@ -153,15 +153,13 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   claudeHeaderStabilizeDeviceProfile: ['claudeHeaderStabilizeDeviceProfile'],
   codexHeaderUserAgent: ['codexHeaderUserAgent'],
   codexHeaderBetaFeatures: ['codexHeaderBetaFeatures'],
-  codexIdentityConfuse: ['codexIdentityConfuse'],
-  codexDisableCloaking: ['codexDisableCloaking'],
-  codexStreamBootstrapBuffering: ['codexStreamBootstrapBuffering'],
   // ── payload ───────────────────────────────────────────────────────────────
   payloadDefaultRules: ['payloadDefaultRules'],
   payloadDefaultRawRules: ['payloadDefaultRawRules'],
   payloadOverrideRules: ['payloadOverrideRules'],
   payloadOverrideRawRules: ['payloadOverrideRawRules'],
   payloadFilterRules: ['payloadFilterRules'],
+  ...FORK_FIELD_VALUE_KEYS,
 };
 
 /** tab / tabpanel 的 DOM id：单点定义，ConfigTabs 与页面侧面板用同一函数生成 aria 关联。 */

@@ -163,10 +163,10 @@ export function ProviderResourceTable({
         <TableRow>
           <TableHead>{t('providersPage.table.key')}</TableHead>
           <TableHead>{t('providersPage.table.baseUrl')}</TableHead>
-          <TableHead alignCenter>{t('providersPage.table.prefix')}</TableHead>
-          <TableHead alignCenter>{t('common.priority')}</TableHead>
+          <TableHead className={styles.alignCenter}>{t('providersPage.table.prefix')}</TableHead>
+          <TableHead className={styles.alignCenter}>{t('common.priority')}</TableHead>
           <TableHead>{t('providersPage.table.models')}</TableHead>
-          <TableHead alignCenter>{t('providersPage.table.status')}</TableHead>
+          <TableHead className={styles.alignCenter}>{t('providersPage.table.status')}</TableHead>
           <TableHead alignRight className={styles.actionsHead}>
             {t('providersPage.table.actions')}
           </TableHead>
@@ -184,14 +184,14 @@ export function ProviderResourceTable({
             <TableRow key={resource.id} selected={resource.id === selectedId}>
               <TableCell>{renderPrimary(resource)}</TableCell>
               <TableCell>{renderBaseUrl(resource)}</TableCell>
-              <TableCell alignCenter>
+              <TableCell className={styles.alignCenter}>
                 <span className={styles.chip}>
                   {resource.prefix || t('providersPage.status.none')}
                 </span>
               </TableCell>
-              <TableCell alignCenter>{renderPriority(resource)}</TableCell>
+              <TableCell className={styles.alignCenter}>{renderPriority(resource)}</TableCell>
               <TableCell>{renderModelsSummary(resource)}</TableCell>
-              <TableCell alignCenter>
+              <TableCell className={styles.alignCenter}>
                 <div className={styles.statusCell}>
                   {renderStatus(resource)}
                   {stats ? (

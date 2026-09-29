@@ -41,3 +41,4 @@ export function hasHeader(
   const target = name.toLowerCase();
   return Object.keys(headers).some((key) => key.toLowerCase() === target);
 }
+
