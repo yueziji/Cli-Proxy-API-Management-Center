@@ -39,15 +39,17 @@ const enabledYaml = `codex:
 
 describe('Codex behavior visual config', () => {
   test('defaults to off and does not inject a Codex block on unrelated edits', () => {
-    const { loaded, result } = editConfig('debug: false\n', [{ debug: true }]);
+    const { loaded, result } = editConfig('observability:\n  logs:\n    debug: false\n', [
+      { debug: true },
+    ]);
     expect(loaded.codexIdentityConfuse).toBe(false);
     expect(loaded.codexDisableCloaking).toBe(false);
     expect(loaded.codexStreamBootstrapBuffering).toBe(false);
-    expect(parseYaml(result)).toEqual({ debug: true });
+    expect(parseYaml(result)).toEqual({ observability: { logs: { debug: true } } });
   });
 
   test('creates the Codex mapping when enabling all three switches', () => {
-    const { result, dirty } = editConfig('debug: false\n', [
+    const { result, dirty } = editConfig('observability:\n  logs:\n    debug: false\n', [
       {
         codexIdentityConfuse: true,
         codexDisableCloaking: true,
@@ -55,7 +57,7 @@ describe('Codex behavior visual config', () => {
       },
     ]);
     expect(parseYaml(result)).toEqual({
-      debug: false,
+      observability: { logs: { debug: false } },
       codex: {
         'identity-confuse': true,
         'disable-codex-cloaking': true,

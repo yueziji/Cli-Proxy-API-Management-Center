@@ -13,7 +13,7 @@ describe('visual config request-log', () => {
       const [phase, setPhase] = useState(0);
 
       if (phase === 0) {
-        visualConfig.loadVisualValuesFromYaml('request-log: true\n');
+        visualConfig.loadVisualValuesFromYaml('observability:\n  logs:\n    request-log: true\n');
         setPhase(1);
       } else if (phase === 1) {
         loadedRequestLog = visualConfig.visualValues.requestLog;
@@ -23,7 +23,9 @@ describe('visual config request-log', () => {
         return createElement(
           'pre',
           null,
-          visualConfig.applyVisualChangesToYaml('debug: true\nrequest-log: true\n')
+          visualConfig.applyVisualChangesToYaml(
+            'observability:\n  logs:\n    debug: true\n    request-log: true\n'
+          )
         );
       }
 
@@ -34,6 +36,8 @@ describe('visual config request-log', () => {
     const result = markup.slice('<pre>'.length, -'</pre>'.length);
 
     expect(loadedRequestLog).toBe(true);
-    expect(parseYaml(result)).toEqual({ debug: true, 'request-log': false });
+    expect(parseYaml(result)).toEqual({
+      observability: { logs: { debug: true, 'request-log': false } },
+    });
   });
 });

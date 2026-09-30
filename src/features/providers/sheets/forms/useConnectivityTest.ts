@@ -61,6 +61,7 @@ const resolveBearerToken = (headers: Record<string, string>): string => {
 export interface UseConnectivityTestArgs {
   brand: ProviderBrand;
   baseUrl: string;
+  proxyUrl?: string;
   testModel?: string;
   models: ModelEntryInput[];
   formHeaders: Array<{ key: string; value: string }>;
@@ -99,6 +100,7 @@ export function useConnectivityTest(
   const {
     brand,
     baseUrl: rawBaseUrl,
+    proxyUrl,
     testModel,
     models,
     formHeaders,
@@ -162,6 +164,7 @@ export function useConnectivityTest(
     return JSON.stringify([
       brand,
       baseUrl,
+      proxyUrl ?? '',
       (testModel ?? '').trim(),
       apiKey ?? '',
       fallbackApiKey ?? '',
@@ -169,7 +172,7 @@ export function useConnectivityTest(
       formHeaders,
       models.map((it) => [it.name, it.alias ?? '']),
     ]);
-  }, [apiKey, authIndex, baseUrl, brand, fallbackApiKey, testModel, formHeaders, models]);
+  }, [apiKey, authIndex, baseUrl, proxyUrl, brand, fallbackApiKey, testModel, formHeaders, models]);
 
   const lastSignatureRef = useRef(signature);
   useLayoutEffect(() => {
@@ -252,6 +255,7 @@ export function useConnectivityTest(
         const result = await apiCallApi.request(
           {
             authIndex: resolvedAuthIndex,
+            proxy_url: entry?.proxyUrl?.trim() || undefined,
             method: 'POST',
             url: endpoint,
             header: headerObj,
@@ -349,6 +353,7 @@ export function useConnectivityTest(
       const result = await apiCallApi.request(
         {
           authIndex: resolvedAuthIndex,
+          proxy_url: proxyUrl?.trim() || undefined,
           method: 'POST',
           url: endpoint,
           header: headerObj,
@@ -387,6 +392,7 @@ export function useConnectivityTest(
     messages,
     models,
     testModel,
+    proxyUrl,
   ]);
 
   const runGemini = useCallback(async (): Promise<void> => {
@@ -442,6 +448,7 @@ export function useConnectivityTest(
       const result = await apiCallApi.request(
         {
           authIndex: resolvedAuthIndex,
+          proxy_url: proxyUrl?.trim() || undefined,
           method: 'POST',
           url: endpoint,
           header: headerObj,
@@ -482,6 +489,7 @@ export function useConnectivityTest(
     messages,
     models,
     testModel,
+    proxyUrl,
   ]);
 
   const runClaude = useCallback(async (): Promise<void> => {
@@ -532,6 +540,7 @@ export function useConnectivityTest(
       const result = await apiCallApi.request(
         {
           authIndex: resolvedAuthIndex,
+          proxy_url: proxyUrl?.trim() || undefined,
           method: 'POST',
           url: endpoint,
           header: headerObj,
@@ -569,6 +578,7 @@ export function useConnectivityTest(
     messages,
     models,
     testModel,
+    proxyUrl,
   ]);
 
   return {

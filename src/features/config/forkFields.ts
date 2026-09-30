@@ -37,7 +37,7 @@ export const FORK_CONFIG_SEARCH_ENTRIES: Record<'advanced' | 'logging', ConfigFi
         sectionId: 'logging',
         labelKey: 'config_management.visual.sections.system.request_log',
         hintKey: 'config_management.visual.sections.system.request_log_desc',
-        yamlKeys: ['request-log'],
+        yamlKeys: ['observability', 'logs', 'request-log'],
       },
     ],
   };

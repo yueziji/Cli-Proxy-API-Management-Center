@@ -127,10 +127,9 @@ export function ProvidersWorkbenchPage() {
 
   const groups = useMemo(() => workbench.snapshot?.groups ?? [], [workbench.snapshot]);
   const firstVisibleBrand = groups[0]?.id ?? 'gemini';
-  const activeBrand =
-    groups.some((group) => group.id === uiState.activeBrand)
-      ? uiState.activeBrand
-      : firstVisibleBrand;
+  const activeBrand = groups.some((group) => group.id === uiState.activeBrand)
+    ? uiState.activeBrand
+    : firstVisibleBrand;
   const activeFilterState = getProviderFilterState(uiState, activeBrand);
   const filter = activeFilterState.filter;
   const providerSortBy = activeFilterState.sortBy;
@@ -370,9 +369,10 @@ export function ProvidersWorkbenchPage() {
           activeBrand={activeGroup.id}
           onSelect={(brand) => {
             const isSwitching = sheetState.open && sheetState.brand !== brand;
-            const proceed = isSwitching && sheetRef.current
-              ? sheetRef.current.confirmDiscardIfDirty()
-              : Promise.resolve(true);
+            const proceed =
+              isSwitching && sheetRef.current
+                ? sheetRef.current.confirmDiscardIfDirty()
+                : Promise.resolve(true);
             void proceed.then((ok) => {
               if (!ok) return;
               setActiveBrand(brand);
@@ -387,7 +387,7 @@ export function ProvidersWorkbenchPage() {
           filter={filter}
           onFilterChange={(value) => updateActiveFilterState({ filter: value })}
           filteredResources={visibleResources}
-          selectedId={sheetState.open ? sheetState.resource?.id ?? null : null}
+          selectedId={sheetState.open ? (sheetState.resource?.id ?? null) : null}
           disableMutations={disableMutations}
           usageByProvider={usageByProvider}
           toolbarControls={toolbarControls}
@@ -404,9 +404,7 @@ export function ProvidersWorkbenchPage() {
         state={sheetState}
         onClose={closeSheet}
         onSwitchToEdit={() => {
-          setSheetState((s) =>
-            s.resource ? { ...s, mode: 'edit' } : s
-          );
+          setSheetState((s) => (s.resource ? { ...s, mode: 'edit' } : s));
         }}
         workbench={workbench}
         onCreated={handleCreated}

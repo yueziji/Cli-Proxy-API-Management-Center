@@ -5,19 +5,21 @@ import { normalizeConfigResponse } from '../src/services/api/transformers';
 describe('OpenAI provider source indexes', () => {
   test('preserves backend indexes when invalid entries are filtered', () => {
     const config = normalizeConfigResponse({
-      'openai-compatibility': [
-        { 'base-url': 'https://invalid.example.com/v1' },
-        {
-          name: 'first-valid',
-          'base-url': 'https://first.example.com/v1',
-          'api-key-entries': [{ 'api-key': 'first-key' }],
-        },
-        {
-          name: 'second-valid',
-          'base-url': 'https://second.example.com/v1',
-          'api-key-entries': [{ 'api-key': 'second-key' }],
-        },
-      ],
+      'api-keys': {
+        'openai-compatibility': [
+          { 'base-url': 'https://invalid.example.com/v1', keys: [] },
+          {
+            name: 'first-valid',
+            'base-url': 'https://first.example.com/v1',
+            keys: [{ 'api-key': 'first-key' }],
+          },
+          {
+            name: 'second-valid',
+            'base-url': 'https://second.example.com/v1',
+            keys: [{ 'api-key': 'second-key' }],
+          },
+        ],
+      },
     });
 
     expect(config.openaiCompatibility?.map((item) => item.sourceIndex)).toEqual([1, 2]);

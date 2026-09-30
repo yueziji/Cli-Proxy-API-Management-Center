@@ -88,6 +88,7 @@ export interface ProviderSnapshot {
  * Gemini/Codex/Claude/Vertex/OpenAI 共用基础字段,各自启用 advanced 区。
  */
 export interface ModelEntryInput {
+  sourceIndex?: number | null;
   name: string;
   alias?: string;
   priority?: number;
@@ -101,6 +102,7 @@ export interface ModelEntryInput {
 }
 
 export interface ApiKeyEntryInput {
+  sourceIndex?: number;
   apiKey: string;
   existingApiKey?: string;
   proxyUrl: string;
@@ -124,7 +126,7 @@ export interface ProviderEntryFormInput {
   proxyUrl: string;
   prefix: string;
   disabled: boolean;
-  disableCooling: boolean;
+  disableCooling?: boolean;
   priority?: number;
   weight?: number;
 

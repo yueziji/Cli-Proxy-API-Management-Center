@@ -111,6 +111,7 @@ const buildModelAliases = (
   (models ?? [])
     .map((m) => {
       const entry: ModelAlias = {
+        sourceIndex: m.sourceIndex ?? null,
         name: m.name.trim(),
         alias: m.alias?.trim() || undefined,
         priority: m.priority,
@@ -137,6 +138,7 @@ const buildProviderKeyConfig = (
   const excluded = buildExcludedModels(input.excludedModelsText, input.disabled, brand);
   const apiKeyChanged = input.apiKey.trim().length > 0;
   const next: ProviderKeyConfig = {
+    source: existing?.source,
     apiKey: apiKeyChanged ? input.apiKey.trim() : (existing?.apiKey ?? ''),
     priority: input.priority,
     weight: input.weight,
@@ -146,7 +148,7 @@ const buildProviderKeyConfig = (
     models: models.length ? models : undefined,
     headers: Object.keys(headers).length ? headers : undefined,
     excludedModels: excluded,
-    disableCooling: input.disableCooling === true,
+    disableCooling: input.disableCooling,
     authIndex: existing?.authIndex,
   };
   if ((brand === 'codex' || brand === 'xai') && input.websockets !== undefined) {
@@ -179,6 +181,7 @@ const buildOpenAIConfig = (
           entry.existingApiKey?.trim() || existing?.apiKeyEntries?.[index]?.apiKey?.trim() || '';
         return {
           apiKey: entry.apiKey.trim() || fallbackApiKey,
+          sourceIndex: entry.sourceIndex,
           proxyUrl: entry.proxyUrl.trim() || undefined,
           weight: entry.weight,
           authIndex: entry.authIndex?.trim() || undefined,
@@ -193,7 +196,7 @@ const buildOpenAIConfig = (
     prefix: input.prefix.trim() || undefined,
     apiKeyEntries,
     disabled: input.disabled,
-    disableCooling: input.disableCooling === true,
+    disableCooling: input.disableCooling,
     headers: Object.keys(headers).length ? headers : undefined,
     models: models.length ? models : undefined,
     priority: input.priority,
@@ -242,27 +245,6 @@ export const buildProviderGroups = (config: Config): ProviderGroup[] =>
 /* hook                                                                       */
 /* -------------------------------------------------------------------------- */
 
-/**
- * /openai-compatibility 列表端点会丢掉仅存在于 /config 的字段（如
- * disable-cooling）。两个列表来自后端同一份配置切片、顺序一致，按下标回填；
- * 按 name 合并在重名 provider 时会互相污染（name 不唯一，后端也按 index 寻址）。
- */
-const fillOpenAIConfigOnlyFields = (
-  providers: OpenAIProviderConfig[],
-  configProviders: OpenAIProviderConfig[] | undefined
-): OpenAIProviderConfig[] => {
-  if (!configProviders?.length || providers.length !== configProviders.length) {
-    return providers;
-  }
-  return providers.map((provider, index) => {
-    const fromConfig = configProviders[index];
-    if (fromConfig?.disableCooling === undefined || provider.disableCooling !== undefined) {
-      return provider;
-    }
-    return { ...provider, disableCooling: fromConfig.disableCooling };
-  });
-};
-
 export function useProviderWorkbench(): UseProviderWorkbenchResult {
   const connectionStatus = useAuthStore((s) => s.connectionStatus);
   const config = useConfigStore((s) => s.config);
@@ -296,13 +278,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
         updateConfigValue('vertex-api-key', vertexResult.value || []);
       }
       if (openaiResult.status === 'fulfilled') {
-        updateConfigValue(
-          'openai-compatibility',
-          fillOpenAIConfigOnlyFields(
-            openaiResult.value || [],
-            configResult.value.openaiCompatibility
-          )
-        );
+        updateConfigValue('openai-compatibility', openaiResult.value || []);
       }
       setFetchedAt(new Date().toISOString());
     } catch (err) {
@@ -434,10 +410,7 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
             selector.baseUrl,
             buildProviderKeyConfig('vertex', input, existing) as ProviderKeyConfig
           );
-        } else if (
-          brand === 'openaiCompatibility' &&
-          selector.brand === 'openaiCompatibility'
-        ) {
+        } else if (brand === 'openaiCompatibility' && selector.brand === 'openaiCompatibility') {
           await providersApi.updateOpenAIProvider(
             selector.name,
             selector.index,
@@ -458,35 +431,66 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
       try {
         const sel = resource.selector;
         if (sel.brand === 'gemini') {
-          await providersApi.deleteGeminiKey(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteGeminiKey(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.geminiApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('gemini-api-key', next);
         } else if (sel.brand === 'interactions') {
-          await providersApi.deleteInteractionsKey(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteInteractionsKey(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.interactionsApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('interactions-api-key', next);
         } else if (sel.brand === 'codex') {
-          await providersApi.deleteCodexConfig(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteCodexConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.codexApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('codex-api-key', next);
         } else if (sel.brand === 'meta') {
-          await providersApi.deleteMetaConfig(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteMetaConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.metaApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('meta-api-key', next);
         } else if (sel.brand === 'xai') {
-          await providersApi.deleteXAIConfig(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteXAIConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.xaiApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('xai-api-key', next);
         } else if (sel.brand === 'claude') {
-          await providersApi.deleteClaudeConfig(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteClaudeConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.claudeApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('claude-api-key', next);
         } else if (sel.brand === 'vertex') {
-          await providersApi.deleteVertexConfig(sel.apiKey, sel.baseUrl);
+          await providersApi.deleteVertexConfig(
+            sel.apiKey,
+            sel.baseUrl,
+            (resource.raw as ProviderKeyConfig).source
+          );
           const next = (config?.vertexApiKeys ?? []).filter((_, i) => i !== sel.index);
           updateConfigValue('vertex-api-key', next);
         } else if (sel.brand === 'openaiCompatibility') {
-          await providersApi.deleteOpenAIProvider(sel.index);
+          await providersApi.deleteOpenAIProvider(
+            sel.index,
+            (resource.raw as OpenAIProviderConfig).source
+          );
           const next = (config?.openaiCompatibility ?? []).filter(
             (item, index) => (item.sourceIndex ?? index) !== sel.index
           );
@@ -547,11 +551,12 @@ export function useProviderWorkbench(): UseProviderWorkbenchResult {
           } else if (selector.brand === 'vertex') {
             await providersApi.updateVertexConfig(selector.apiKey, selector.baseUrl, next);
           }
-        } else if (
-          brand === 'openaiCompatibility' &&
-          selector.brand === 'openaiCompatibility'
-        ) {
-          await providersApi.updateOpenAIProviderDisabled(selector.index, disabled);
+        } else if (brand === 'openaiCompatibility' && selector.brand === 'openaiCompatibility') {
+          await providersApi.updateOpenAIProviderDisabled(
+            selector.index,
+            disabled,
+            (resource.raw as OpenAIProviderConfig).source
+          );
         }
         await refetch();
       } finally {
