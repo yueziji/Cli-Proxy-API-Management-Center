@@ -7,20 +7,12 @@ export const FORK_CONFIG_SEARCH_ENTRIES: Record<'advanced' | 'logging', ConfigFi
   {
     advanced: [
       {
-        fieldId: 'codexIdentityConfuse',
-        sectionId: 'advanced',
-        labelKey: 'compatibilitySettings.identityLabel',
-        hintKey: 'compatibilitySettings.identityHint',
-        qualifierKey: 'compatibilitySettings.codexTitle',
-        yamlKeys: ['codex', 'identity-confuse'],
-      },
-      {
         fieldId: 'codexDisableCloaking',
         sectionId: 'advanced',
         labelKey: 'compatibilitySettings.cloakingLabel',
         hintKey: 'compatibilitySettings.cloakingHint',
         qualifierKey: 'compatibilitySettings.codexTitle',
-        yamlKeys: ['codex', 'disable-codex-cloaking'],
+        yamlKeys: ['oauth', 'providers', 'codex', 'disable-codex-cloaking'],
       },
       {
         fieldId: 'codexStreamBootstrapBuffering',
@@ -28,7 +20,7 @@ export const FORK_CONFIG_SEARCH_ENTRIES: Record<'advanced' | 'logging', ConfigFi
         labelKey: 'compatibilitySettings.bufferingLabel',
         hintKey: 'compatibilitySettings.bufferingHint',
         qualifierKey: 'compatibilitySettings.codexTitle',
-        yamlKeys: ['codex', 'stream-bootstrap-buffering'],
+        yamlKeys: ['oauth', 'providers', 'codex', 'stream-bootstrap-buffering'],
       },
     ],
     logging: [

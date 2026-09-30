@@ -1402,7 +1402,7 @@ function parseVisualValuesFromYaml(yamlContent: string): VisualConfigValues {
   const codexHeaderDefaults = asRecord(v8OauthProvidersCodex?.['header-defaults']);
 
   const newValues: VisualConfigValues = {
-    ...readCodexBehavior(parsed.codex),
+    ...readCodexBehavior(v8OauthProvidersCodex),
     host: typeof v8Server?.['host'] === 'string' ? v8Server?.['host'] : '',
     port: String(v8Server?.['port'] ?? ''),
 
@@ -1902,8 +1902,8 @@ export function useVisualConfig() {
 
         for (const { valueKey, yamlKey } of CODEX_BEHAVIOR_FIELDS) {
           if (!dirtyFields.has(valueKey)) continue;
-          ensureMapInDoc(doc, ['codex']);
-          doc.setIn(['codex', yamlKey], values[valueKey]);
+          ensureMapInDoc(doc, ['oauth', 'providers', 'codex']);
+          doc.setIn(['oauth', 'providers', 'codex', yamlKey], values[valueKey]);
         }
 
         const codexHeadersDirty =

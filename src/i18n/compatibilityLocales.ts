@@ -4,12 +4,8 @@ export const compatibilityLocales = {
     modelLabel: '兼容模式（is-compat）',
     modelBadge: '兼容',
     modelHint:
-      '为第三方接口启用思考内容与签名兼容处理，默认关闭。Codex 的多代理消息转换还需开启 codex.optimize-multi-agent-v2。',
-    codexTitle: 'Codex 请求行为',
-    identityLabel: '身份标识混淆',
-    identityHint:
-      '按凭据稳定映射会话、安装等标识。需开启会话亲和，或使用 fill-first 路由策略才生效，默认关闭。',
-    identityInactive: '当前路由设置不满足生效条件；可在网络设置中开启会话亲和或选择 fill-first。',
+      '为第三方接口启用思考内容与签名兼容处理，默认关闭。Codex OAuth 的多代理消息转换还需开启 oauth.providers.codex.optimize-multi-agent-v2。',
+    codexTitle: 'Codex OAuth 请求行为',
     cloakingLabel: '禁用 Codex 身份伪装',
     cloakingHint:
       '停止在 HTTP/SSE 和 WebSocket 请求中强制覆盖为官方 Codex 的 User-Agent 和 Originator。默认关闭。',
@@ -21,13 +17,8 @@ export const compatibilityLocales = {
     modelLabel: '相容模式（is-compat）',
     modelBadge: '相容',
     modelHint:
-      '為第三方介面啟用思考內容與簽章相容處理，預設關閉。Codex 的多代理訊息轉換還需開啟 codex.optimize-multi-agent-v2。',
-    codexTitle: 'Codex 請求行為',
-    identityLabel: '身分識別碼混淆',
-    identityHint:
-      '依憑證穩定映射工作階段、安裝等識別碼。需開啟工作階段親和，或使用 fill-first 路由策略才生效，預設關閉。',
-    identityInactive:
-      '目前路由設定不符合生效條件；可在網路設定中開啟工作階段親和或選擇 fill-first。',
+      '為第三方介面啟用思考內容與簽章相容處理，預設關閉。Codex OAuth 的多代理訊息轉換還需開啟 oauth.providers.codex.optimize-multi-agent-v2。',
+    codexTitle: 'Codex OAuth 請求行為',
     cloakingLabel: '停用 Codex 身分偽裝',
     cloakingHint:
       '停止在 HTTP/SSE 與 WebSocket 請求中強制覆寫為官方 Codex 的 User-Agent 與 Originator。預設關閉。',
@@ -39,13 +30,8 @@ export const compatibilityLocales = {
     modelLabel: 'Compatibility mode (is-compat)',
     modelBadge: 'Compat',
     modelHint:
-      'Enable thinking and signature compatibility handling for third-party endpoints. Off by default. Codex multi-agent message conversion also requires codex.optimize-multi-agent-v2.',
-    codexTitle: 'Codex request behavior',
-    identityLabel: 'Obfuscate identity identifiers',
-    identityHint:
-      'Map session, installation and related identifiers consistently per credential. Requires session affinity or fill-first routing. Off by default.',
-    identityInactive:
-      'Inactive with the current routing settings. Enable session affinity or select fill-first in Network settings.',
+      'Enable thinking and signature compatibility handling for third-party endpoints. Off by default. Codex OAuth multi-agent message conversion also requires oauth.providers.codex.optimize-multi-agent-v2.',
+    codexTitle: 'Codex OAuth request behavior',
     cloakingLabel: 'Disable Codex identity cloaking',
     cloakingHint:
       'Stop forcing the official Codex User-Agent and Originator headers on HTTP/SSE and WebSocket requests. Off by default.',
@@ -57,13 +43,8 @@ export const compatibilityLocales = {
     modelLabel: 'Режим совместимости (is-compat)',
     modelBadge: 'Совместимость',
     modelHint:
-      'Включает совместимую обработку рассуждений и подписей для сторонних API. По умолчанию выключен. Для преобразования мультиагентных сообщений Codex также нужен codex.optimize-multi-agent-v2.',
-    codexTitle: 'Поведение запросов Codex',
-    identityLabel: 'Маскировка идентификаторов',
-    identityHint:
-      'Стабильно преобразует идентификаторы сеанса, установки и другие с учётом учётных данных. Требует привязки сеанса или маршрутизации fill-first. По умолчанию выключена.',
-    identityInactive:
-      'Не действует при текущих настройках маршрутизации. Включите привязку сеанса или выберите fill-first в сетевых настройках.',
+      'Включает совместимую обработку рассуждений и подписей для сторонних API. По умолчанию выключен. Для преобразования мультиагентных сообщений Codex OAuth также нужен oauth.providers.codex.optimize-multi-agent-v2.',
+    codexTitle: 'Поведение запросов Codex OAuth',
     cloakingLabel: 'Отключить маскировку под Codex',
     cloakingHint:
       'Не заменять принудительно User-Agent и Originator на официальные заголовки Codex в запросах HTTP/SSE и WebSocket. По умолчанию выключено.',
