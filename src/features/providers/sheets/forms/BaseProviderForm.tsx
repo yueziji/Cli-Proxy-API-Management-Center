@@ -158,7 +158,7 @@ function buildInitialForm(
   const excludedList = stripDisableAllRule(cfg.excludedModels);
   return {
     apiKey: cfg.apiKey ?? '',
-    name: '',
+    name: resource.name ?? '',
     baseUrl: cfg.baseUrl ?? '',
     proxyUrl: cfg.proxyUrl ?? '',
     prefix: cfg.prefix ?? '',
@@ -364,7 +364,7 @@ export function BaseProviderForm({
   };
 
   const validate = (): string | null => {
-    if (descriptor.supportsName && !form.name.trim()) {
+    if (brand === 'openaiCompatibility' && !form.name.trim()) {
       return t('providersPage.form.validation.nameRequired');
     }
     if (descriptor.supportsApiKey && mode === 'create' && !form.apiKey.trim()) {
@@ -508,6 +508,9 @@ export function BaseProviderForm({
               onChange={(e) => updateField('name', e.target.value)}
               disabled={mutating}
             />
+            {brand !== 'openaiCompatibility' ? (
+              <span className={styles.labelHint}>{t('providersPage.form.groupNameHint')}</span>
+            ) : null}
           </div>
         ) : null}
 

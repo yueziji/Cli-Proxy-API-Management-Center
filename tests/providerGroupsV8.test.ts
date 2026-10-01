@@ -29,6 +29,53 @@ function backend(family: ProviderFamily, groups: Record<string, unknown>[] = [])
 const rows = (groups: unknown) => normalizeProviderGroups(groups) as ProviderKeyConfig[];
 
 describe('v8 provider groups', () => {
+  for (const [family, create, update] of [
+    ['gemini', providersApi.createGeminiKey, providersApi.updateGeminiKey],
+    ['interactions', providersApi.createInteractionsKey, providersApi.updateInteractionsKey],
+    ['codex', providersApi.createCodexConfig, providersApi.updateCodexConfig],
+    ['meta', providersApi.createMetaConfig, providersApi.updateMetaConfig],
+    ['xai', providersApi.createXAIConfig, providersApi.updateXAIConfig],
+    ['claude', providersApi.createClaudeConfig, providersApi.updateClaudeConfig],
+    ['vertex', providersApi.createVertexConfig, providersApi.updateVertexConfig],
+  ] as const) {
+    test(`${family} creates and renames a provider group without changing its keys`, async () => {
+      const b = backend(family);
+      await create({ apiKey: 'fixture', name: '  主力渠道  ' });
+      expect(b.groups()).toEqual([{ name: '主力渠道', keys: [{ 'api-key': 'fixture' }] }]);
+      b.groups()[0].keys = [
+        { 'api-key': 'fixture', weight: null, future: 'keep' },
+        { 'api-key': 'sibling', weight: 5 },
+      ];
+      b.groups()[0]['request-retry'] = 3;
+      const before = structuredClone(b.groups()[0]);
+      const current = rows(b.groups())[0];
+      await update(current.apiKey, current.baseUrl, { ...current, name: '  备用渠道  ' });
+      expect(b.groups()).toEqual([{ ...before, name: '备用渠道' }]);
+      expect(rows(b.groups()).map((r) => r.source?.group.name)).toEqual(['备用渠道', '备用渠道']);
+      const renamed = rows(b.groups())[0];
+      await update(renamed.apiKey, renamed.baseUrl, { ...renamed, name: ' ' });
+      expect(b.groups()).toEqual([{ ...before, name: '备用渠道' }]);
+    });
+  }
+
+  test('blank names keep automatic naming collision-free', async () => {
+    const existing = { name: 'codex-2', keys: [{ 'api-key': 'existing' }] };
+    const b = backend('codex', [existing]);
+    await providersApi.createCodexConfig({ apiKey: 'fixture', name: ' ' });
+    expect(b.groups()).toEqual([existing, { name: 'codex-3', keys: [{ 'api-key': 'fixture' }] }]);
+  });
+
+  test('renaming refuses a concurrently renamed group without writing', async () => {
+    const group = { name: 'original', keys: [{ 'api-key': 'fixture' }] };
+    const current = rows([group])[0];
+    const b = backend('codex', [{ ...group, name: 'changed elsewhere' }]);
+    await expect(
+      providersApi.updateCodexConfig(current.apiKey, current.baseUrl, { ...current, name: 'mine' })
+    ).rejects.toThrow();
+    expect(b.writes).toHaveLength(0);
+    expect(b.groups()[0].name).toBe('changed elsewhere');
+  });
+
   test('reads only the v8 tree and retains empty groups and exact source snapshots', () => {
     const group = {
       name: 'team',

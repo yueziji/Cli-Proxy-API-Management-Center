@@ -40,6 +40,8 @@ export interface CloakConfig {
 
 export interface GeminiKeyConfig {
   source?: ProviderSource;
+  /** Optional name to save on the containing provider group. */
+  name?: string;
   apiKey: string;
   priority?: number;
   weight?: number;
@@ -55,6 +57,8 @@ export interface GeminiKeyConfig {
 
 export interface ProviderKeyConfig {
   source?: ProviderSource;
+  /** Optional name to save on the containing provider group. */
+  name?: string;
   apiKey: string;
   priority?: number;
   weight?: number;

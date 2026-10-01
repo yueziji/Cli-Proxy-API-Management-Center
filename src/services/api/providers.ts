@@ -366,7 +366,11 @@ const createKey = async (family: ProviderFamily, config: KeyConfig) => {
   while (names.has(`${family}-${number}`)) number++;
   await putGroups(family, [
     ...groups,
-    { name: `${family}-${number}`, ...(baseUrl ? { 'base-url': baseUrl } : {}), keys: [payload] },
+    {
+      name: config.name?.trim() || `${family}-${number}`,
+      ...(baseUrl ? { 'base-url': baseUrl } : {}),
+      keys: [payload],
+    },
   ]);
 };
 const updateKey = async (
@@ -395,6 +399,8 @@ const updateKey = async (
   const before = serialize(original);
   const after = serialize(config);
   const nextGroup = { ...group };
+  const name = config.name?.trim();
+  if (name) nextGroup.name = name;
   if (!equal(before['base-url'], after['base-url'])) {
     if (after['base-url'] === undefined) delete nextGroup['base-url'];
     else nextGroup['base-url'] = after['base-url'];

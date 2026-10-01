@@ -43,7 +43,7 @@ export interface ProviderResource {
   brand: ProviderBrand;
   /** 在原数组中的下标 */
   originalIndex: number;
-  /** 表格 key 列显示名(OpenAI=name,其余=null) */
+  /** 提供商分组名称；未设置时为 null。 */
   name: string | null;
   /** 备用展示文字(API 密钥脱敏或 fallback) */
   identifier: string;
@@ -120,7 +120,7 @@ export interface CloakInput {
 export interface ProviderEntryFormInput {
   /** OpenAI 创建时只在 apiKeyEntries 中传 */
   apiKey: string;
-  /** OpenAI 必填,其余 brand 不展示 */
+  /** 提供商分组名称；OpenAI 必填，其余留空使用自动名称或保留原名。 */
   name: string;
   baseUrl: string;
   proxyUrl: string;

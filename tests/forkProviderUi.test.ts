@@ -12,6 +12,10 @@ import type { ConnectivityState } from '@/features/providers/sheets/forms/useCon
 import { forkLocales } from '@/i18n/forkLocales';
 import { mergeLocale } from '@/i18n/mergeLocale';
 import en from '@/i18n/locales/en.json';
+import { normalizeConfigResponse } from '@/services/api/transformers';
+import { buildProviderGroups } from '@/features/providers/useProviderWorkbench';
+import { ProviderResourceTable } from '@/features/providers/components/ProviderResourceTable';
+import { ProviderResourceCards } from '@/features/providers/components/ProviderResourceCards';
 
 const i18n = createInstance();
 await i18n.init({
@@ -40,6 +44,48 @@ const renderForm = (baseUrl: string, brand: 'codex' | 'vertex' = 'codex', mutati
 };
 
 describe('fork provider UI', () => {
+  test('all API-key provider forms load the group name and explain shared naming', () => {
+    const families = ['gemini', 'interactions', 'codex', 'meta', 'xai', 'claude', 'vertex'];
+    const config = normalizeConfigResponse({
+      'api-keys': Object.fromEntries(
+        families.map((family) => [
+          family,
+          [{ name: '主力渠道', keys: [{ 'api-key': 'fixture-key' }] }],
+        ])
+      ),
+    });
+    for (const group of buildProviderGroups(config).filter((g) => g.resources.length)) {
+      const markup = render(
+        createElement(BaseProviderForm, {
+          brand: group.id,
+          resource: group.resources[0],
+          mode: 'edit',
+          mutating: false,
+          formId: 'fixture-form',
+          onSubmit: async () => {},
+        })
+      );
+      expect(markup).toMatch(/<input[^>]*id="[^"]*-name"[^>]*value="主力渠道"/);
+      expect(markup).toContain('Keys in the same provider group share this name.');
+    }
+  });
+
+  test('table and cards display the provider name alongside a masked key', () => {
+    const group = { name: '主力渠道', keys: [{ 'api-key': 'fixture-long-key-for-masking' }] };
+    const config = normalizeConfigResponse({ 'api-keys': { codex: [group] } });
+    const resources = buildProviderGroups(config).find((g) => g.id === 'codex')!.resources;
+    const props = { resources, onView: () => {}, onEdit: () => {}, onDelete: () => {} };
+    for (const element of [
+      createElement(ProviderResourceTable, props),
+      createElement(ProviderResourceCards, props),
+    ]) {
+      const markup = render(element);
+      expect(markup).toContain('主力渠道');
+      expect(markup).toContain(resources[0].apiKeyPreview!);
+      expect(markup).not.toContain('fixture-long-key-for-masking');
+    }
+  });
+
   test('keeps the OAuth provider order, Kimi login and Devin guidance', () => {
     const markup = render(createElement(OAuthPage));
     const providers = ['codex', 'anthropic', 'antigravity', 'kimi', 'xai', 'devin'];

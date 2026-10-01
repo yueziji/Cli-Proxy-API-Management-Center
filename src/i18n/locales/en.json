@@ -1694,6 +1694,7 @@
       "createEyebrow": "New",
       "editEyebrow": "Edit",
       "name": "Name",
+      "groupNameHint": "Keys in the same provider group share this name. Leave blank to generate a name when creating or keep the existing name when editing.",
       "apiKey": "API key",
       "apiKeyCreatePlaceholder": "Enter API key",
       "apiKeyEditPlaceholder": "Leave empty to keep unchanged",

@@ -108,7 +108,8 @@ export function ProviderResourceCards({
     }
     return (
       <div className={styles.primaryCell}>
-        <span className={styles.primaryName}>{r.apiKeyPreview ?? '—'}</span>
+        <span className={styles.primaryName}>{r.name || r.apiKeyPreview || '—'}</span>
+        {r.name ? <span className={styles.primarySub}>{r.apiKeyPreview ?? '—'}</span> : null}
         {r.authIndex ? <span className={styles.primarySub}>auth: {r.authIndex}</span> : null}
       </div>
     );
