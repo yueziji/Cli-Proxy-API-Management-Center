@@ -56,6 +56,10 @@ const serializeProviderKey = (config: ProviderKeyConfig) => {
   if (config.prefix?.trim()) payload.prefix = config.prefix.trim();
   if (config.baseUrl) payload['base-url'] = config.baseUrl;
   if (config.websockets !== undefined) payload.websockets = config.websockets;
+  if (config.disableCodexCloaking !== undefined)
+    payload['disable-codex-cloaking'] = config.disableCodexCloaking;
+  if (config.streamBootstrapBuffering !== undefined)
+    payload['stream-bootstrap-buffering'] = config.streamBootstrapBuffering;
   if (config.proxyUrl) payload['proxy-url'] = config.proxyUrl;
   if (config.disableCooling !== undefined) payload['disable-cooling'] = config.disableCooling;
   const headers = serializeHeaders(config.headers);

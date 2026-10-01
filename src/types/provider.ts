@@ -65,6 +65,8 @@ export interface ProviderKeyConfig {
   prefix?: string;
   baseUrl?: string;
   websockets?: boolean;
+  disableCodexCloaking?: boolean;
+  streamBootstrapBuffering?: boolean;
   proxyUrl?: string;
   headers?: Record<string, string>;
   models?: ModelAlias[];

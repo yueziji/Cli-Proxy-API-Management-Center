@@ -137,6 +137,8 @@ export interface ProviderEntryFormInput {
 
   /** Codex 专属 */
   websockets?: boolean;
+  disableCodexCloaking?: boolean;
+  streamBootstrapBuffering?: boolean;
   /** Claude 专属 */
   cloak?: CloakInput;
   fingerprintProfile?: string;

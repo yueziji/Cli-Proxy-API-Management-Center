@@ -44,6 +44,7 @@ import { ApiKeyEntriesEditor } from './ApiKeyEntriesEditor';
 import { ModelEntriesEditor } from './ModelEntriesEditor';
 import { BaseUrlValidationHint } from './BaseUrlValidationHint';
 import { DisableCoolingOption } from './DisableCoolingOption';
+import { CodexApiKeySettings } from './CodexApiKeySettings';
 import { OpenAIConnectivityTest } from './OpenAIConnectivityTest';
 import styles from './sharedForm.module.scss';
 import { MAX_CREDENTIAL_WEIGHT } from '@/utils/credentialWeight';
@@ -186,6 +187,8 @@ function buildInitialForm(
       brand === 'codex' || brand === 'xai'
         ? (cfg as ProviderKeyConfig).websockets === true
         : undefined,
+    disableCodexCloaking: brand === 'codex' ? cfg.disableCodexCloaking : undefined,
+    streamBootstrapBuffering: brand === 'codex' ? cfg.streamBootstrapBuffering : undefined,
     cloak: isClaudeLikeBrand(brand)
       ? {
           mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',
@@ -750,6 +753,14 @@ export function BaseProviderForm({
           disabled={mutating}
           onChange={(checked) => updateField('disableCooling', checked)}
         />
+        {brand === 'codex' ? (
+          <CodexApiKeySettings
+            disableCodexCloaking={form.disableCodexCloaking}
+            streamBootstrapBuffering={form.streamBootstrapBuffering}
+            disabled={mutating}
+            onChange={(patch) => setForm((current) => ({ ...current, ...patch }))}
+          />
+        ) : null}
       </div>
 
       {/* 高级折叠区 */}

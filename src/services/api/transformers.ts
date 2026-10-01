@@ -165,6 +165,11 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   if (baseUrl) config.baseUrl = String(baseUrl);
   const websockets = normalizeBoolean(record?.websockets);
   if (websockets !== undefined) config.websockets = websockets;
+  const disableCodexCloaking = normalizeBoolean(record?.['disable-codex-cloaking']);
+  if (disableCodexCloaking !== undefined) config.disableCodexCloaking = disableCodexCloaking;
+  const streamBootstrapBuffering = normalizeBoolean(record?.['stream-bootstrap-buffering']);
+  if (streamBootstrapBuffering !== undefined)
+    config.streamBootstrapBuffering = streamBootstrapBuffering;
   if (proxyUrl) config.proxyUrl = String(proxyUrl);
   const headers = normalizeHeaders(record?.headers);
   if (headers) config.headers = headers;
