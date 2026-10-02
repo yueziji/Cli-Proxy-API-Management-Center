@@ -105,11 +105,11 @@ describe('fork provider UI', () => {
     const markup = renderForm('ftp://example.com', 'codex', true);
     expect(markup).toContain('Base URL must start with http:// or https://');
     expect(markup).toMatch(/<input[^>]*id="[^"]*-baseUrl"[^>]*aria-invalid="true"/);
-    const coolingLabel = [...markup.matchAll(/<label\b[^>]*>[\s\S]*?<\/label>/g)].find(([label]) =>
-      label.includes('Disable cooling')
+    const coolingControl = [...markup.matchAll(/<button\b[^>]*>[\s\S]*?<\/button>/g)].find(
+      ([button]) => button.includes('aria-label="Cooling"')
     )?.[0];
-    expect(coolingLabel).toContain('checked=""');
-    expect(coolingLabel).toContain('disabled=""');
+    expect(coolingControl).toContain('Disable cooling');
+    expect(coolingControl).toContain('disabled=""');
   });
 
   test('shows a soft URL warning without marking the input invalid', () => {
@@ -120,6 +120,7 @@ describe('fork provider UI', () => {
 
   test('keeps Vertex free of unsupported cooling controls', () => {
     expect(renderForm('', 'vertex')).not.toContain('Disable cooling');
+    expect(renderForm('', 'vertex')).not.toContain('aria-label="Cooling"');
   });
 });
 
