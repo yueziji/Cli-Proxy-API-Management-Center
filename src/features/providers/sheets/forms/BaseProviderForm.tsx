@@ -192,7 +192,6 @@ function buildInitialForm(
       brand === 'codex' || brand === 'xai'
         ? (cfg as ProviderKeyConfig).websockets === true
         : undefined,
-    streamBootstrapBuffering: brand === 'codex' ? cfg.streamBootstrapBuffering : undefined,
     cloak: isClaudeLikeBrand(brand)
       ? {
           mode: (cfg as ProviderKeyConfig).cloak?.mode ?? '',

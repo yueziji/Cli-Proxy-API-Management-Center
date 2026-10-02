@@ -6,9 +6,6 @@ import type { ProviderBrand } from './types';
  * 与 descriptor 漂移。新增 brand 时只需维护 descriptors.ts。
  */
 
-export const supportsDisableCoolingControl = (brand: ProviderBrand): boolean =>
-  PROVIDER_DESCRIPTORS[brand].supportsDisableCooling;
-
 /** 单密钥 brand(gemini/codex/claude)的测试模型仅用于连通性测试,不持久化。 */
 export const supportsSingleKeyTestModel = (brand: ProviderBrand): boolean =>
   PROVIDER_DESCRIPTORS[brand].supportsTestModel &&
