@@ -32,7 +32,7 @@
 **单文件部署** · **响应式布局** · **四种界面语言**
 
 > [!IMPORTANT]
-> 需要 **CLI Proxy API ≥ 8.0.0**，推荐使用最新 v8 版本。本仓库仅包含管理界面，**不是代理本体，不参与流量转发**。仅使用 **v8 Management API**（`/v8/management`）与 v8 配置结构，不提供 v0 回退；插件资源与自定义扩展保留后端声明的路径。
+> 需要 **CLI Proxy API ≥ 8.0.12**，推荐使用最新 v8 版本。本仓库仅包含管理界面，**不是代理本体，不参与流量转发**。仅使用 **v8 Management API**（`/v8/management`）与 v8 配置结构，不提供 v0 回退；插件资源与自定义扩展保留后端声明的路径。
 
 ## 快速开始
 
@@ -63,6 +63,9 @@
 
 - `access.api-keys`：访问代理的客户端密钥。
 - 顶层 `api-keys`：上游提供商分组。
+- `upstream`：OAuth 和 API Key 共用的提供商默认行为，凭据自身的显式覆盖优先。
+- `client.codex`：跨提供商的 Codex 客户端兼容设置，包括多代理优化和 apply_patch 能力扩展。
+- `oauth.providers`：OAuth 专属设置，包括 Codex 默认请求头与媒体中继。可视化编辑兼容读取历史路径，修改后使用新路径保存。
 
 </details>
 

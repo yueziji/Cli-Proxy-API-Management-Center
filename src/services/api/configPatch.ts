@@ -1,5 +1,6 @@
 import { isMap as isYamlMap, parseDocument } from 'yaml';
 import { apiClient } from './client';
+import { normalizeConfigAliases } from '@/utils/configAliases';
 
 export interface ConfigPatchPlan {
   patch: Record<string, unknown>;
@@ -90,8 +91,15 @@ function fieldUrl(path: string[]): string {
 }
 
 export function buildConfigPatch(beforeYaml: string, afterYaml: string): ConfigPatchPlan {
-  const before = parseConfig(beforeYaml);
-  const after = parseConfig(afterYaml);
+  // Alias DELETEs target the canonical field on the backend. Compare canonical
+  // paths so a migration cannot PATCH a value and then delete it via its old name.
+  const canonical = (yaml: string) => {
+    const doc = parseDocument(yaml, { intAsBigInt: true });
+    if (!doc.errors.length && !doc.warnings.length) normalizeConfigAliases(doc);
+    return parseConfig(doc.toString());
+  };
+  const before = canonical(beforeYaml);
+  const after = canonical(afterYaml);
   const deletions: string[][] = [];
   const emptyMaps: string[][] = [];
   function remove(value: unknown, path: string[]): void {
@@ -190,6 +198,18 @@ export function rebaseConfigDraft(
   // Validate readback and reject ambiguous list mutations before advancing the baseline.
   assertConfigListsUnchanged(beforeYaml, draftYaml, latestYaml);
   const doc = parseDocument(latestYaml);
+  // Readback can still use historical paths (for example after a failed save).
+  // Normalize the leaves being replayed so a cleared alias cannot reappear.
+  const replayPaths = [...plan.deletions, ...(plan.emptyMaps ?? [])].map((path) => path.join('.'));
+  const collectPaths = (patch: Record<string, unknown>, parent: string[] = []) => {
+    for (const [key, value] of Object.entries(patch)) {
+      const path = [...parent, key];
+      if (isMap(value)) collectPaths(value, path);
+      else replayPaths.push(path.join('.'));
+    }
+  };
+  collectPaths(plan.patch);
+  normalizeConfigAliases(doc, replayPaths);
 
   const ensureParents = (path: string[]) => {
     for (let length = 1; length < path.length; length += 1) {

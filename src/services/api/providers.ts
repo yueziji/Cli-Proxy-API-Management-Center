@@ -4,6 +4,7 @@ import { guardConfigConnection } from './configValue';
 import { isRecord } from '@/utils/helpers';
 import { normalizeApiKeyEntry, normalizeProviderGroups } from './transformers';
 import { serializeModelOptions } from './providerModels';
+import { withoutAuthIndex, withoutProviderAuthIndexes } from './providerMetadata';
 import type {
   GeminiKeyConfig,
   OpenAIProviderConfig,
@@ -265,7 +266,11 @@ const getGroups = async (family: ProviderFamily) => {
   return readProviderGroups(raw, family);
 };
 const putGroups = (family: ProviderFamily, groups: Record<string, unknown>[]) =>
-  apiClient.put(`/config/api-keys/${family}`, groups);
+  apiClient.put(`/config/api-keys/${family}`, groups.map(withoutProviderAuthIndexes));
+
+const equalGroup = (a: Record<string, unknown>, b: Record<string, unknown>) =>
+  equal(withoutProviderAuthIndexes(a), withoutProviderAuthIndexes(b));
+const equalKey = (a: unknown, b: unknown) => equal(withoutAuthIndex(a), withoutAuthIndex(b));
 
 /** Locate by persisted snapshot, never by flattened row index. Refuse ambiguous duplicates. */
 export const locateProviderGroup = (
@@ -274,16 +279,16 @@ export const locateProviderGroup = (
 ): number => {
   if (
     source.groups &&
-    equal(groups, source.groups) &&
-    equal(groups[source.groupIndex], source.group)
+    equal(groups.map(withoutProviderAuthIndexes), source.groups.map(withoutProviderAuthIndexes)) &&
+    equalGroup(groups[source.groupIndex], source.group)
   )
     return source.groupIndex;
   const matches = groups.flatMap((group, index) => {
-    if (source.keyIndex === undefined) return equal(group, source.group) ? [index] : [];
+    if (source.keyIndex === undefined) return equalGroup(group, source.group) ? [index] : [];
     const { keys: oldKeys, ...oldPolicy } = source.group;
     const { keys, ...policy } = group;
-    if (!equal(policy, oldPolicy) || !Array.isArray(oldKeys) || !Array.isArray(keys)) return [];
-    return keys.some((key) => equal(key, oldKeys[source.keyIndex!])) ? [index] : [];
+    if (!equalKey(policy, oldPolicy) || !Array.isArray(oldKeys) || !Array.isArray(keys)) return [];
+    return keys.some((key) => equalKey(key, oldKeys[source.keyIndex!])) ? [index] : [];
   });
   if (matches.length !== 1) throw conflict();
   return matches[0];
@@ -442,9 +447,9 @@ const updateKey = async (
   const keys = [...(group.keys as Record<string, unknown>[])];
   const originalKeys = source.group.keys;
   if (source.keyIndex === undefined || !Array.isArray(originalKeys)) throw conflict();
-  const matches = equal(group, source.group)
+  const matches = equalGroup(group, source.group)
     ? [source.keyIndex]
-    : keys.flatMap((key, i) => (equal(key, originalKeys[source.keyIndex!]) ? [i] : []));
+    : keys.flatMap((key, i) => (equalKey(key, originalKeys[source.keyIndex!]) ? [i] : []));
   if (matches.length !== 1) throw conflict();
   const keyIndex = matches[0];
   const original = (normalizeProviderGroups([group]) as KeyConfig[]).find(
@@ -493,9 +498,9 @@ const deleteKey = async (
   const originalKeys = source.group.keys;
   if (source.keyIndex === undefined || !Array.isArray(originalKeys)) throw conflict();
   const keys = groups[index].keys as unknown[];
-  const matches = equal(groups[index], source.group)
+  const matches = equalGroup(groups[index], source.group)
     ? [source.keyIndex]
-    : keys.flatMap((key, i) => (equal(key, originalKeys[source.keyIndex!]) ? [i] : []));
+    : keys.flatMap((key, i) => (equalKey(key, originalKeys[source.keyIndex!]) ? [i] : []));
   if (matches.length !== 1) throw conflict();
   groups[index] = { ...groups[index], keys: keys.filter((_, i) => i !== matches[0]) };
   await putGroups(family, groups);

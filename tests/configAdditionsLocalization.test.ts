@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { CONFIG_FIELD_SEARCH_INDEX } from '@/features/config/searchIndex';
+import { forkLocales } from '@/i18n/forkLocales';
+import { mergeLocale } from '@/i18n/mergeLocale';
 
 const addedFieldIds = [
   'routingSessionAffinitySubagents',
@@ -15,6 +17,7 @@ const addedFieldIds = [
   'codexStreamBootstrapBuffering',
   'codexStreamBootstrapTimeout',
   'codexOptimizeMultiAgentV2',
+  'codexEnableApplyPatch',
   'codexOrphanDelegationCompatibility',
   'codexResponseSteering',
   'antigravityConnectionPoolEnabled',
@@ -38,9 +41,12 @@ function resolveKey(root: unknown, path: string): unknown {
 }
 
 describe('added configuration field localization', () => {
-  for (const locale of ['en', 'zh-CN', 'zh-TW', 'ru']) {
+  for (const locale of ['en', 'zh-CN', 'zh-TW', 'ru'] as const) {
     test(`${locale} includes searchable labels, help, and accessible ICE actions`, async () => {
-      const messages: unknown = await Bun.file(`src/i18n/locales/${locale}.json`).json();
+      const messages = mergeLocale(
+        await Bun.file(`src/i18n/locales/${locale}.json`).json(),
+        forkLocales[locale]
+      );
       for (const fieldId of addedFieldIds) {
         const entry = CONFIG_FIELD_SEARCH_INDEX.find((item) => item.fieldId === fieldId);
         expect(entry).toBeDefined();
@@ -52,6 +58,10 @@ describe('added configuration field localization', () => {
       for (const key of [
         'oauthTitle',
         'oauthHint',
+        'upstreamTitle',
+        'upstreamHint',
+        'clientTitle',
+        'clientHint',
         'claudeTitle',
         'codexTitle',
         'antigravityTitle',

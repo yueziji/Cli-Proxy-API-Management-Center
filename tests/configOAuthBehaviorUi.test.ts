@@ -35,7 +35,7 @@ describe('OAuth behavior configuration UI', () => {
     const additions = CONFIG_FIELD_SEARCH_INDEX.filter((entry) =>
       entry.labelKey.includes('.additions.')
     );
-    expect(additions).toHaveLength(26);
+    expect(additions).toHaveLength(27);
     for (const entry of additions) {
       const own = entry.sectionId === 'network' ? network : advanced;
       const other = entry.sectionId === 'network' ? advanced : network;
@@ -43,12 +43,21 @@ describe('OAuth behavior configuration UI', () => {
       expect(other).not.toContain(`id="cfg-field-${entry.fieldId}"`);
       expect(own).toContain(escapeText(translations.t(entry.labelKey)));
       expect(own).toContain(escapeText(translations.t(entry.hintKey!)));
-      expect(entry.yamlKeys?.join('.')).toMatch(/^(routing|multimedia|oauth)\./);
+      expect(entry.yamlKeys?.join('.')).toMatch(/^(routing|multimedia|oauth|upstream|client)\./);
     }
     const oauth = render(createElement(SectionOAuthBehavior, props));
     expect(oauth).toContain('<details');
     expect(oauth).toContain(text('oauthTitle'));
     expect(oauth).toContain(text('oauthHint'));
+    expect(oauth).toContain(text('upstreamTitle'));
+    expect(oauth).toContain(text('clientTitle'));
+    const groups = oauth.split('</details>');
+    expect(groups[0]).toContain('cfg-field-codexResponseSteering');
+    expect(groups[0]).not.toContain('cfg-field-codexOptimizeMultiAgentV2');
+    expect(groups[1]).toContain('cfg-field-codexOptimizeMultiAgentV2');
+    expect(groups[1]).toContain('cfg-field-codexEnableApplyPatch');
+    expect(groups[2]).toContain('cfg-field-codexLiveMediaRelayEnabled');
+    expect(groups[2]).toContain('cfg-field-antigravityConnectionPoolEnabled');
     expect(oauth).not.toContain('cfg-field-claudeHeaderTimezone');
     expect(oauth).toContain(text('liveRelayHint'));
   });

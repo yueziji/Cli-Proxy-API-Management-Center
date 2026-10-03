@@ -146,7 +146,7 @@ describe('Codex API key form', () => {
     return match![1].replace(/<[^>]*>/g, '');
   };
 
-  test('loads persisted values with the correct cloaking polarity and backend-support hint', async () => {
+  test('loads persisted values with the correct cloaking polarity and shared-default hints', async () => {
     await ready;
     const markup = render(
       'codex',
@@ -155,7 +155,8 @@ describe('Codex API key form', () => {
     );
     expect(selection(markup, 'disableCodexCloaking')).toBe('Off');
     expect(selection(markup, 'streamBootstrapBuffering')).toBe('On');
-    expect(markup).toContain('requires backend support');
+    expect(markup).toContain('upstream.codex.disable-codex-cloaking');
+    expect(markup).toContain('upstream.codex.stream-bootstrap-buffering');
   });
 
   test('new Codex keys default to unset and other provider forms have no Codex controls', async () => {

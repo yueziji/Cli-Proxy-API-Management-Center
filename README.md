@@ -32,7 +32,7 @@ From everyday configuration to troubleshooting, keep the essentials close at han
 **Single-file deployment** · **Responsive layout** · **Four UI languages**
 
 > [!IMPORTANT]
-> Requires **CLI Proxy API ≥ 8.0.0**; the latest v8 release is recommended. This repository is the management UI, not the proxy — it does not forward traffic. It uses the **v8 Management API** (`/v8/management`) and v8 configuration layout, with no v0 fallback. Plugin resources and custom extensions retain their backend-declared paths.
+> Requires **CLI Proxy API ≥ 8.0.12**; the latest v8 release is recommended. This repository is the management UI, not the proxy — it does not forward traffic. It uses the **v8 Management API** (`/v8/management`) and v8 configuration layout, with no v0 fallback. Plugin resources and custom extensions retain their backend-declared paths.
 
 ## Quick start
 
@@ -63,6 +63,9 @@ Upgrade the backend first and back up `config.yaml`. The backend returns the v8 
 
 - `access.api-keys`: client keys for accessing the proxy.
 - Top-level `api-keys`: upstream provider groups.
+- `upstream`: provider defaults shared by OAuth and API-key credentials; explicit credential overrides take priority.
+- `client.codex`: Codex client compatibility across providers, including multi-agent optimization and extended apply_patch capabilities.
+- `oauth.providers`: OAuth-only settings, including Codex header defaults and media relay. The visual editor accepts historical paths on read and saves edited fields using the current paths.
 
 </details>
 

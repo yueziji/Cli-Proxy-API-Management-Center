@@ -17,6 +17,7 @@ import type {
   PayloadParamValidationErrorCode,
 } from '@/types/visualConfig';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
+import { normalizeConfigAliases } from '@/utils/configAliases';
 import { assertConfigListsUnchanged, ConfigDraftConflictError } from '@/services/api/configPatch';
 import {
   ADDITION_FIELDS,
@@ -1407,7 +1408,8 @@ function parseVisualValuesFromYaml(yamlContent: string): VisualConfigValues {
     throw new Error(document.errors[0]?.message ?? 'Invalid YAML');
   }
 
-  const parsedRaw: unknown = parseYaml(yamlContent) || {};
+  normalizeConfigAliases(document);
+  const parsedRaw: unknown = parseYaml(document.toString()) || {};
   const parsed = asRecord(parsedRaw) ?? {};
   const v8Server = asRecord(parsed?.['server']);
   const v8Routing = asRecord(parsed?.['routing']);
@@ -1418,7 +1420,7 @@ function parseVisualValuesFromYaml(yamlContent: string): VisualConfigValues {
   const v8OauthProviders = asRecord(v8Oauth?.['providers']);
   const v8OauthProvidersAistudio = asRecord(v8OauthProviders?.['aistudio']);
   const v8OauthProvidersCodex = asRecord(v8OauthProviders?.['codex']);
-  const v8OauthProvidersClaude = asRecord(v8OauthProviders?.['claude']);
+  const v8UpstreamClaude = asRecord(asRecord(parsed.upstream)?.claude);
   const v8OauthProvidersAntigravity = asRecord(v8OauthProviders?.['antigravity']);
   const v8Multimedia = asRecord(parsed?.['multimedia']);
   const v8Observability = asRecord(parsed?.['observability']);
@@ -1433,7 +1435,7 @@ function parseVisualValuesFromYaml(yamlContent: string): VisualConfigValues {
   const plugins = asRecord(parsed.plugins);
   const antigravity = asRecord(v8OauthProviders?.['antigravity']);
   const devin = asRecord(v8OauthProviders?.['devin']);
-  const claudeHeaderDefaults = asRecord(v8OauthProvidersClaude?.['header-defaults']);
+  const claudeHeaderDefaults = asRecord(v8UpstreamClaude?.['header-defaults']);
   const codexHeaderDefaults = asRecord(v8OauthProvidersCodex?.['header-defaults']);
 
   const newValues: VisualConfigValues = {
@@ -1909,57 +1911,72 @@ export function useVisualConfig() {
           dirtyFields.has('claudeHeaderTimeout') ||
           dirtyFields.has('claudeHeaderStabilizeDeviceProfile');
         if (claudeHeadersDirty) {
-          ensureMapInDoc(doc, ['oauth', 'providers', 'claude', 'header-defaults']);
+          for (const [field, leaf] of [
+            ['claudeHeaderUserAgent', 'user-agent'],
+            ['claudeHeaderPackageVersion', 'package-version'],
+            ['claudeHeaderRuntimeVersion', 'runtime-version'],
+            ['claudeHeaderOs', 'os'],
+            ['claudeHeaderArch', 'arch'],
+            ['claudeHeaderTimeout', 'timeout'],
+            ['claudeHeaderStabilizeDeviceProfile', 'stabilize-device-profile'],
+          ]) {
+            if (dirtyFields.has(field)) {
+              normalizeConfigAliases(doc, [`upstream.claude.header-defaults.${leaf}`]);
+            }
+          }
+          ensureMapInDoc(doc, ['upstream']);
+          ensureMapInDoc(doc, ['upstream', 'claude']);
+          ensureMapInDoc(doc, ['upstream', 'claude', 'header-defaults']);
           if (dirtyFields.has('claudeHeaderUserAgent')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'user-agent'],
+              ['upstream', 'claude', 'header-defaults', 'user-agent'],
               values.claudeHeaderUserAgent
             );
           }
           if (dirtyFields.has('claudeHeaderPackageVersion')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'package-version'],
+              ['upstream', 'claude', 'header-defaults', 'package-version'],
               values.claudeHeaderPackageVersion
             );
           }
           if (dirtyFields.has('claudeHeaderRuntimeVersion')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'runtime-version'],
+              ['upstream', 'claude', 'header-defaults', 'runtime-version'],
               values.claudeHeaderRuntimeVersion
             );
           }
           if (dirtyFields.has('claudeHeaderOs')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'os'],
+              ['upstream', 'claude', 'header-defaults', 'os'],
               values.claudeHeaderOs
             );
           }
           if (dirtyFields.has('claudeHeaderArch')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'arch'],
+              ['upstream', 'claude', 'header-defaults', 'arch'],
               values.claudeHeaderArch
             );
           }
           if (dirtyFields.has('claudeHeaderTimeout')) {
             setStringInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'timeout'],
+              ['upstream', 'claude', 'header-defaults', 'timeout'],
               values.claudeHeaderTimeout
             );
           }
           if (dirtyFields.has('claudeHeaderStabilizeDeviceProfile')) {
             setBooleanInDoc(
               doc,
-              ['oauth', 'providers', 'claude', 'header-defaults', 'stabilize-device-profile'],
+              ['upstream', 'claude', 'header-defaults', 'stabilize-device-profile'],
               values.claudeHeaderStabilizeDeviceProfile
             );
           }
-          deleteIfMapEmpty(doc, ['oauth', 'providers', 'claude', 'header-defaults']);
+          deleteIfMapEmpty(doc, ['upstream', 'claude', 'header-defaults']);
         }
 
         const codexHeadersDirty =

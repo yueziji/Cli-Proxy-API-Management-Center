@@ -30,16 +30,20 @@ function editConfig(source: string, patches: Partial<VisualConfigValues>[], late
   return { loaded: loaded!, result, dirty };
 }
 
-const enabledYaml = `oauth:
+const enabledYaml = `upstream:
+  codex:
+    disable-codex-cloaking: true
+    stream-bootstrap-buffering: true
+client:
+  codex:
+    optimize-multi-agent-v2: true # preserve this option
+oauth:
   providers:
     codex:
-      disable-codex-cloaking: true
-      stream-bootstrap-buffering: true
-      optimize-multi-agent-v2: true # preserve this option
       header-defaults: { user-agent: fixture-agent }
 `;
 
-describe('Codex OAuth behavior visual config', () => {
+describe('Codex shared behavior visual config', () => {
   test('defaults to off and does not inject OAuth settings on unrelated edits', () => {
     const { loaded, result } = editConfig('observability:\n  logs:\n    debug: false\n', [
       { debug: true },
@@ -49,18 +53,16 @@ describe('Codex OAuth behavior visual config', () => {
     expect(parseYaml(result)).toEqual({ observability: { logs: { debug: true } } });
   });
 
-  test('creates only the v8 OAuth mapping when enabling both switches', () => {
+  test('creates only the shared upstream mapping when enabling both switches', () => {
     const { result, dirty } = editConfig('observability:\n  logs:\n    debug: false\n', [
       { codexDisableCloaking: true, codexStreamBootstrapBuffering: true },
     ]);
     expect(parseYaml(result)).toEqual({
       observability: { logs: { debug: false } },
-      oauth: {
-        providers: {
-          codex: {
-            'disable-codex-cloaking': true,
-            'stream-bootstrap-buffering': true,
-          },
+      upstream: {
+        codex: {
+          'disable-codex-cloaking': true,
+          'stream-bootstrap-buffering': true,
         },
       },
     });
@@ -74,8 +76,8 @@ describe('Codex OAuth behavior visual config', () => {
     expect(loaded.codexDisableCloaking).toBe(true);
     expect(loaded.codexStreamBootstrapBuffering).toBe(true);
     const expected = parseYaml(enabledYaml);
-    expected.oauth.providers.codex['disable-codex-cloaking'] = false;
-    expected.oauth.providers.codex['stream-bootstrap-buffering'] = false;
+    expected.upstream.codex['disable-codex-cloaking'] = false;
+    expected.upstream.codex['stream-bootstrap-buffering'] = false;
     expect(parseYaml(result)).toEqual(expected);
     expect(result).toContain('# preserve this option');
   });
@@ -86,7 +88,7 @@ describe('Codex OAuth behavior visual config', () => {
       '      future-option: keep\n';
     const { result } = editConfig(enabledYaml, [{ codexDisableCloaking: false }], latest);
     const expected = parseYaml(latest);
-    expected.oauth.providers.codex['disable-codex-cloaking'] = false;
+    expected.upstream.codex['disable-codex-cloaking'] = false;
     expect(parseYaml(result)).toEqual(expected);
   });
 
@@ -99,7 +101,7 @@ describe('Codex OAuth behavior visual config', () => {
     expect(result).toBe(enabledYaml);
   });
 
-  test('uses the v8 OAuth scope without reading or rewriting legacy or API-key settings', () => {
+  test('reads historical OAuth fields and migrates only the edited field, preserving API-key overrides', () => {
     const source = `codex: {disable-codex-cloaking: true, stream-bootstrap-buffering: true}
 oauth:
   providers:
@@ -113,7 +115,8 @@ api-keys:
     expect(loaded.codexDisableCloaking).toBe(false);
     expect(loaded.codexStreamBootstrapBuffering).toBe(false);
     const expected = parseYaml(source);
-    expected.oauth.providers.codex['disable-codex-cloaking'] = true;
+    delete expected.oauth.providers.codex['disable-codex-cloaking'];
+    expected.upstream = { codex: { 'disable-codex-cloaking': true } };
     expect(parseYaml(result)).toEqual(expected);
   });
 
@@ -127,6 +130,6 @@ api-keys:
     const parsed = parseYaml(result);
     expect(parsed.codex).toBeUndefined();
     expect(parsed.oauth.providers.codex['identity-confuse']).toBeUndefined();
-    expect(parsed.oauth.providers.codex['disable-codex-cloaking']).toBe(false);
+    expect(parsed.upstream.codex['disable-codex-cloaking']).toBe(false);
   });
 });

@@ -127,7 +127,7 @@ const normalizeApiKeyEntry = (entry: unknown): ApiKeyEntry | null => {
 
   const proxyUrl = record?.['proxy-url'];
   const weight = readCredentialWeight(record?.weight);
-  const authIndex = normalizeAuthIndex(record?.['auth-index']);
+  const authIndex = normalizeAuthIndex(record?.auth_index ?? record?.['auth-index']);
 
   const result: ApiKeyEntry = {
     apiKey: trimmed,
@@ -202,7 +202,7 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   if (excludedModels.length) config.excludedModels = excludedModels;
   const disableCooling = normalizeDisableCooling(record);
   if (disableCooling !== undefined) config.disableCooling = disableCooling;
-  const authIndex = normalizeAuthIndex(record?.['auth-index']);
+  const authIndex = normalizeAuthIndex(record?.auth_index ?? record?.['auth-index']);
   if (authIndex) config.authIndex = authIndex;
 
   const cloakRaw = record?.cloak;
@@ -270,7 +270,7 @@ const normalizeGeminiKeyConfig = (item: unknown): GeminiKeyConfig | null => {
   if (excludedModels.length) config.excludedModels = excludedModels;
   const disableCooling = normalizeDisableCooling(record);
   if (disableCooling !== undefined) config.disableCooling = disableCooling;
-  const authIndex = normalizeAuthIndex(record?.['auth-index']);
+  const authIndex = normalizeAuthIndex(record?.auth_index ?? record?.['auth-index']);
   if (authIndex) config.authIndex = authIndex;
   return config;
 };
@@ -317,7 +317,7 @@ const normalizeOpenAIProvider = (
   if (testModel) result.testModel = String(testModel);
   const disableCooling = normalizeDisableCooling(provider);
   if (disableCooling !== undefined) result.disableCooling = disableCooling;
-  const authIndex = normalizeAuthIndex(provider['auth-index']);
+  const authIndex = normalizeAuthIndex(provider.auth_index ?? provider['auth-index']);
   if (authIndex) result.authIndex = authIndex;
   if (sourceIndex !== undefined) result.sourceIndex = sourceIndex;
   return result;

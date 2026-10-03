@@ -1,4 +1,5 @@
 import { compatibilityLocales } from './compatibilityLocales';
+import { configProviderLocales } from './configProviderLocales';
 import { modelRetryLocales } from './modelRetryLocales';
 import { pluginJsonLocales } from './pluginJsonLocales';
 
@@ -90,7 +91,15 @@ export const forkLocales = {
       kimi_oauth_hint: '通过设备授权流程登录 Kimi 服务，自动获取并保存认证文件。',
     },
     config_editor: requestLogLocales['zh-CN'],
-    config_management: requestLogLocales['zh-CN'],
+    config_management: {
+      visual: {
+        additions: configProviderLocales['zh-CN'].additions,
+        sections: {
+          ...requestLogLocales['zh-CN'].visual.sections,
+          headers: configProviderLocales['zh-CN'].headers,
+        },
+      },
+    },
     providersPage: {
       table: {
         disableCoolingTag: '禁用冷却',
@@ -157,7 +166,15 @@ export const forkLocales = {
       kimi_oauth_hint: '透過裝置授權流程登入 Kimi 服務，自動取得並儲存驗證檔案。',
     },
     config_editor: requestLogLocales['zh-TW'],
-    config_management: requestLogLocales['zh-TW'],
+    config_management: {
+      visual: {
+        additions: configProviderLocales['zh-TW'].additions,
+        sections: {
+          ...requestLogLocales['zh-TW'].visual.sections,
+          headers: configProviderLocales['zh-TW'].headers,
+        },
+      },
+    },
     providersPage: {
       table: {
         disableCoolingTag: '停用冷卻',
@@ -227,7 +244,15 @@ export const forkLocales = {
         'Login to Kimi service through OAuth device flow, automatically obtain and save authentication files.',
     },
     config_editor: requestLogLocales.en,
-    config_management: requestLogLocales.en,
+    config_management: {
+      visual: {
+        additions: configProviderLocales.en.additions,
+        sections: {
+          ...requestLogLocales.en.visual.sections,
+          headers: configProviderLocales.en.headers,
+        },
+      },
+    },
     providersPage: {
       table: {
         disableCoolingTag: 'No cooling',
@@ -299,7 +324,15 @@ export const forkLocales = {
         'Выполните вход в сервис Kimi через поток авторизации устройства и автоматически получите/сохраните файлы авторизации.',
     },
     config_editor: requestLogLocales.ru,
-    config_management: requestLogLocales.ru,
+    config_management: {
+      visual: {
+        additions: configProviderLocales.ru.additions,
+        sections: {
+          ...requestLogLocales.ru.visual.sections,
+          headers: configProviderLocales.ru.headers,
+        },
+      },
+    },
     providersPage: {
       table: {
         disableCoolingTag: 'Без cooldown',
