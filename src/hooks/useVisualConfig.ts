@@ -18,6 +18,7 @@ import type {
 } from '@/types/visualConfig';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
 import { normalizeConfigAliases } from '@/utils/configAliases';
+import { stringifyConfigYaml } from '@/utils/configYaml';
 import { assertConfigListsUnchanged, ConfigDraftConflictError } from '@/services/api/configPatch';
 import {
   ADDITION_FIELDS,
@@ -2134,7 +2135,7 @@ export function useVisualConfig() {
           deleteIfMapEmpty(doc, ['requests', 'payload']);
         }
 
-        const draftYaml = doc.toString({ indent: 2, lineWidth: 120, minContentWidth: 0 });
+        const draftYaml = stringifyConfigYaml(doc, currentYaml);
         if (target === 'server' && rebasedPayload && hasPayloadDirtyFields(dirtyFields)) {
           // The retained AST preserves local lineage, but must never silently replace a
           // list another client changed after recovery (including unknown model fields).

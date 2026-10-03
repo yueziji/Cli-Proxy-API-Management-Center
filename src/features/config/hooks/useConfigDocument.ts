@@ -46,15 +46,6 @@ export function hasTrustedProxiesChange(beforeYaml: string, afterYaml: string): 
   return JSON.stringify(read(beforeYaml)) !== JSON.stringify(read(afterYaml));
 }
 
-function normalizeYamlForVisualDiff(yamlContent: string): string {
-  try {
-    const doc = parseDocument(yamlContent);
-    return doc.toString({ indent: 2, lineWidth: 120, minContentWidth: 0 });
-  } catch {
-    return yamlContent;
-  }
-}
-
 export type UseConfigDocumentArgs = {
   /** 当前编辑模式（旧实现中的 activeTab）。 */
   mode: ConfigEditorMode;
@@ -196,15 +187,11 @@ export function useConfigDocument({
         const nextPlan =
           previewMode === 'visual' ? buildConfigPatch(latestServerYaml, nextMergedYaml) : null;
         setPreviewPlan(nextPlan);
-        const nextServerYaml = !sourceDirty
-          ? normalizeYamlForVisualDiff(latestServerYaml)
-          : latestServerYaml;
-
         setPreviewServerYaml(latestServerYaml);
-        setServerYaml(nextServerYaml);
+        setServerYaml(latestServerYaml);
         setMergedYaml(nextMergedYaml);
 
-        if (nextPlan ? !hasConfigPatchChanges(nextPlan) : nextServerYaml === nextMergedYaml) {
+        if (nextPlan ? !hasConfigPatchChanges(nextPlan) : latestServerYaml === nextMergedYaml) {
           setSourceDirty(false);
           setDiffModalOpen(false);
           setContent(latestServerYaml);
@@ -376,17 +363,9 @@ export function useConfigDocument({
             applyVisualChangesToYaml
           );
 
-      // In visual-origin saves, applyVisualChangesToYaml re-serializes YAML via parseDocument → toString,
-      // which may reformat comments/whitespace. Normalize the server YAML through the same pipeline
-      // so the diff only shows actual value changes, not cosmetic reformatting.
-      let diffOriginal = latestServerYaml;
-      if (!sourceDirty) {
-        diffOriginal = normalizeYamlForVisualDiff(latestServerYaml);
-      }
-
       const nextPlan =
         mode === 'visual' ? buildConfigPatch(latestServerYaml, nextMergedYaml) : null;
-      if (nextPlan ? !hasConfigPatchChanges(nextPlan) : diffOriginal === nextMergedYaml) {
+      if (nextPlan ? !hasConfigPatchChanges(nextPlan) : latestServerYaml === nextMergedYaml) {
         setSourceDirty(false);
         setContent(latestServerYaml);
         setServerYaml(latestServerYaml);
@@ -397,7 +376,7 @@ export function useConfigDocument({
         return;
       }
 
-      setServerYaml(diffOriginal);
+      setServerYaml(latestServerYaml);
       setMergedYaml(nextMergedYaml);
       setPreviewServerYaml(latestServerYaml);
       setPreviewMode(mode);

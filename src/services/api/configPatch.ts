@@ -1,6 +1,7 @@
 import { isMap as isYamlMap, parseDocument } from 'yaml';
 import { apiClient } from './client';
 import { normalizeConfigAliases } from '@/utils/configAliases';
+import { stringifyConfigYaml } from '@/utils/configYaml';
 
 export interface ConfigPatchPlan {
   patch: Record<string, unknown>;
@@ -245,7 +246,7 @@ export function rebaseConfigDraft(
       doc.deleteIn(parent);
     }
   }
-  return doc.toString({ indent: 2, lineWidth: 120, minContentWidth: 0 });
+  return stringifyConfigYaml(doc, latestYaml);
 }
 
 export function hasConfigPatchChanges(plan: ConfigPatchPlan): boolean {
