@@ -15,6 +15,120 @@ api-keys:
 `;
 
 describe('configuration formatting', () => {
+  const siblingCases = [
+    {
+      name: 'server proxy list when changing the port',
+      prefix: 'server:\n  port: 8317\n',
+      section: '  trusted-proxies: [\n    127.0.0.1,\n    10.0.0.1\n  ]\n',
+      patch: { port: '9000' },
+    },
+    {
+      name: 'Payload rules when changing the request proxy',
+      prefix: 'requests:\n  proxy-url: http://old.example\n',
+      section:
+        '  payload:\n    default: [\n      {models: [{name: demo}], params: {temperature: 0.5}}\n    ]\n',
+      patch: { proxyUrl: 'http://new.example' },
+    },
+    {
+      name: 'OAuth aliases when changing refresh workers',
+      prefix: 'oauth:\n  auth-auto-refresh-workers: 2\n',
+      section: '  model-alias:\n    claude: [\n      {name: original, alias: display}\n    ]\n',
+      patch: { authAutoRefreshWorkers: '3' },
+    },
+    {
+      name: 'Claude headers when changing cooling',
+      prefix: 'upstream:\n  claude:\n    model-level-cooling: false\n',
+      section: '    header-defaults: {\n      user-agent: demo,\n      timezone: Local\n    }\n',
+      patch: { claudeModelLevelCooling: true },
+    },
+    {
+      name: 'plugin settings when changing the global switch',
+      prefix: 'plugins:\n  enabled: false\n',
+      section: '  demo: {\n    custom: [one, two]\n  }\n',
+      patch: { pluginsEnabled: true },
+    },
+  ];
+
+  test.each(siblingCases)('preserves $name', ({ prefix, section, patch }) => {
+    const source = prefix + section;
+    const config = runVisualConfig(source, [patch]);
+    const result = config.applyVisualChangesToYaml(source);
+    expect(Object.keys(buildConfigPatch(source, result).patch).length).toBeGreaterThan(0);
+    expect(result).toContain(section);
+    const rebased = rebaseConfigDraft(source, result, source);
+    expect(rebased).toContain(section);
+    expect(parseDocument(rebased).toJS()).toEqual(parseDocument(result).toJS());
+  });
+
+  test('preserves other provider groups when one group is changed', () => {
+    const otherProviders = `  claude: [
+    {name: demo, keys: [{api-key: PLACEHOLDER}]}
+  ]
+  gemini: [
+    {name: demo, keys: [{api-key: PLACEHOLDER}]}
+  ]
+`;
+    const source = providerSection + otherProviders;
+    const doc = parseDocument(source);
+    doc.setIn(['api-keys', 'codex', 0, 'keys', 0, 'weight'], 9);
+    const result = stringifyConfigYaml(doc, source);
+    expect(result).toContain(otherProviders);
+    expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+  });
+
+  test('preserves a flow list inside an edited block sequence item', () => {
+    const models = '    - models: [\n        {name: demo}\n      ]\n';
+    const source = `requests:\n  rules:\n${models}      weight: 2\n`;
+    const doc = parseDocument(source);
+    doc.setIn(['requests', 'rules', 0, 'weight'], 9);
+    const result = stringifyConfigYaml(doc, source);
+    expect(result).toContain(models);
+    expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+  });
+
+  test('adjusts preserved child indentation when its edited parent is normalized', () => {
+    const source = 'server:\n    port: 8317\n    future: {\n        nested: [one, two]\n    }\n';
+    const doc = parseDocument(source);
+    doc.setIn(['server', 'port'], 9000);
+    const result = stringifyConfigYaml(doc, source);
+    expect(result).toContain('  future: {\n      nested: [one, two]\n  }\n');
+    expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+  });
+
+  test.each(['|-', '|+', '>2-'])(
+    'keeps scalar values and blank lines when a sequence gains indentation (%s)',
+    (style) => {
+      const source = `future:\n- name: demo\n  note: ${style}\n    line one\n      line two\n\n  weight: 2\n`;
+      const doc = parseDocument(source);
+      doc.setIn(['future', 0, 'weight'], 9);
+      const result = stringifyConfigYaml(doc, source);
+      expect(parseDocument(result).errors).toEqual([]);
+      expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+      expect(result).toContain('      line one\n        line two\n');
+    }
+  );
+
+  test('does not restore old list members during reorder and deletion', () => {
+    const source =
+      'future:\n  items:\n    - {name: one, values: [a, b]}\n    - {name: two, values: [c, d]}\n';
+    const doc = parseDocument(source);
+    doc.setIn(['future', 'items'], [{ name: 'two', values: ['c', 'd'] }]);
+    const result = stringifyConfigYaml(doc, source);
+    expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+    expect(result).not.toContain('name: one');
+  });
+
+  test('keeps literal tabs and Unicode whitespace when shifting block scalar indentation', () => {
+    const source =
+      'future:\n- name: demo\n  note: |-\n    \tkeep tab\n    \u00a0keep nonbreaking space\n  weight: 2\n';
+    const doc = parseDocument(source);
+    doc.setIn(['future', 0, 'weight'], 9);
+    const result = stringifyConfigYaml(doc, source);
+    expect(parseDocument(result).toJS()).toEqual(doc.toJS());
+    expect(result).toContain('\tkeep tab');
+    expect(result).toContain('\u00a0keep nonbreaking space');
+  });
+
   test.each(['\n', '\r\n'])(
     'preserves untouched Codex layout in visual/source drafts (%j)',
     (eol) => {
