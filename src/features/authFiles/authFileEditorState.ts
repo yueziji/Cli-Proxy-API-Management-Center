@@ -1,4 +1,5 @@
 import type { AuthFileFieldsPatch } from '@/services/api';
+import { goDurationSeconds } from '@/features/config/visualConfigAdditions';
 
 export type ForkAuthFileEditorErrorKey = 'auth_files.refresh_interval_invalid';
 type ResolveRefreshIntervalError = (key: ForkAuthFileEditorErrorKey) => string;
@@ -16,36 +17,26 @@ type ForkAuthFileEditorContext = ForkAuthFileEditorState & {
 };
 
 const REFRESH_INTERVAL_KEYS = [
+  'refresh_interval_seconds',
+  'refreshIntervalSeconds',
   'refresh_interval',
   'refreshInterval',
-  'refresh_interval_seconds',
-  'refreshIntervalSeconds',
 ] as const;
 
-const REFRESH_INTERVAL_SECONDS_KEYS = new Set<string>([
-  'refresh_interval_seconds',
-  'refreshIntervalSeconds',
-]);
-
-const REFRESH_INTERVAL_SEGMENT_PATTERN = /(\d+(?:\.\d+)?)(ns|us|ms|s|m|h)/g;
-
-const normalizeRefreshIntervalField = (value: unknown, key: string): string => {
-  if (typeof value === 'string') return value.trim();
-  if (
-    REFRESH_INTERVAL_SECONDS_KEYS.has(key) &&
-    typeof value === 'number' &&
-    Number.isFinite(value) &&
-    value > 0
-  ) {
-    return `${value}s`;
-  }
-  return '';
+// Match the backend's positive Go duration or numeric-seconds interpretation.
+const validRefreshInterval = (text: string): boolean => {
+  const duration = goDurationSeconds(text);
+  if (duration !== undefined) return duration > 0;
+  if (!/^\+?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)) return false;
+  const nanos = Number(text) * 1e9;
+  return Number.isFinite(nanos) && nanos >= 1 && nanos < 2 ** 63;
 };
 
 const readRefreshInterval = (value: Record<string, unknown>): string => {
   for (const key of REFRESH_INTERVAL_KEYS) {
-    const normalized = normalizeRefreshIntervalField(value[key], key);
-    if (normalized) return normalized;
+    const raw = value[key];
+    const text = typeof raw === 'string' || typeof raw === 'number' ? String(raw).trim() : '';
+    if (validRefreshInterval(text)) return text;
   }
   return '';
 };
@@ -54,16 +45,7 @@ const validateRefreshIntervalText = (value: string): ForkAuthFileEditorErrorKey 
   const trimmed = value.trim();
   if (!trimmed) return null;
 
-  let matchedText = '';
-  let hasPositiveSegment = false;
-  for (const match of trimmed.matchAll(REFRESH_INTERVAL_SEGMENT_PATTERN)) {
-    matchedText += match[0];
-    if (Number(match[1]) > 0) hasPositiveSegment = true;
-  }
-
-  return matchedText === trimmed && hasPositiveSegment
-    ? null
-    : 'auth_files.refresh_interval_invalid';
+  return validRefreshInterval(trimmed) ? null : 'auth_files.refresh_interval_invalid';
 };
 
 export const createForkAuthFileEditorState = (): ForkAuthFileEditorState => ({
@@ -85,9 +67,8 @@ export const readForkAuthFileEditorState = (
   };
 };
 
-export const hasForkAuthFileValidationError = (
-  editor: ForkAuthFileEditorState | null
-): boolean => Boolean(editor?.refreshIntervalTouched && editor.refreshIntervalError);
+export const hasForkAuthFileValidationError = (editor: ForkAuthFileEditorState | null): boolean =>
+  Boolean(editor?.refreshIntervalTouched && editor.refreshIntervalError);
 
 export const updateForkAuthFileEditorState = <T extends ForkAuthFileEditorState>(
   editor: T,
@@ -119,7 +100,14 @@ export const extendAuthFileFieldsPatch = (
     const errorKey = validateRefreshIntervalText(refreshInterval);
     if (errorKey) throw new Error(resolveError(errorKey));
     if (refreshInterval !== readRefreshInterval(original)) {
-      patch.refresh_interval = refreshInterval;
+      patch.refresh_interval = refreshInterval || null;
+      // Metadata PATCH retains null. Invalidate existing aliases so the backend
+      // cannot keep using a higher-priority value or revive a cleared override.
+      for (const key of REFRESH_INTERVAL_KEYS) {
+        if (key !== 'refresh_interval' && Object.prototype.hasOwnProperty.call(original, key)) {
+          patch[key] = null;
+        }
+      }
     }
   }
 };
@@ -128,9 +116,8 @@ export const applyForkAuthFilePreview = (
   value: Record<string, unknown>,
   patch: AuthFileFieldsPatch
 ): Record<string, unknown> => {
-  if (patch.refresh_interval !== undefined) {
-    if (patch.refresh_interval) value.refresh_interval = patch.refresh_interval;
-    else delete value.refresh_interval;
+  for (const key of REFRESH_INTERVAL_KEYS) {
+    if (patch[key] !== undefined) value[key] = patch[key];
   }
   return value;
 };

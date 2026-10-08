@@ -100,9 +100,9 @@ describe('auth-file disable cooling patch', () => {
   });
 
   test('does not patch an untouched or unchanged override', () => {
-    expect(buildAuthFileFieldsPatch(makeEditor({ disable_cooling: true }, ''), resolveError)).toEqual(
-      {}
-    );
+    expect(
+      buildAuthFileFieldsPatch(makeEditor({ disable_cooling: true }, ''), resolveError)
+    ).toEqual({});
     expect(
       buildAuthFileFieldsPatch(
         {
@@ -162,7 +162,7 @@ describe('fork auth-file fields', () => {
     expect(
       readForkAuthFileEditorState({ refreshIntervalSeconds: 900 }, resolveError)
     ).toMatchObject({
-      refreshInterval: '900s',
+      refreshInterval: '900',
       refreshIntervalError: null,
     });
   });
@@ -185,7 +185,7 @@ describe('fork auth-file fields', () => {
   test('rejects an invalid refresh interval before PATCH', () => {
     const editor = {
       ...makeEditor({}, ''),
-      refreshInterval: '900',
+      refreshInterval: 'invalid',
       refreshIntervalTouched: true,
     };
 

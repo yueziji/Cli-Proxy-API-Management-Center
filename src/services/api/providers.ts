@@ -93,8 +93,6 @@ const serializeProviderKey = (config: ProviderKeyConfig, family: ProviderFamily)
     if (config.alphaSearch !== undefined) payload['alpha-search'] = config.alphaSearch;
     if (config.disableCodexCloaking !== undefined)
       payload['disable-codex-cloaking'] = config.disableCodexCloaking;
-    if (config.streamBootstrapBuffering !== undefined)
-      payload['stream-bootstrap-buffering'] = config.streamBootstrapBuffering;
   }
   if (family === 'claude' && config.rebuildMidSystemMessage !== undefined) {
     payload['rebuild-mid-system-message'] = config.rebuildMidSystemMessage;

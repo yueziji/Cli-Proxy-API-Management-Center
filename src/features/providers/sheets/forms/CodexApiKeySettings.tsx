@@ -4,10 +4,7 @@ import { Select } from '@/components/ui/Select';
 import type { ProviderKeyConfig } from '@/types';
 import styles from './sharedForm.module.scss';
 
-type CodexKeyBehavior = Pick<
-  ProviderKeyConfig,
-  'disableCodexCloaking' | 'streamBootstrapBuffering'
->;
+type CodexKeyBehavior = Pick<ProviderKeyConfig, 'disableCodexCloaking'>;
 
 interface CodexApiKeySettingsProps extends CodexKeyBehavior {
   disabled: boolean;
@@ -16,56 +13,41 @@ interface CodexApiKeySettingsProps extends CodexKeyBehavior {
 
 export function CodexApiKeySettings({
   disableCodexCloaking,
-  streamBootstrapBuffering,
   disabled,
   onChange,
 }: CodexApiKeySettingsProps) {
   const { t } = useTranslation();
   const id = useId();
-  const fields = [
-    {
-      key: 'disableCodexCloaking',
-      value: disableCodexCloaking,
-      label: 'codexKeyCloakingLabel',
-      hint: 'codexKeyCloakingHint',
-      inverted: true,
-    },
-    {
-      key: 'streamBootstrapBuffering',
-      value: streamBootstrapBuffering,
-      label: 'bufferingLabel',
-      hint: 'codexKeyBufferingHint',
-      inverted: false,
-    },
-  ] as const;
 
-  return fields.map((field) => (
-    <div className={styles.field} key={field.key}>
-      <label id={`${id}-${field.key}-label`} className={styles.label}>
-        {t(`compatibilitySettings.${field.label}`)}
+  return (
+    <div className={styles.field}>
+      <label id={`${id}-disableCodexCloaking-label`} className={styles.label}>
+        {t('compatibilitySettings.codexKeyCloakingLabel')}
       </label>
       <Select
-        id={`${id}-${field.key}`}
-        value={field.value === undefined ? '' : String(field.value)}
+        id={`${id}-disableCodexCloaking`}
+        value={disableCodexCloaking === undefined ? '' : String(disableCodexCloaking)}
         options={[
           { value: '', label: t('compatibilitySettings.codexKeyDefault') },
           {
-            value: String(!field.inverted),
+            value: 'false',
             label: t('compatibilitySettings.codexKeyOn'),
           },
           {
-            value: String(field.inverted),
+            value: 'true',
             label: t('compatibilitySettings.codexKeyOff'),
           },
         ]}
-        onChange={(value) => onChange({ [field.key]: value === '' ? undefined : value === 'true' })}
+        onChange={(value) =>
+          onChange({ disableCodexCloaking: value === '' ? undefined : value === 'true' })
+        }
         disabled={disabled}
-        ariaLabelledBy={`${id}-${field.key}-label`}
-        ariaDescribedBy={`${id}-${field.key}-hint`}
+        ariaLabelledBy={`${id}-disableCodexCloaking-label`}
+        ariaDescribedBy={`${id}-disableCodexCloaking-hint`}
       />
-      <small id={`${id}-${field.key}-hint`} className={styles.labelHint}>
-        {t(`compatibilitySettings.${field.hint}`)}
+      <small id={`${id}-disableCodexCloaking-hint`} className={styles.labelHint}>
+        {t('compatibilitySettings.codexKeyCloakingHint')}
       </small>
     </div>
-  ));
+  );
 }

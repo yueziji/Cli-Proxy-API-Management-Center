@@ -11,10 +11,7 @@ export function pickProviderBehavior(
   return {
     ...(capabilities.alphaSearch ? { alphaSearch: input.alphaSearch } : {}),
     ...(capabilities.disableCodexCloaking
-      ? {
-          disableCodexCloaking: input.disableCodexCloaking,
-          streamBootstrapBuffering: input.streamBootstrapBuffering,
-        }
+      ? { disableCodexCloaking: input.disableCodexCloaking }
       : {}),
     ...(capabilities.rebuildMidSystemMessage
       ? { rebuildMidSystemMessage: input.rebuildMidSystemMessage }

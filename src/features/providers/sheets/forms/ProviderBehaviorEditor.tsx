@@ -47,7 +47,6 @@ export function ProviderBehaviorEditor({
         {capabilities.disableCodexCloaking ? (
           <CodexApiKeySettings
             disableCodexCloaking={value.disableCodexCloaking}
-            streamBootstrapBuffering={value.streamBootstrapBuffering}
             disabled={disabled}
             onChange={onChange}
           />

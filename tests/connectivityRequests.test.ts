@@ -54,6 +54,19 @@ afterAll(() => request.mockRestore());
 const success: ApiCallResult = { statusCode: 200, header: {}, bodyText: '', body: null };
 
 describe('connectivity request URLs', () => {
+  for (const brand of ['xai', 'meta'] as const) {
+    test(`${brand}: a versioned base URL is valid and produces one responses endpoint`, async () => {
+      request.mockResolvedValue(success);
+      const baseUrl = 'https://example.invalid/v1';
+      expect(validateBaseUrl(baseUrl, brand).warningKeys).not.toContain('baseUrlEndpointSuffix');
+      await setup(brand, baseUrl).run();
+      expect(request.mock.calls.at(-1)![0].url).toBe(`${baseUrl}/responses`);
+      expect(validateBaseUrl(`${baseUrl}/responses`, brand).warningKeys).toContain(
+        'baseUrlEndpointSuffix'
+      );
+    });
+  }
+
   const brands = [
     'openaiCompatibility',
     'codex',

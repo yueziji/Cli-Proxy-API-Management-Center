@@ -167,7 +167,6 @@ const normalizeProviderKeyConfig = (item: unknown): ProviderKeyConfig | null => 
   for (const [key, wire] of [
     ['alphaSearch', 'alpha-search'],
     ['disableCodexCloaking', 'disable-codex-cloaking'],
-    ['streamBootstrapBuffering', 'stream-bootstrap-buffering'],
     ['rebuildMidSystemMessage', 'rebuild-mid-system-message'],
   ] as const) {
     const value = normalizeBoolean(record?.[wire]);

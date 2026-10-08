@@ -31,7 +31,7 @@ export interface BaseUrlValidationResult {
  * （如 claude 的 `%s/v1/messages`、openai 的 `+ /chat/completions`），
  * 用户若已经把这些写进 baseUrl 会导致路径重复 → 404，给软提示。
  *
- * 版本段（/v1、/v1beta)要按 brand 区分：openai 兼容 / codex 的后端只拼
+ * 版本段（/v1、/v1beta)要按 brand 区分：openai 兼容 / codex / xai / meta 的后端只拼
  * 裸端点（/chat/completions、/responses），`.../v1` 是标准正确写法，
  * 不能误报；claude / gemini 的后端自带版本段（/v1/messages、/v1beta/...），
  * 版本段结尾必然重复。
@@ -46,7 +46,7 @@ const COMMON_ENDPOINT_SUFFIXES = [
 const VERSION_SEGMENT_SUFFIXES = ['/v1', '/v1beta'] as const;
 
 /** 版本段结尾属于正确配置、不应告警的 brand。 */
-const VERSION_SUFFIX_SAFE_BRANDS = new Set(['codex', 'openaiCompatibility']);
+const VERSION_SUFFIX_SAFE_BRANDS = new Set(['codex', 'openaiCompatibility', 'xai', 'meta']);
 
 /**
  * 校验并规整用户填写的 baseUrl。

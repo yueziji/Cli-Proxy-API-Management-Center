@@ -48,7 +48,10 @@ export type AuthFileFieldsPatch = {
   excluded_models?: string[];
   'excluded-models'?: string[];
   expired?: string;
-  refresh_interval?: string;
+  refresh_interval?: string | null;
+  refreshInterval?: null;
+  refresh_interval_seconds?: null;
+  refreshIntervalSeconds?: null;
 };
 type AuthFileBatchFailure = { name: string; error: string };
 type AuthFileBatchUploadResponse = {

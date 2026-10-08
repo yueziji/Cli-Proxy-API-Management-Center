@@ -56,8 +56,10 @@ export const forkLocales = {
     auth_files: {
       refresh_interval_label: '刷新间隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
-      refresh_interval_hint: '填写带单位的 Go duration，例如 15m、3h、900s；留空则不写入。',
-      refresh_interval_invalid: '刷新间隔必须包含单位，例如 15m、3h 或 900s。',
+      refresh_interval_hint:
+        '填写正数秒值或 Go duration，例如 900、15m、3h；清空可恢复后端默认刷新策略。',
+      refresh_interval_invalid:
+        '请输入有效的正数秒值或 Go duration，例如 900、15m 或 3h，且不能超出后端时长范围。',
       websockets_display: 'WS',
       websockets_state_on: '开',
       websockets_state_off: '关',
@@ -131,8 +133,10 @@ export const forkLocales = {
     auth_files: {
       refresh_interval_label: '重新整理間隔（refresh_interval）',
       refresh_interval_placeholder: '例如: 15m / 3h / 900s',
-      refresh_interval_hint: '填寫帶單位的 Go duration，例如 15m、3h、900s；留空則不寫入。',
-      refresh_interval_invalid: '重新整理間隔必須包含單位，例如 15m、3h 或 900s。',
+      refresh_interval_hint:
+        '填寫正數秒值或 Go duration，例如 900、15m、3h；清空可恢復後端預設重新整理策略。',
+      refresh_interval_invalid:
+        '請輸入有效的正數秒值或 Go duration，例如 900、15m 或 3h，且不能超出後端時長範圍。',
       websockets_display: 'WS',
       websockets_state_on: '開',
       websockets_state_off: '關',
@@ -207,8 +211,9 @@ export const forkLocales = {
       refresh_interval_label: 'Refresh Interval (refresh_interval)',
       refresh_interval_placeholder: 'e.g. 15m / 3h / 900s',
       refresh_interval_hint:
-        'Enter a Go duration with units, such as 15m, 3h, or 900s. Leave blank to omit it.',
-      refresh_interval_invalid: 'Refresh interval must include a unit, such as 15m, 3h, or 900s.',
+        'Enter positive seconds or a Go duration, such as 900, 15m, or 3h. Clear to restore the backend default refresh policy.',
+      refresh_interval_invalid:
+        'Enter positive seconds or a valid Go duration, such as 900, 15m, or 3h, within the backend duration range.',
       websockets_display: 'WS',
       websockets_state_on: 'On',
       websockets_state_off: 'Off',
@@ -286,9 +291,9 @@ export const forkLocales = {
       refresh_interval_label: 'Интервал обновления (refresh_interval)',
       refresh_interval_placeholder: 'например: 15m / 3h / 900s',
       refresh_interval_hint:
-        'Введите Go duration с единицей, например 15m, 3h или 900s. Оставьте пустым, чтобы не записывать.',
+        'Введите положительное число секунд или Go duration, например 900, 15m или 3h. Очистите поле, чтобы восстановить политику обновления сервера по умолчанию.',
       refresh_interval_invalid:
-        'Интервал обновления должен содержать единицу, например 15m, 3h или 900s.',
+        'Введите положительное число секунд или корректный Go duration, например 900, 15m или 3h, в пределах допустимой длительности сервера.',
       websockets_display: 'WS',
       websockets_state_on: 'Вкл',
       websockets_state_off: 'Выкл',

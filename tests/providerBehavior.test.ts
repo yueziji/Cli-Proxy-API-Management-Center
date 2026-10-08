@@ -114,14 +114,12 @@ test('UI and form projection gate behavior by provider protocol', () => {
   const options = {
     alphaSearch: true,
     disableCodexCloaking: false,
-    streamBootstrapBuffering: true,
     rebuildMidSystemMessage: true,
     supportPromptCacheKey: true,
   };
   expect(pickProviderBehavior(options, 'codex')).toEqual({
     alphaSearch: true,
     disableCodexCloaking: false,
-    streamBootstrapBuffering: true,
   });
   expect(pickProviderBehavior(options, 'claude')).toEqual({ rebuildMidSystemMessage: true });
   expect(pickProviderBehavior(options, 'openaiCompatibility')).toEqual({

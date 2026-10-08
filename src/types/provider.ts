@@ -10,7 +10,6 @@ export interface RequestScopedErrorRule {
 export interface ProviderBehaviorOptions {
   alphaSearch?: boolean;
   disableCodexCloaking?: boolean;
-  streamBootstrapBuffering?: boolean;
   rebuildMidSystemMessage?: boolean;
   supportPromptCacheKey?: boolean;
 }
