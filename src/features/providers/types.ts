@@ -97,7 +97,6 @@ export interface ModelEntryInput extends ModelOptionsInput {
   name: string;
   alias?: string;
   priority?: number;
-  testModel?: string;
   image?: boolean;
   /** Original backend value, preserved until the standard-level selector is changed. */
   thinkingJson?: string;
@@ -145,7 +144,7 @@ export interface ProviderEntryFormInput extends ProviderBehaviorOptions {
   /** Claude 专属 */
   cloak?: CloakInput;
   fingerprintProfile?: string;
-  /** 连接测试使用；OpenAI 会保存，Gemini/Codex/Claude 仅用于测试 */
+  /** Temporary selection for connectivity tests only; never persisted in backend config. */
   testModel?: string;
   apiKeyEntries?: ApiKeyEntryInput[];
 }

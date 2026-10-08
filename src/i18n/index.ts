@@ -10,6 +10,7 @@ import en from './locales/en.json';
 import ru from './locales/ru.json';
 import { forkLocales } from './forkLocales';
 import { mergeLocale } from './mergeLocale';
+import vi from './locales/vi.json';
 import { getInitialLanguage } from '@/utils/language';
 
 i18n.use(initReactI18next).init({
@@ -18,9 +19,10 @@ i18n.use(initReactI18next).init({
     'zh-TW': { translation: mergeLocale(zhTW, forkLocales['zh-TW']) },
     en: { translation: mergeLocale(en, forkLocales.en) },
     ru: { translation: mergeLocale(ru, forkLocales.ru) },
+    vi: { translation: vi },
   },
   lng: getInitialLanguage(),
-  fallbackLng: 'zh-CN',
+  fallbackLng: { vi: ['en', 'zh-CN'], default: ['zh-CN'] },
   interpolation: {
     escapeValue: false, // React 已经转义
   },

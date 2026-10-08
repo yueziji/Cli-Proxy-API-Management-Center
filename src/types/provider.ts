@@ -41,7 +41,6 @@ export interface ModelAlias {
   name: string;
   alias?: string;
   priority?: number;
-  testModel?: string;
   image?: boolean;
   displayName?: string;
   maxContextLength?: number;
@@ -116,7 +115,6 @@ export interface OpenAIProviderConfig extends ProviderRuntimePolicy, ProviderBeh
   headers?: Record<string, string>;
   models?: ModelAlias[];
   priority?: number;
-  testModel?: string;
   disableCooling?: boolean;
   authIndex?: string;
   /** Original index in the backend openai-compatibility array. */

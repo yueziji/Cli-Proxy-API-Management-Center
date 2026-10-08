@@ -10,6 +10,7 @@ import { readConfigBoolean } from './visualConfigBoolean';
 import { deleteConfigPath, normalizeConfigAliases } from '@/utils/configAliases';
 
 // Source: backend v8.0.12 config_v8.go/config_types.go.
+// Shared behavior lives under upstream.*/client.codex; OAuth-only settings keep oauth.providers.*.
 export const ADDITION_FIELDS = [
   {
     key: 'routingSessionAffinitySubagents',
