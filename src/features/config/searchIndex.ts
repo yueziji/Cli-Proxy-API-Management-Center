@@ -130,13 +130,7 @@ export const CONFIG_FIELD_SEARCH_INDEX: ConfigFieldSearchEntry[] = [
     hintKey: L('additions.codexOptimizeMultiAgentV2.hint'),
     yamlKeys: ['client', 'codex', 'optimize-multi-agent-v2'],
   },
-  {
-    fieldId: 'codexEnableApplyPatch',
-    sectionId: 'advanced',
-    labelKey: L('additions.codexEnableApplyPatch.label'),
-    hintKey: L('additions.codexEnableApplyPatch.hint'),
-    yamlKeys: ['client', 'codex', 'enable-apply-patch'],
-  },
+  ...FORK_CONFIG_SEARCH_ENTRIES.advanced,
   {
     fieldId: 'codexOrphanDelegationCompatibility',
     sectionId: 'advanced',

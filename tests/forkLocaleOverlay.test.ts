@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { createInstance } from 'i18next';
-import { forkLocales } from '../src/i18n/forkLocales';
+import { forkLocales, withForkResources, FORK_FALLBACK_LANGUAGES } from '../src/i18n/forkLocales';
 import { mergeLocale } from '../src/i18n/mergeLocale';
 
 describe('fork locale overlay', () => {
@@ -28,13 +28,43 @@ describe('fork locale overlay', () => {
     });
   });
 
-  test('provides the same fork-owned namespaces for every locale', () => {
-    for (const locale of Object.values(forkLocales)) {
+  test('provides complete namespaces for the fully translated fork locales', () => {
+    for (const language of ['zh-CN', 'zh-TW', 'en', 'ru'] as const) {
+      const locale = forkLocales[language];
       expect(locale.dashboard.current_config).toBeTruthy();
       expect(locale.auth_files.refresh_interval_label).toBeTruthy();
       expect(locale.config_editor.visual.sections.system.request_log).toBeTruthy();
       expect(locale.providersPage.detail.fields.disableCooling).toBeTruthy();
     }
+  });
+
+  test('keeps group-name translations outside upstream JSON for all supported locales', async () => {
+    for (const language of Object.keys(forkLocales) as (keyof typeof forkLocales)[]) {
+      const base = await Bun.file(`src/i18n/locales/${language}.json`).json();
+      expect(base.providersPage.form).not.toHaveProperty('groupNameHint');
+      const translations = createInstance();
+      await translations.init({
+        lng: language,
+        fallbackLng: FORK_FALLBACK_LANGUAGES,
+        resources: withForkResources({ [language]: { translation: base } }),
+      });
+      expect(translations.t('providersPage.form.groupNameHint')).toBe(
+        forkLocales[language].providersPage.form.groupNameHint
+      );
+      expect(translations.t('nav.dashboard')).toBe(base.nav.dashboard);
+    }
+  });
+
+  test('preserves extra namespaces and new upstream languages without mutating base resources', () => {
+    const base = {
+      en: { translation: { dashboard: { current_config: 'Base' } }, extra: { label: 'Extra' } },
+      fr: { translation: { dashboard: { current_config: 'Configuration' } } },
+    };
+    const resources = withForkResources(base);
+    expect(resources.en.extra).toEqual(base.en.extra);
+    expect(resources.fr).toBe(base.fr);
+    expect(base.en.translation.dashboard.current_config).toBe('Base');
+    expect(resources.en.translation.dashboard.current_config).toBe('Current Configuration');
   });
 
   const translatedLabels = [

@@ -7,6 +7,7 @@ import type {
 } from '@/types/visualConfig';
 import { assertConfigListsUnchanged } from '@/services/api/configPatch';
 import { readConfigBoolean } from './visualConfigBoolean';
+import { FORK_ADDITION_FIELDS } from './forkFields';
 import { deleteConfigPath, normalizeConfigAliases } from '@/utils/configAliases';
 
 // Source: backend v8.0.12 config_v8.go/config_types.go.
@@ -78,11 +79,6 @@ export const ADDITION_FIELDS = [
     kind: 'boolean',
   },
   {
-    key: 'codexEnableApplyPatch',
-    path: 'client.codex.enable-apply-patch'.split('.'),
-    kind: 'boolean',
-  },
-  {
     key: 'codexOrphanDelegationCompatibility',
     path: 'upstream.codex.orphan-delegation-compatibility'.split('.'),
     kind: 'boolean',
@@ -142,6 +138,7 @@ export const ADDITION_FIELDS = [
     path: 'oauth.providers.codex.live-media-relay.udp-port-max'.split('.'),
     kind: 'integer',
   },
+  ...FORK_ADDITION_FIELDS,
 ] as const;
 export const ICE_KEY = 'codexLiveMediaRelayICEServers';
 export const ICE_PATH = ['oauth', 'providers', 'codex', 'live-media-relay', 'ice-servers'];
@@ -151,11 +148,16 @@ export function readVisualAdditions(doc: Doc) {
     VisualConfigValues,
     (typeof ADDITION_FIELDS)[number]['key'] | typeof ICE_KEY
   >;
-  for (const { key, path, kind } of ADDITION_FIELDS) {
+  for (const field of ADDITION_FIELDS) {
+    const { key, path, kind } = field;
     const raw = doc.getIn(path);
     Object.assign(values, {
       [key]:
-        kind === 'boolean' ? readConfigBoolean(raw, DEFAULT_VISUAL_VALUES[key]) : String(raw ?? ''),
+        'read' in field
+          ? field.read(raw)
+          : kind === 'boolean'
+            ? readConfigBoolean(raw, DEFAULT_VISUAL_VALUES[key])
+            : String(raw ?? ''),
     });
   }
   const raw = doc.getIn(ICE_PATH, true);

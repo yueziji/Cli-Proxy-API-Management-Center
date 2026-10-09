@@ -1245,7 +1245,6 @@ function getNextDirtyFields(
       'debug',
       'commercialMode',
       'loggingToFile',
-      'requestLog',
       'logsMaxTotalSizeMb',
       'proxyUrl',
       'forceModelPrefix',
@@ -1468,7 +1467,6 @@ function parseVisualValuesFromYaml(yamlContent: string): VisualConfigValues {
     debug: Boolean(v8ObservabilityLogs?.['debug']),
     commercialMode: Boolean(v8Server?.['commercial-mode']),
     loggingToFile: Boolean(v8ObservabilityLogs?.['logging-to-file']),
-    requestLog: Boolean(v8ObservabilityLogs?.['request-log']),
     logsMaxTotalSizeMb: String(v8ObservabilityLogs?.['logs-max-total-size-mb'] ?? ''),
     errorLogsMaxFiles: String(v8ObservabilityLogs?.['error-logs-max-files'] ?? ''),
     usageStatisticsEnabled: Boolean(v8ObservabilityUsage?.['usage-statistics-enabled']),
@@ -1781,9 +1779,6 @@ export function useVisualConfig() {
         }
         if (dirtyFields.has('loggingToFile')) {
           setBooleanInDoc(doc, ['observability', 'logs', 'logging-to-file'], values.loggingToFile);
-        }
-        if (dirtyFields.has('requestLog')) {
-          setBooleanInDoc(doc, ['observability', 'logs', 'request-log'], values.requestLog);
         }
         if (dirtyFields.has('logsMaxTotalSizeMb')) {
           setIntFromStringInDoc(

@@ -118,7 +118,11 @@ try {
     }
   }
 
-  $scanRoots = @('src', 'tests', '.github')
+  # Scan every locale, including newly added languages, using the same rules as CI tests.
+  & (Join-Path $PSScriptRoot 'find-locale-promotions.ps1') |
+    ForEach-Object { $issues.Add($_) }
+
+  $scanRoots = @('src', 'tests', '.github', 'README.md', 'README_CN.md')
   $trackedScanRoots = @($scanRoots | Where-Object { Test-Path -LiteralPath $_ })
   $untrackedScanFiles = @(
     $untrackedPaths | Where-Object {

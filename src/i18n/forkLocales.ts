@@ -1,3 +1,5 @@
+import type { Resource } from 'i18next';
+import { mergeLocale, type LocaleRecord } from './mergeLocale';
 import { compatibilityLocales } from './compatibilityLocales';
 import { configProviderLocales } from './configProviderLocales';
 import { modelRetryLocales } from './modelRetryLocales';
@@ -112,6 +114,7 @@ export const forkLocales = {
         },
       },
       form: {
+        groupNameHint: '同一提供商下的多个密钥共用此名称。留空时，新建自动命名，编辑保留原名称。',
         validation: {
           baseUrlInvalid: '服务地址不是合法的 URL',
           baseUrlProtocol: '服务地址必须以 http:// 或 https:// 开头',
@@ -189,6 +192,7 @@ export const forkLocales = {
         },
       },
       form: {
+        groupNameHint: '同一供應商下的多個金鑰共用此名稱。留空時，新建自動命名，編輯保留原名稱。',
         validation: {
           baseUrlInvalid: '服務位址不是合法的 URL',
           baseUrlProtocol: '服務位址必須以 http:// 或 https:// 開頭',
@@ -268,6 +272,8 @@ export const forkLocales = {
         },
       },
       form: {
+        groupNameHint:
+          'Keys in the same provider group share this name. Leave blank to generate a name when creating or keep the existing name when editing.',
         validation: {
           baseUrlInvalid: 'Base URL is not a valid URL',
           baseUrlProtocol: 'Base URL must start with http:// or https://',
@@ -348,6 +354,8 @@ export const forkLocales = {
         },
       },
       form: {
+        groupNameHint:
+          'Ключи одной группы провайдера используют общее название. Оставьте поле пустым: при создании название задаётся автоматически, при редактировании сохраняется прежнее.',
         validation: {
           baseUrlInvalid: 'Base URL не является корректным URL',
           baseUrlProtocol: 'Base URL должен начинаться с http:// или https://',
@@ -363,4 +371,42 @@ export const forkLocales = {
       },
     },
   },
+  vi: {
+    providersPage: {
+      form: {
+        groupNameHint:
+          'Các key trong cùng nhóm provider dùng chung tên này. Để trống để tạo tên khi thêm mới hoặc giữ tên hiện tại khi chỉnh sửa.',
+      },
+    },
+  },
+  ko: {
+    providersPage: {
+      form: {
+        groupNameHint:
+          '같은 공급자 그룹의 키는 이 이름을 공유합니다. 비워 두면 생성 시 이름이 자동으로 지정되고, 편집 시 기존 이름이 유지됩니다.',
+      },
+    },
+  },
 } as const;
+
+export const FORK_FALLBACK_LANGUAGES = {
+  vi: ['en', 'zh-CN'],
+  ko: ['en', 'zh-CN'],
+  default: ['zh-CN'],
+};
+
+/** Keep upstream resource registration intact; apply local translations at one boundary. */
+export const withForkResources = (
+  resources: Record<string, { translation: LocaleRecord }>
+): Resource =>
+  Object.fromEntries(
+    Object.entries(resources).map(([language, namespaces]) => {
+      const overlay = (forkLocales as Partial<Record<string, LocaleRecord>>)[language];
+      return [
+        language,
+        overlay
+          ? { ...namespaces, translation: mergeLocale(namespaces.translation, overlay) }
+          : namespaces,
+      ];
+    })
+  );

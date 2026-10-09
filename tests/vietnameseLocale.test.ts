@@ -39,31 +39,4 @@ describe('Vietnamese locale', () => {
       'Request Logging'
     );
   });
-
-  test('does not reintroduce removed promotion entries through locale resources', async () => {
-    const vietnamese = await Bun.file('src/i18n/locales/vi.json').json();
-    for (const path of [
-      'nav.quick_start',
-      'nav_meta.quick_start',
-      'auth_login.kimi_sign_up_button',
-      'auth_login.recommended_provider_section',
-      'config_management.visual.sections.network.proxy_url_sponsor_hint',
-      'providersPage.sponsor',
-      'providersPage.categories.quickFill',
-    ]) {
-      expect(vietnamese).not.toHaveProperty(path);
-    }
-    for (const provider of [
-      'apikeyFun',
-      'fennoAI',
-      'qiniuCloud',
-      'code0',
-      'claudeApi',
-      'lmuAI',
-      'infistar',
-      'kimi',
-    ]) {
-      expect(vietnamese.providersPage.providerNames).not.toHaveProperty(provider);
-    }
-  });
 });

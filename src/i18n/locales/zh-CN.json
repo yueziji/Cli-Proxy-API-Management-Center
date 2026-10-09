@@ -1990,7 +1990,6 @@
       "createEyebrow": "新建",
       "editEyebrow": "编辑",
       "name": "名称",
-      "groupNameHint": "同一提供商下的多个密钥共用此名称。留空时，新建自动命名，编辑保留原名称。",
       "apiKey": "API 密钥",
       "apiKeyCreatePlaceholder": "输入 API 密钥",
       "apiKeyEditPlaceholder": "留空表示不修改",

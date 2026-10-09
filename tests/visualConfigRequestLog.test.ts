@@ -3,8 +3,34 @@ import { createElement, useState } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { parse as parseYaml } from 'yaml';
 import { useVisualConfig } from '../src/hooks/useVisualConfig';
+import { runVisualConfig } from './helpers/visualConfig';
 
 describe('visual config request-log', () => {
+  test('preserves legacy coercion and only writes an explicit edited value', () => {
+    for (const [value, enabled] of [
+      ['true', true],
+      ['false', false],
+      ['"false"', true],
+      ['0', false],
+      ['1', true],
+      ['null', false],
+    ] as const) {
+      const yaml = `observability:\n  logs:\n    request-log: ${value}\nfuture: retained # keep\n`;
+      const loaded = runVisualConfig(yaml);
+      expect(loaded.visualValues.requestLog).toBe(enabled);
+      expect(loaded.applyVisualChangesToYaml(yaml)).toBe(yaml);
+      const changed = runVisualConfig(yaml, [{ requestLog: !enabled }]);
+      expect([...changed.visualDirtyFields]).toEqual(['requestLog']);
+      const output = changed.applyVisualChangesToYaml(yaml);
+      expect(parseYaml(output).observability.logs['request-log']).toBe(!enabled);
+      expect(output).toContain('future: retained # keep');
+    }
+    const yaml = 'future: retained\n';
+    const reverted = runVisualConfig(yaml, [{ requestLog: true }, { requestLog: false }]);
+    expect(reverted.visualDirty).toBe(false);
+    expect(reverted.applyVisualChangesToYaml(yaml)).toBe(yaml);
+  });
+
   test('loads and writes the request-log setting', () => {
     let loadedRequestLog: boolean | undefined;
 

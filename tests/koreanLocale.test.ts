@@ -39,34 +39,4 @@ describe('Korean locale', () => {
       'Request Logging'
     );
   });
-
-  test('does not reintroduce removed promotion entries through locale resources', async () => {
-    const korean = await Bun.file('src/i18n/locales/ko.json').json();
-    for (const path of [
-      'nav.quick_start',
-      'nav_meta.quick_start',
-      'auth_login.kimi_sign_up_button',
-      'auth_login.recommended_provider_section',
-      'auth_login.recommended_provider_badge',
-      'auth_login.other_oauth_providers',
-      'auth_login.other_login_methods',
-      'config_management.visual.sections.network.proxy_url_sponsor_hint',
-      'providersPage.sponsor',
-      'providersPage.categories.quickFill',
-    ]) {
-      expect(korean).not.toHaveProperty(path);
-    }
-    for (const provider of [
-      'apikeyFun',
-      'fennoAI',
-      'qiniuCloud',
-      'code0',
-      'claudeApi',
-      'lmuAI',
-      'infistar',
-      'kimi',
-    ]) {
-      expect(korean.providersPage.providerNames).not.toHaveProperty(provider);
-    }
-  });
 });

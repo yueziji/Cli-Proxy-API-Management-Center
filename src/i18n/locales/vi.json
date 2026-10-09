@@ -1864,7 +1864,6 @@
       "createEyebrow": "Mới",
       "editEyebrow": "Chỉnh sửa",
       "name": "Tên",
-      "groupNameHint": "Các key trong cùng nhóm provider dùng chung tên này. Để trống để tạo tên khi thêm mới hoặc giữ tên hiện tại khi chỉnh sửa.",
       "apiKey": "API key",
       "apiKeyCreatePlaceholder": "Nhập API key",
       "apiKeyEditPlaceholder": "Để trống nếu không đổi",

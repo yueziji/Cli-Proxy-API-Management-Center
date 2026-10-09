@@ -1,3 +1,5 @@
+import { FORK_VISUAL_DEFAULTS, type ForkVisualConfigValues } from '@/features/config/forkFields';
+
 export type PayloadParamValueType = 'string' | 'number' | 'boolean' | 'json';
 export type DisableImageGenerationMode = 'false' | 'true' | 'chat' | 'passthrough';
 export type RoutingStrategy = 'round-robin' | 'weighted-round-robin' | 'fill-first';
@@ -141,7 +143,6 @@ export type VisualConfigValues = {
   codexStreamBootstrapBuffering: boolean;
   codexStreamBootstrapTimeout: string;
   codexOptimizeMultiAgentV2: boolean;
-  codexEnableApplyPatch: boolean;
   codexOrphanDelegationCompatibility: boolean;
   codexResponseSteering: boolean;
   antigravityConnectionPoolEnabled: boolean;
@@ -174,7 +175,6 @@ export type VisualConfigValues = {
   debug: boolean;
   commercialMode: boolean;
   loggingToFile: boolean;
-  requestLog: boolean;
   logsMaxTotalSizeMb: string;
   errorLogsMaxFiles: string;
   usageStatisticsEnabled: boolean;
@@ -216,7 +216,7 @@ export type VisualConfigValues = {
   payloadOverrideRawRules: PayloadRule[];
   payloadFilterRules: PayloadFilterRule[];
   streaming: StreamingConfig;
-};
+} & ForkVisualConfigValues;
 
 export const makeClientId = () => {
   if (typeof globalThis.crypto?.randomUUID === 'function') return globalThis.crypto.randomUUID();
@@ -224,6 +224,7 @@ export const makeClientId = () => {
 };
 
 export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
+  ...FORK_VISUAL_DEFAULTS,
   githubToken: '',
   trustedProxies: [],
   discoveryEnabled: false,
@@ -248,7 +249,6 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   codexStreamBootstrapBuffering: false,
   codexStreamBootstrapTimeout: '',
   codexOptimizeMultiAgentV2: false,
-  codexEnableApplyPatch: false,
   codexOrphanDelegationCompatibility: false,
   codexResponseSteering: false,
   antigravityConnectionPoolEnabled: false,
@@ -280,7 +280,6 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   debug: false,
   commercialMode: false,
   loggingToFile: false,
-  requestLog: false,
   logsMaxTotalSizeMb: '',
   errorLogsMaxFiles: '',
   usageStatisticsEnabled: false,

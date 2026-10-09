@@ -9,7 +9,7 @@ import { runVisualConfig } from './helpers/visualConfig';
 const trueSpellings = ['y', 'Y', 'yes', 'Yes', 'YES', 'on', 'On', 'ON'];
 const falseSpellings = ['n', 'N', 'no', 'No', 'NO', 'off', 'Off', 'OFF'];
 const booleanFields = [...ADDITION_FIELDS, ...SERVER_FIELDS].filter(
-  (field) => field.kind === 'boolean'
+  (field) => field.kind === 'boolean' && !('read' in field)
 );
 
 describe('backend-compatible visual booleans', () => {

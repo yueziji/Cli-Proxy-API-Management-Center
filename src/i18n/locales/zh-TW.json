@@ -2016,7 +2016,6 @@
       "createEyebrow": "新增",
       "editEyebrow": "編輯",
       "name": "名稱",
-      "groupNameHint": "同一供應商下的多個金鑰共用此名稱。留空時，新建自動命名，編輯保留原名稱。",
       "apiKey": "API 金鑰",
       "apiKeyCreatePlaceholder": "輸入 API 金鑰",
       "apiKeyEditPlaceholder": "留空表示不修改",
