@@ -4,7 +4,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { createInstance } from 'i18next';
 import { I18nextProvider } from 'react-i18next';
-import { OAuthPage } from '@/pages/OAuthPage';
+import { OAuthPage } from '@/features/oauth/OAuthPage';
+import { OAUTH_PROVIDERS } from '@/features/oauth/providers';
 import { codexToResource, vertexToResource } from '@/features/providers/adapters';
 import { BaseProviderForm } from '@/features/providers/sheets/forms/BaseProviderForm';
 import { OpenAIConnectivityTest } from '@/features/providers/sheets/forms/OpenAIConnectivityTest';
@@ -86,18 +87,30 @@ describe('fork provider UI', () => {
     }
   });
 
-  test('keeps the OAuth provider order, Kimi login and Devin guidance', () => {
+  test('keeps the OAuth provider order and both Kimi login tiles', () => {
     const markup = render(createElement(OAuthPage));
-    const providers = ['codex', 'anthropic', 'antigravity', 'kimi', 'xai', 'devin'];
+    const providers = [
+      'meta',
+      'codex',
+      'anthropic',
+      'antigravity',
+      'kimi',
+      'kimi-ai',
+      'xai',
+      'devin',
+    ];
+    expect(OAUTH_PROVIDERS.map((provider) => provider.id)).toEqual(providers);
     let previous = -1;
-    for (const provider of providers) {
-      const position = markup.indexOf(i18n.t(`auth_login.${provider}_oauth_title`));
+    for (const provider of OAUTH_PROVIDERS) {
+      const label =
+        typeof provider.label === 'string' ? provider.label : i18n.t(provider.label.key);
+      const position = markup.indexOf(label);
       expect(position).toBeGreaterThan(previous);
       previous = position;
     }
     expect(markup.indexOf(i18n.t('vertex_import.title'))).toBeGreaterThan(previous);
-    expect(markup).toContain('Start Kimi Login');
-    expect(markup).toContain('v7.3.1');
+    expect(markup).toContain('kimi.com');
+    expect(markup).toContain('kimi.ai');
     expect(markup).not.toContain('Sign Up Now');
   });
 

@@ -2,7 +2,8 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { apiClient } from '@/services/api/client';
 import { oauthApi } from '@/services/api/oauth';
-import { createOAuthAttempts } from '@/pages/oauthAttempts';
+import { createOAuthAttempts } from '@/features/oauth/oauthAttempts';
+import { OAUTH_PROVIDERS } from '@/features/oauth/providers';
 
 describe('Kimi regional login', () => {
   test('uses separate provider parameters and preserves cancellation', async () => {
@@ -38,9 +39,15 @@ describe('Kimi regional login', () => {
   });
 
   test('offers both regional login cards', () => {
-    const source = readFileSync('src/pages/OAuthPage.tsx', 'utf8');
-    expect(source).toContain("id: 'kimi-ai'");
-    expect(source).toContain("id: 'kimi'");
+    expect(OAUTH_PROVIDERS.find((provider) => provider.id === 'kimi')).toMatchObject({
+      flow: 'device',
+      domain: 'kimi.com',
+    });
+    expect(OAUTH_PROVIDERS.find((provider) => provider.id === 'kimi-ai')).toMatchObject({
+      flow: 'device',
+      domain: 'kimi.ai',
+    });
+    for (const provider of OAUTH_PROVIDERS) expect(provider).not.toHaveProperty('sponsor');
   });
 
   for (const locale of ['en', 'zh-CN', 'zh-TW', 'ru']) {

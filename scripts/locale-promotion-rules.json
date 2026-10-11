@@ -3,6 +3,7 @@
     "nav.quick_start",
     "nav_meta.quick_start",
     "auth_login.kimi_sign_up_button",
+    "auth_login.sign_up_prompt",
     "auth_login.recommended_provider_section",
     "auth_login.recommended_provider_badge",
     "auth_login.other_oauth_providers",

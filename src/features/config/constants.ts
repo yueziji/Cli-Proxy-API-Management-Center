@@ -7,7 +7,6 @@ import {
   IconScrollText,
   IconShield,
   IconSlidersHorizontal,
-  IconTimer,
   type IconProps,
 } from '@/components/ui/icons';
 import type { VisualConfigFieldPath } from '@/types/visualConfig';
@@ -17,14 +16,13 @@ import { FORK_COMMON_FIELD_IDS, FORK_FIELD_VALUE_KEYS } from './forkFields';
 /** 编辑模式：可视化表单 or YAML 源码。 */
 export type ConfigEditorMode = 'visual' | 'source';
 
-/** 顶部 tabs：'common'（常用，原简单模式的继任者）+ 7 个正典分区。 */
+/** 顶部 tabs：'common'（常用，原简单模式的继任者）+ 6 个正典分区。 */
 export type ConfigTabId = 'common' | VisualSectionId;
 
 export const CONFIG_SECTION_IDS = [
   'connectivity',
   'network',
   'logging',
-  'quota',
   'streaming',
   'advanced',
   'payload',
@@ -32,15 +30,14 @@ export const CONFIG_SECTION_IDS = [
 
 export const CONFIG_TAB_IDS: readonly ConfigTabId[] = ['common', ...CONFIG_SECTION_IDS];
 
-/** 分区序号（01–07）。常用 tab 是别名视图，不占序号。 */
+/** 分区序号（01–06）。常用 tab 是别名视图，不占序号。 */
 export const SECTION_INDEX_LABELS: Record<VisualSectionId, string> = {
   connectivity: '01',
   network: '02',
   logging: '03',
-  quota: '04',
-  streaming: '05',
-  advanced: '06',
-  payload: '07',
+  streaming: '04',
+  advanced: '05',
+  payload: '06',
 };
 
 export const CONFIG_TAB_ICONS: Record<ConfigTabId, ComponentType<IconProps>> = {
@@ -48,13 +45,12 @@ export const CONFIG_TAB_ICONS: Record<ConfigTabId, ComponentType<IconProps>> = {
   connectivity: IconKey,
   network: IconNetwork,
   logging: IconScrollText,
-  quota: IconTimer,
   streaming: IconSatellite,
   advanced: IconShield,
   payload: IconCode,
 };
 
-/** 常用 tab 的 9 个字段（原简单模式），渲染源与正典分区共享（fields/sharedFields.tsx）。 */
+/** 常用 tab 的 7 个字段，渲染源与正典分区共享（fields/sharedFields.tsx）。 */
 export const COMMON_FIELD_IDS = [
   'host',
   'port',
@@ -63,8 +59,6 @@ export const COMMON_FIELD_IDS = [
   'debug',
   'loggingToFile',
   ...FORK_COMMON_FIELD_IDS,
-  'quotaSwitchProject',
-  'quotaSwitchPreviewModel',
 ] as const;
 
 /**
@@ -83,7 +77,6 @@ export const SECTION_VALIDATION_FIELDS: Record<VisualSectionId, readonly VisualC
       'videoResultAuthCacheTTL',
     ],
     logging: ['errorLogsMaxFiles', 'logsMaxTotalSizeMb', 'redisUsageQueueRetentionSeconds'],
-    quota: [],
     streaming: [
       'streaming.keepaliveSeconds',
       'streaming.bootstrapRetries',
@@ -182,15 +175,12 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   errorLogsMaxFiles: ['errorLogsMaxFiles'],
   redisUsageQueueRetentionSeconds: ['redisUsageQueueRetentionSeconds'],
   usageStatisticsEnabled: ['usageStatisticsEnabled'],
-  // ── quota ─────────────────────────────────────────────────────────────────
-  quotaSwitchProject: ['quotaSwitchProject'],
-  quotaSwitchPreviewModel: ['quotaSwitchPreviewModel'],
-  quotaAntigravityCredits: ['quotaAntigravityCredits'],
   // ── streaming ─────────────────────────────────────────────────────────────
   streamingKeepaliveSeconds: ['streaming.keepaliveSeconds'],
   streamingBootstrapRetries: ['streaming.bootstrapRetries'],
   streamingNonstreamKeepalive: ['streaming.nonstreamKeepaliveInterval'],
   // ── advanced ──────────────────────────────────────────────────────────────
+  quotaAntigravityCredits: ['quotaAntigravityCredits'],
   pluginsEnabled: ['pluginsEnabled'],
   pluginStoreSources: ['pluginStoreSources'],
   pluginStoreAuth: ['pluginStoreAuth'],
