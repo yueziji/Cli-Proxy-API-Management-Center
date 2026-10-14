@@ -7,6 +7,9 @@ import {
   readModelOptions,
   buildModelOptions,
   validateModelOptions,
+  hasModality,
+  toggleModality,
+  MODEL_MODALITIES,
 } from '@/features/providers/modelOptions';
 import { ModelAdvancedFields } from '@/features/providers/sheets/forms/ModelAdvancedFields';
 import type { ModelEntryInput, ProviderBrand } from '@/features/providers/types';
@@ -102,6 +105,13 @@ describe('provider model options', () => {
   });
 
   test('modalities accept future values and empty text restores defaults', () => {
+    expect(MODEL_MODALITIES).toEqual(['text', 'image', 'audio', 'video']);
+    expect(hasModality('TEXT, image', 'text')).toBe(true);
+    expect(hasModality('TEXT, image', 'audio')).toBe(false);
+    expect(toggleModality(undefined, 'image')).toBe('image');
+    expect(toggleModality('image, custom', 'text')).toBe('text, image, custom');
+    expect(toggleModality('text, image', 'text')).toBe('image');
+    expect(toggleModality('image', 'image')).toBe('');
     expect(
       buildModelOptions({
         name: 'model',
@@ -207,6 +217,12 @@ describe('provider model options', () => {
         brand === 'codex'
       );
       expect(html.includes('providersPage.modelOptions.inputModalitiesText')).toBe(
+        brand === 'openaiCompatibility'
+      );
+      expect(html.includes('providersPage.modelOptions.modalities.text')).toBe(
+        brand === 'openaiCompatibility'
+      );
+      expect(html.includes('providersPage.modelOptions.modalities.video')).toBe(
         brand === 'openaiCompatibility'
       );
       expect(html.includes('providersPage.modelOptions.useMaxCompletionTokens')).toBe(

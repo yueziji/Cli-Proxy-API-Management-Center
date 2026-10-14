@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
 import { getProviderModelCapabilities } from '../../descriptors';
+import { hasModality, MODEL_MODALITIES, toggleModality } from '../../modelOptions';
 import { THINKING_LEVELS } from '../../thinkingLevels';
 import type { ModelEntryInput, ProviderBrand } from '../../types';
 import styles from './sharedForm.module.scss';
@@ -28,13 +29,7 @@ export function ModelAdvancedFields({
   const enabled = entry.thinkingEnabled ?? Boolean(entry.thinkingJson?.trim());
   const levels = entry.thinkingLevels ?? [];
   const textField = (
-    key:
-      | 'displayName'
-      | 'maxContextLength'
-      | 'inputModalitiesText'
-      | 'outputModalitiesText'
-      | 'thinkingMin'
-      | 'thinkingMax',
+    key: 'displayName' | 'maxContextLength' | 'thinkingMin' | 'thinkingMax',
     numeric = false,
     budget = false
   ) => (
@@ -48,8 +43,6 @@ export function ModelAdvancedFields({
         onChange={(event) =>
           onUpdate({
             [key]: event.target.value,
-            ...(key === 'inputModalitiesText' ? { inputModalitiesTouched: true } : {}),
-            ...(key === 'outputModalitiesText' ? { outputModalitiesTouched: true } : {}),
             ...(budget ? { thinkingBudgetTouched: true } : {}),
           })
         }
@@ -58,6 +51,42 @@ export function ModelAdvancedFields({
         <small>{t('providersPage.modelOptions.contextHint')}</small>
       ) : null}
     </label>
+  );
+  const modalityField = (
+    key: 'inputModalitiesText' | 'outputModalitiesText',
+    touchedKey: 'inputModalitiesTouched' | 'outputModalitiesTouched'
+  ) => (
+    <div className={styles.field}>
+      <span className={styles.label}>{t(`providersPage.modelOptions.${key}`)}</span>
+      <div className={styles.thinkingLevelGrid}>
+        {MODEL_MODALITIES.map((modality) => {
+          const checked = hasModality(entry[key], modality);
+          return (
+            <SelectionCheckbox
+              key={modality}
+              checked={checked}
+              disabled={disabled}
+              onChange={() =>
+                onUpdate({
+                  [key]: toggleModality(entry[key], modality),
+                  [touchedKey]: true,
+                })
+              }
+              className={`${styles.thinkingLevelOption} ${
+                checked ? styles.thinkingLevelOptionSelected : ''
+              }`}
+              labelClassName={styles.thinkingLevelLabel}
+              label={
+                <>
+                  <span>{t(`providersPage.modelOptions.modalities.${modality}`)}</span>
+                  <code>{modality}</code>
+                </>
+              }
+            />
+          );
+        })}
+      </div>
+    </div>
   );
   const checkbox = (
     key:
@@ -94,11 +123,8 @@ export function ModelAdvancedFields({
       {capabilities.configurationUpdate ? checkbox('supportConfigurationUpdate') : null}
       {capabilities.modalities ? (
         <>
-          {textField('inputModalitiesText')}
-          {textField('outputModalitiesText')}
-          <p className={styles.thinkingExistingHint}>
-            {t('providersPage.modelOptions.modalitiesHint')}
-          </p>
+          {modalityField('inputModalitiesText', 'inputModalitiesTouched')}
+          {modalityField('outputModalitiesText', 'outputModalitiesTouched')}
           {checkbox('useMaxCompletionTokens')}
         </>
       ) : null}

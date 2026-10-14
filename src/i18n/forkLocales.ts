@@ -105,6 +105,14 @@ export const forkLocales = {
       },
     },
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: '文本',
+          image: '图片',
+          audio: '音频',
+          video: '视频',
+        },
+      },
       table: {
         disableCoolingTag: '禁用冷却',
       },
@@ -183,6 +191,14 @@ export const forkLocales = {
       },
     },
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: '文字',
+          image: '圖片',
+          audio: '音訊',
+          video: '影片',
+        },
+      },
       table: {
         disableCoolingTag: '停用冷卻',
       },
@@ -263,6 +279,14 @@ export const forkLocales = {
       },
     },
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: 'Text',
+          image: 'Image',
+          audio: 'Audio',
+          video: 'Video',
+        },
+      },
       table: {
         disableCoolingTag: 'No cooling',
       },
@@ -345,6 +369,14 @@ export const forkLocales = {
       },
     },
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: 'Текст',
+          image: 'Изображение',
+          audio: 'Аудио',
+          video: 'Видео',
+        },
+      },
       table: {
         disableCoolingTag: 'Без cooldown',
       },
@@ -373,6 +405,14 @@ export const forkLocales = {
   },
   vi: {
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: 'Văn bản',
+          image: 'Hình ảnh',
+          audio: 'Âm thanh',
+          video: 'Video',
+        },
+      },
       form: {
         groupNameHint:
           'Các key trong cùng nhóm provider dùng chung tên này. Để trống để tạo tên khi thêm mới hoặc giữ tên hiện tại khi chỉnh sửa.',
@@ -381,6 +421,14 @@ export const forkLocales = {
   },
   ko: {
     providersPage: {
+      modelOptions: {
+        modalities: {
+          text: '텍스트',
+          image: '이미지',
+          audio: '오디오',
+          video: '비디오',
+        },
+      },
       form: {
         groupNameHint:
           '같은 공급자 그룹의 키는 이 이름을 공유합니다. 비워 두면 생성 시 이름이 자동으로 지정되고, 편집 시 기존 이름이 유지됩니다.',

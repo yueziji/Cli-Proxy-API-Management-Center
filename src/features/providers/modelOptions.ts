@@ -2,6 +2,11 @@ import type { ModelAlias } from '@/types';
 import type { ModelEntryInput } from './types';
 import { buildThinkingFromLevels, readThinkingLevels, type ThinkingLevel } from './thinkingLevels';
 
+export const MODEL_MODALITIES = ['text', 'image', 'audio', 'video'] as const;
+export type ModelModality = (typeof MODEL_MODALITIES)[number];
+
+const MODEL_MODALITY_SET = new Set<string>(MODEL_MODALITIES);
+
 export interface ModelOptionsInput {
   displayName?: string;
   maxContextLength?: string;
@@ -68,6 +73,24 @@ const modalities = (value: string | undefined) => {
     .filter(Boolean);
   return parts?.length ? parts : undefined;
 };
+
+export function hasModality(value: string | undefined, modality: ModelModality): boolean {
+  return modalities(value)?.some((item) => item.toLowerCase() === modality) ?? false;
+}
+
+export function toggleModality(value: string | undefined, modality: ModelModality): string {
+  const current = modalities(value) ?? [];
+  const selected = new Set(
+    current.map((item) => item.toLowerCase()).filter((item) => MODEL_MODALITY_SET.has(item))
+  );
+  const custom = current.filter((item) => !MODEL_MODALITY_SET.has(item.toLowerCase()));
+  if (selected.has(modality)) {
+    selected.delete(modality);
+  } else {
+    selected.add(modality);
+  }
+  return [...MODEL_MODALITIES.filter((item) => selected.has(item)), ...custom].join(', ');
+}
 
 export function buildModelOptions(entry: ModelEntryInput): Partial<ModelAlias> {
   let thinking: Record<string, unknown> | undefined;
