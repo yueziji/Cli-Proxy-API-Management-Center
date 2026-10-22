@@ -478,6 +478,7 @@ const buildPrefixProxyUpdatedText = (
   }
 
   applyCredentialPolicyPatch(next, patch);
+  applyForkAuthFilePreview(next, patch);
   applyHeadersPatch(next, patch.headers);
 
   if (patch.websockets !== undefined) {
@@ -492,7 +493,7 @@ const buildPrefixProxyUpdatedText = (
     next.use_siwc = patch.use_siwc;
   }
 
-  return JSON.stringify(applyForkAuthFilePreview(next, patch));
+  return JSON.stringify(next);
 };
 
 export function useAuthFilesPrefixProxyEditor(

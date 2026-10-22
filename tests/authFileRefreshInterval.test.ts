@@ -6,6 +6,10 @@ import {
   updateForkAuthFileEditorState,
 } from '../src/features/authFiles/authFileEditorState';
 import type { AuthFileFieldsPatch } from '../src/services/api/authFiles';
+import {
+  buildAuthFileFieldsPatch,
+  type PrefixProxyEditorState,
+} from '../src/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
 
 const errorKey = (key: string) => key;
 const read = (json: Record<string, unknown>) => readForkAuthFileEditorState(json, errorKey);
@@ -85,4 +89,74 @@ describe('auth-file refresh interval backend contract', () => {
     'rejects invalid, zero or overflowing durations: %s',
     (value) => expect(() => edit({}, value)).toThrow('auth_files.refresh_interval_invalid')
   );
+});
+
+describe('fork auth-file fields', () => {
+  const makeEditor = (json: Record<string, unknown>): PrefixProxyEditorState => ({
+    fileName: 'credential.json',
+    fileInfoText: '',
+    loading: false,
+    saving: false,
+    error: null,
+    originalText: JSON.stringify(json),
+    rawText: JSON.stringify(json),
+    invalidContentPreview: '',
+    json,
+    providerKey: 'codex',
+    prefix: '',
+    proxyUrl: '',
+    priority: '',
+    weight: '',
+    weightError: null,
+    disableCooling: false,
+    disableCoolingTouched: false,
+    websockets: false,
+    websocketsTouched: false,
+    useSiwc: false,
+    useSiwcTouched: false,
+    usingApi: false,
+    usingApiTouched: false,
+    note: '',
+    noteTouched: false,
+    excludedModelsText: '',
+    excludedModelsTouched: false,
+    headersText: '',
+    headersTouched: false,
+    headersError: null,
+    ...read(json),
+  });
+
+  test('reads legacy refresh aliases', () => {
+    expect(read({ refreshIntervalSeconds: 900 })).toMatchObject({
+      refreshInterval: '900',
+      refreshIntervalError: null,
+    });
+  });
+
+  test('adds only touched fork fields to the patch', () => {
+    const editor = {
+      ...makeEditor({ refresh_interval: '5m', disable_cooling: true }),
+      refreshInterval: '15m',
+      refreshIntervalTouched: true,
+      disableCooling: false,
+      disableCoolingTouched: true,
+    };
+
+    expect(buildAuthFileFieldsPatch(editor, errorKey)).toEqual({
+      refresh_interval: '15m',
+      disable_cooling: false,
+    });
+  });
+
+  test('rejects an invalid refresh interval before PATCH', () => {
+    const editor = {
+      ...makeEditor({}),
+      refreshInterval: 'invalid',
+      refreshIntervalTouched: true,
+    };
+
+    expect(() => buildAuthFileFieldsPatch(editor, errorKey)).toThrow(
+      'auth_files.refresh_interval_invalid'
+    );
+  });
 });

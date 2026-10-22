@@ -3,7 +3,6 @@ import {
   buildAuthFileFieldsPatch,
   type PrefixProxyEditorState,
 } from '../src/features/authFiles/hooks/useAuthFilesPrefixProxyEditor';
-import { readForkAuthFileEditorState } from '../src/features/authFiles/authFileEditorState';
 import {
   readAuthFileDisableCooling,
   readAuthFileUseSiwc,
@@ -188,43 +187,5 @@ describe('auth-file excluded models patch', () => {
         resolveError
       )
     ).toEqual({ excluded_models: [] });
-  });
-});
-
-describe('fork auth-file fields', () => {
-  test('reads legacy refresh aliases', () => {
-    expect(
-      readForkAuthFileEditorState({ refreshIntervalSeconds: 900 }, resolveError)
-    ).toMatchObject({
-      refreshInterval: '900',
-      refreshIntervalError: null,
-    });
-  });
-
-  test('adds only touched fork fields to the patch', () => {
-    const editor = {
-      ...makeEditor({ refresh_interval: '5m', disable_cooling: true }, ''),
-      refreshInterval: '15m',
-      refreshIntervalTouched: true,
-      disableCooling: false,
-      disableCoolingTouched: true,
-    };
-
-    expect(buildAuthFileFieldsPatch(editor, resolveError)).toEqual({
-      refresh_interval: '15m',
-      disable_cooling: false,
-    });
-  });
-
-  test('rejects an invalid refresh interval before PATCH', () => {
-    const editor = {
-      ...makeEditor({}, ''),
-      refreshInterval: 'invalid',
-      refreshIntervalTouched: true,
-    };
-
-    expect(() => buildAuthFileFieldsPatch(editor, resolveError)).toThrow(
-      'auth_files.refresh_interval_invalid'
-    );
   });
 });
