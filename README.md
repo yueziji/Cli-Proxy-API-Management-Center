@@ -86,7 +86,7 @@ Supports **English, 简体中文, 繁體中文, and Русский**, with brows
 
 ## Deployment
 
-To build your own single-file UI, use **Bun 1.3.14**:
+To build your own single-file UI, use **Bun 1.4.3**:
 
 ```bash
 bun install --frozen-lockfile

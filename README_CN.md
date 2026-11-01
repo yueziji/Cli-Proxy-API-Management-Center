@@ -86,7 +86,7 @@
 
 ## 部署
 
-如需自行构建单文件界面，使用 **Bun 1.3.14**：
+如需自行构建单文件界面，使用 **Bun 1.4.3**：
 
 ```bash
 bun install --frozen-lockfile
