@@ -6,6 +6,7 @@ import i18n from '@/i18n';
 import { DEFAULT_VISUAL_VALUES } from '@/types/visualConfig';
 import { SectionAdvanced } from '@/features/config/components/sections/SectionAdvanced';
 import { SectionNetwork } from '@/features/config/components/sections/SectionNetwork';
+import { SectionStreaming } from '@/features/config/components/sections/SectionStreaming';
 import { SectionOAuthBehavior } from '@/features/config/components/sections/SectionOAuthBehavior';
 import { CodexLiveICEServersEditor } from '@/features/config/components/blocks/CodexLiveICEServersEditor';
 import { CONFIG_SECTION_IDS } from '@/features/config/constants';
@@ -32,32 +33,36 @@ describe('OAuth behavior configuration UI', () => {
     expect(CONFIG_SECTION_IDS).toHaveLength(6);
     const network = render(createElement(SectionNetwork, props));
     const advanced = render(createElement(SectionAdvanced, props));
+    const streaming = render(createElement(SectionStreaming, props));
+    const sections = { network, advanced, streaming };
     const additions = CONFIG_FIELD_SEARCH_INDEX.filter((entry) =>
       entry.labelKey.includes('.additions.')
     );
-    expect(additions).toHaveLength(27);
+    expect(additions).toHaveLength(33);
     for (const entry of additions) {
-      const own = entry.sectionId === 'network' ? network : advanced;
-      const other = entry.sectionId === 'network' ? advanced : network;
+      const own = sections[entry.sectionId as keyof typeof sections];
       expect(own).toContain(`id="cfg-field-${entry.fieldId}"`);
-      expect(other).not.toContain(`id="cfg-field-${entry.fieldId}"`);
+      for (const [sectionId, other] of Object.entries(sections)) {
+        if (sectionId !== entry.sectionId)
+          expect(other).not.toContain(`id="cfg-field-${entry.fieldId}"`);
+      }
       expect(own).toContain(escapeText(translations.t(entry.labelKey)));
       expect(own).toContain(escapeText(translations.t(entry.hintKey!)));
-      expect(entry.yamlKeys?.join('.')).toMatch(/^(routing|multimedia|oauth|upstream|client)\./);
+      expect(entry.yamlKeys?.join('.')).toMatch(
+        /^(routing|multimedia|oauth|upstream|client|requests)\./
+      );
     }
     const oauth = render(createElement(SectionOAuthBehavior, props));
     expect(oauth).toContain('<details');
     expect(oauth).toContain(text('oauthTitle'));
     expect(oauth).toContain(text('oauthHint'));
-    expect(oauth).toContain(text('upstreamTitle'));
-    expect(oauth).toContain(text('clientTitle'));
-    const groups = oauth.split('</details>');
-    expect(groups[0]).toContain('cfg-field-codexResponseSteering');
-    expect(groups[0]).not.toContain('cfg-field-codexOptimizeMultiAgentV2');
-    expect(groups[1]).toContain('cfg-field-codexOptimizeMultiAgentV2');
-    expect(groups[1]).toContain('cfg-field-codexEnableApplyPatch');
-    expect(groups[2]).toContain('cfg-field-codexLiveMediaRelayEnabled');
-    expect(groups[2]).toContain('cfg-field-antigravityConnectionPoolEnabled');
+    expect(oauth.match(/<details/g)).toHaveLength(1);
+    expect(oauth).toContain('cfg-field-codexOptimizeMultiAgentV2');
+    expect(oauth).toContain('cfg-field-codexLiveMediaRelayEnabled');
+    expect(oauth).not.toContain('cfg-field-codexEnableApplyPatch');
+    expect(advanced).toContain(text('clientToolsTitle'));
+    expect(advanced).toContain('cfg-field-codexEnableApplyPatch');
+    expect(advanced).toContain('cfg-field-claudeToolSearch');
     expect(oauth).not.toContain('cfg-field-claudeHeaderTimezone');
     expect(oauth).toContain(text('liveRelayHint'));
   });
@@ -94,7 +99,12 @@ describe('OAuth behavior configuration UI', () => {
 
   test('disables every editor and ICE action when configuration is read-only', () => {
     const values = { ...DEFAULT_VISUAL_VALUES, codexLiveMediaRelayICEServers: [server] };
-    for (const Section of [SectionOAuthBehavior, SectionNetwork, SectionAdvanced]) {
+    for (const Section of [
+      SectionOAuthBehavior,
+      SectionNetwork,
+      SectionStreaming,
+      SectionAdvanced,
+    ]) {
       const markup = render(createElement(Section, { ...props, values, disabled: true }));
       const controls = markup.match(/<(?:input|textarea|button)\b[^>]*>/g) ?? [];
       expect(controls.length).toBeGreaterThan(0);

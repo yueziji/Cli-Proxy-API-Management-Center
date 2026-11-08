@@ -1,98 +1,170 @@
 export const configProviderLocales = {
   'zh-CN': {
     additions: {
-      upstreamTitle: '共享上游行为',
-      upstreamHint: '适用于 OAuth 和 API Key 凭据的默认设置，凭据自身的显式覆盖优先。',
-      clientTitle: '客户端兼容',
-      clientHint: 'Codex 客户端设置跨提供商生效，适用于 OAuth 和 API Key 路由。',
+      clientToolsTitle: '客户端与工具',
       codexEnableApplyPatch: {
         label: '扩展 apply_patch 支持',
         hint: '默认关闭：仍保留模型原生声明的 freeform apply_patch 能力。开启后，所有路由执行器均支持的非模板及桥接模型也会声明 freeform 能力。',
       },
-      codexOptimizeMultiAgentV2: {
-        hint: '优化跨提供商的 Codex 客户端多代理请求：更新 spawn_agent 模型信息、移除消息参数加密、规范化 agent_message，并为非 Codex 协议转换为用户消息。默认关闭，适用于 OAuth 和 API Key 路由。',
+      codexWebSearchResultCacheEnabled: {
+        label: '缓存 Codex 搜索结果',
+        hint: '缓存并补回 Codex 客户端在后续请求历史中遗漏的网页搜索结果。默认关闭。',
       },
-      claudeDisableCloakMode: {
-        hint: '禁用 Claude Code CLI 身份伪装和系统提示词替换，原样传递系统提示词。凭据的 cloak_mode 或 API Key 的 cloak.mode 显式设置优先。默认关闭，仅对非 Claude Code 客户端自动伪装。',
+      codexWebSearchResultCacheTTL: {
+        label: '搜索结果缓存有效期',
+        hint: '支持 30m、24h 或整数秒。留空或设为 0 使用默认的 24 小时，不能为负数。',
+      },
+      codexWebSearchResultCacheLimit: {
+        label: '搜索结果缓存容量',
+        hint: '最多保留的缓存条目数。留空或设为 0 使用默认的 1024 条，不能为负数。',
+      },
+      routingSessionAffinityRebindOn: {
+        label: '会话换号策略',
+        hint: '仅在启用会话亲和性时生效。any：凭据错误时换号；quota：瞬时错误仅为本次请求切换，配额或认证错误重新绑定；never：保持原凭据并返回错误或在原凭据上重试。',
+        options: {
+          default: '后端默认（any）',
+          any: '凭据错误时换号',
+          quota: '配额或认证错误时换号',
+          never: '保持原凭据',
+        },
+      },
+      claudeToolSearch: {
+        label: 'Claude 工具搜索',
+        hint: '为路由到 Claude 的 Codex Responses 请求启用工具搜索。支持的凭据使用 Anthropic 原生工具搜索，其余采用兼容转换。默认关闭。',
+      },
+      streamingSendKeepAliveBeforeFT: {
+        label: '首 token 前发送心跳',
+        hint: '在首 token 到达前发送 SSE 心跳。仅在心跳间隔大于 0 时生效，默认关闭。',
       },
     },
-    headers: {
-      description:
-        'Claude 指纹默认值适用于 OAuth 和 API Key；Codex 默认请求头仅适用于 OAuth 凭据。',
-      claude_title: 'Claude 共享指纹默认值',
+    validation: {
+      invalid_session_affinity_rebind: '请选择 any、quota、never，或使用后端默认值。',
     },
   },
   'zh-TW': {
     additions: {
-      upstreamTitle: '共用上游行為',
-      upstreamHint: '適用於 OAuth 與 API Key 憑證的預設設定，憑證本身的明確覆寫優先。',
-      clientTitle: '用戶端相容性',
-      clientHint: 'Codex 用戶端設定跨提供商生效，適用於 OAuth 與 API Key 路由。',
+      clientToolsTitle: '用戶端與工具',
       codexEnableApplyPatch: {
         label: '擴充 apply_patch 支援',
         hint: '預設關閉：仍保留模型原生宣告的 freeform apply_patch 能力。開啟後，所有路由執行器均支援的非範本及橋接模型也會宣告 freeform 能力。',
       },
-      codexOptimizeMultiAgentV2: {
-        hint: '最佳化跨提供商的 Codex 用戶端多代理請求：更新 spawn_agent 模型資訊、移除訊息參數加密、正規化 agent_message，並為非 Codex 協定轉換為使用者訊息。預設關閉，適用於 OAuth 與 API Key 路由。',
+      codexWebSearchResultCacheEnabled: {
+        label: '快取 Codex 搜尋結果',
+        hint: '快取並補回 Codex 用戶端在後續請求歷史中遺漏的網頁搜尋結果。預設關閉。',
       },
-      claudeDisableCloakMode: {
-        hint: '停用 Claude Code CLI 身分偽裝與系統提示詞替換，原樣傳遞系統提示詞。憑證的 cloak_mode 或 API Key 的 cloak.mode 明確設定優先。預設關閉，僅對非 Claude Code 用戶端自動偽裝。',
+      codexWebSearchResultCacheTTL: {
+        label: '搜尋結果快取有效期',
+        hint: '支援 30m、24h 或整數秒。留空或設為 0 使用預設的 24 小時，不得為負數。',
+      },
+      codexWebSearchResultCacheLimit: {
+        label: '搜尋結果快取容量',
+        hint: '最多保留的快取項目數。留空或設為 0 使用預設的 1024 筆，不得為負數。',
+      },
+      routingSessionAffinityRebindOn: {
+        label: '工作階段換號策略',
+        hint: '僅在啟用工作階段親和性時生效。any：憑證錯誤時換號；quota：暫時錯誤僅為本次請求切換，配額或驗證錯誤重新綁定；never：保持原憑證並回傳錯誤或在原憑證上重試。',
+        options: {
+          default: '後端預設（any）',
+          any: '憑證錯誤時換號',
+          quota: '配額或驗證錯誤時換號',
+          never: '保持原憑證',
+        },
+      },
+      claudeToolSearch: {
+        label: 'Claude 工具搜尋',
+        hint: '為路由至 Claude 的 Codex Responses 請求啟用工具搜尋。支援的憑證使用 Anthropic 原生工具搜尋，其餘採用相容轉換。預設關閉。',
+      },
+      streamingSendKeepAliveBeforeFT: {
+        label: '首個 token 前傳送心跳',
+        hint: '在首個 token 到達前傳送 SSE 心跳。僅在心跳間隔大於 0 時生效，預設關閉。',
       },
     },
-    headers: {
-      description:
-        'Claude 指紋預設值適用於 OAuth 與 API Key；Codex 預設請求標頭僅適用於 OAuth 憑證。',
-      claude_title: 'Claude 共用指紋預設值',
+    validation: {
+      invalid_session_affinity_rebind: '請選擇 any、quota、never，或使用後端預設值。',
     },
   },
   en: {
     additions: {
-      upstreamTitle: 'Shared upstream behavior',
-      upstreamHint:
-        'Defaults for OAuth and API-key credentials. Explicit credential overrides take priority.',
-      clientTitle: 'Client compatibility',
-      clientHint:
-        'Codex client settings apply across providers and to both OAuth and API-key routes.',
+      clientToolsTitle: 'Client and tools',
       codexEnableApplyPatch: {
         label: 'Extend apply_patch support',
         hint: 'Default off: models with native freeform apply_patch support still advertise it. When enabled, eligible non-template and bridged models also advertise freeform if every routing executor supports it.',
       },
-      codexOptimizeMultiAgentV2: {
-        hint: 'Optimize Codex client multi-agent requests across providers: update spawn_agent model details, remove message parameter encryption, normalize agent_message, and convert it to user messages for non-Codex protocols. Default off; applies to OAuth and API-key routes.',
+      codexWebSearchResultCacheEnabled: {
+        label: 'Cache Codex search results',
+        hint: 'Cache and restore web search results omitted from later Codex client request history. Default off.',
       },
-      claudeDisableCloakMode: {
-        hint: 'Disable the Claude Code CLI disguise and system prompt replacement. Explicit credential cloak_mode or API-key cloak.mode settings take priority. Default off: automatically cloak non-Claude-Code clients.',
+      codexWebSearchResultCacheTTL: {
+        label: 'Search result cache lifetime',
+        hint: 'Accepts durations such as 30m or 24h, or integer seconds. Blank or 0 uses the default 24 hours. Must not be negative.',
+      },
+      codexWebSearchResultCacheLimit: {
+        label: 'Search result cache capacity',
+        hint: 'Maximum retained entries. Blank or 0 uses the default 1024 entries. Must not be negative.',
+      },
+      routingSessionAffinityRebindOn: {
+        label: 'Session credential failover',
+        hint: 'Requires session affinity. any: rebind on credential errors; quota: preserve the binding for transient errors and rebind on quota or auth errors; never: keep the credential and return the error or retry it.',
+        options: {
+          default: 'Backend default (any)',
+          any: 'Rebind on credential errors',
+          quota: 'Rebind on quota or auth errors',
+          never: 'Keep the original credential',
+        },
+      },
+      claudeToolSearch: {
+        label: 'Claude tool search',
+        hint: 'Enable tool search for Codex Responses requests routed to Claude. Supported credentials use Anthropic native tool search; other routes use a compatible translation. Default off.',
+      },
+      streamingSendKeepAliveBeforeFT: {
+        label: 'Send heartbeats before the first token',
+        hint: 'Send SSE heartbeats before the first token arrives. Requires a heartbeat interval greater than 0. Default off.',
       },
     },
-    headers: {
-      description:
-        'Claude fingerprint defaults apply to OAuth and API keys; Codex header defaults apply only to OAuth credentials.',
-      claude_title: 'Claude shared fingerprint defaults',
+    validation: {
+      invalid_session_affinity_rebind: 'Choose any, quota, never, or the backend default.',
     },
   },
   ru: {
     additions: {
-      upstreamTitle: 'Общие настройки провайдеров',
-      upstreamHint:
-        'Значения по умолчанию для OAuth и API-ключей. Явные настройки отдельных учётных данных имеют приоритет.',
-      clientTitle: 'Совместимость клиентов',
-      clientHint:
-        'Настройки клиентов Codex действуют для всех провайдеров и маршрутов с OAuth и API-ключами.',
+      clientToolsTitle: 'Клиент и инструменты',
       codexEnableApplyPatch: {
         label: 'Расширить поддержку apply_patch',
         hint: 'По умолчанию выключено: модели с нативной поддержкой freeform apply_patch сохраняют её. При включении подходящие модели без шаблона и модели с преобразованием протокола также объявляют freeform, если его поддерживают все исполнители маршрута.',
       },
-      codexOptimizeMultiAgentV2: {
-        hint: 'Оптимизировать запросы клиентов Codex с несколькими агентами у всех провайдеров: обновить сведения spawn_agent, убрать шифрование параметров, нормализовать agent_message и преобразовать его в сообщения пользователя для других протоколов. По умолчанию выключено; действует для OAuth и API-ключей.',
+      codexWebSearchResultCacheEnabled: {
+        label: 'Кэшировать результаты поиска Codex',
+        hint: 'Кэшировать и восстанавливать результаты веб-поиска, пропущенные в истории последующих запросов клиента Codex. По умолчанию выключено.',
       },
-      claudeDisableCloakMode: {
-        hint: 'Отключить имитацию Claude Code CLI и замену системного промпта. Явные настройки cloak_mode учётных данных или cloak.mode API-ключа имеют приоритет. По умолчанию выключено: автоматически маскируются клиенты, отличные от Claude Code.',
+      codexWebSearchResultCacheTTL: {
+        label: 'Срок хранения результатов поиска',
+        hint: 'Длительность, например 30m или 24h, либо целое число секунд. Пустое поле или 0: 24 часа. Отрицательные значения запрещены.',
+      },
+      codexWebSearchResultCacheLimit: {
+        label: 'Ёмкость кэша результатов поиска',
+        hint: 'Максимальное число записей. Пустое поле или 0: 1024 записи. Отрицательные значения запрещены.',
+      },
+      routingSessionAffinityRebindOn: {
+        label: 'Смена учётных данных сессии',
+        hint: 'Требует привязки сессии. any: смена при ошибках учётных данных; quota: временные ошибки сохраняют привязку, ошибки квоты или авторизации меняют её; never: сохранить учётные данные и вернуть ошибку или повторить запрос.',
+        options: {
+          default: 'По умолчанию (any)',
+          any: 'При ошибках учётных данных',
+          quota: 'При ошибках квоты или авторизации',
+          never: 'Сохранить исходные учётные данные',
+        },
+      },
+      claudeToolSearch: {
+        label: 'Поиск инструментов Claude',
+        hint: 'Включить поиск инструментов для запросов Codex Responses к Claude. Поддерживаемые учётные данные используют нативный поиск Anthropic, остальные — совместимое преобразование. По умолчанию выключено.',
+      },
+      streamingSendKeepAliveBeforeFT: {
+        label: 'Отправлять heartbeat до первого токена',
+        hint: 'Отправлять SSE heartbeat до первого токена. Требуется интервал heartbeat больше 0. По умолчанию выключено.',
       },
     },
-    headers: {
-      description:
-        'Общие настройки отпечатка Claude действуют для OAuth и API-ключей; заголовки Codex по умолчанию — только для OAuth.',
-      claude_title: 'Общие настройки отпечатка Claude',
+    validation: {
+      invalid_session_affinity_rebind: 'Выберите any, quota, never или значение по умолчанию.',
     },
   },
 } as const;

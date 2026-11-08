@@ -18,6 +18,7 @@ import { PluginStoreAuthEditor } from '../blocks/PluginStoreAuthEditor';
 import { StringListEditor } from '../blocks/StringListEditor';
 import { getValidationMessage } from '../blocks/shared';
 import { SectionOAuthBehavior } from './SectionOAuthBehavior';
+import { SectionClientTools } from './SectionClientTools';
 
 const Icon = CONFIG_TAB_ICONS.advanced;
 
@@ -57,6 +58,12 @@ export function SectionAdvanced({
       animateIn={animateIn}
     >
       <SectionOAuthBehavior
+        values={values}
+        validationErrors={validationErrors}
+        disabled={disabled}
+        onChange={onChange}
+      />
+      <SectionClientTools
         values={values}
         validationErrors={validationErrors}
         disabled={disabled}

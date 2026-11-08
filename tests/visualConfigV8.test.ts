@@ -182,6 +182,7 @@ describe('v8 scalar read/write path parity', () => {
     'codexLiveMediaRelayMaxSessions',
     'codexLiveMediaRelayUDPPortMin',
     'codexLiveMediaRelayUDPPortMax',
+    'codexWebSearchResultCacheLimit',
   ]);
   for (const entry of CONFIG_FIELD_SEARCH_INDEX) {
     const field = FIELD_VALUE_KEYS[entry.fieldId][0];
@@ -200,7 +201,11 @@ describe('v8 scalar read/write path parity', () => {
               ? 'fill-first'
               : field === 'disableImageGeneration'
                 ? 'chat'
-                : 'fixture-updated';
+                : field === 'codexWebSearchResultCacheTTL'
+                  ? '30m'
+                  : field === 'routingSessionAffinityRebindOn'
+                    ? 'quota'
+                    : 'fixture-updated';
       const config = runVisualConfig(fixture, [{ [field]: value }]);
       const output = config.applyVisualChangesToYaml(fixture);
       const path = [...entry.yamlKeys!];

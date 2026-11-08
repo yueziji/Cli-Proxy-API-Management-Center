@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { CONFIG_TAB_ICONS, SECTION_INDEX_LABELS } from '../../constants';
 import type { ConfigSectionProps } from '../../types';
 import { SectionCard } from '../SectionCard';
-import { SettingList, TextSetting } from '../fields/FieldPrimitives';
+import { SettingList, TextSetting, ToggleSetting } from '../fields/FieldPrimitives';
 import { getValidationMessage } from '../blocks/shared';
 
 const Icon = CONFIG_TAB_ICONS.streaming;
@@ -65,6 +65,16 @@ export function SectionStreaming({
           }
           disabled={disabled}
           error={getValidationMessage(t, validationErrors?.['streaming.bootstrapRetries'])}
+        />
+        <ToggleSetting
+          fieldId="streamingSendKeepAliveBeforeFT"
+          label={t('config_management.visual.additions.streamingSendKeepAliveBeforeFT.label')}
+          description={t('config_management.visual.additions.streamingSendKeepAliveBeforeFT.hint')}
+          checked={values.streamingSendKeepAliveBeforeFT}
+          disabled={disabled}
+          onChange={(streamingSendKeepAliveBeforeFT) =>
+            onChange({ streamingSendKeepAliveBeforeFT })
+          }
         />
       </SettingList>
 

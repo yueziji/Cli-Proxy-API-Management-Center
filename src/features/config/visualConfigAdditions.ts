@@ -308,6 +308,9 @@ export function validateVisualAdditions(
     videoResultAuthCacheTTL: undefined,
     claudeHeaderTimezone: undefined,
     codexStreamBootstrapTimeout: undefined,
+    codexWebSearchResultCacheTTL: undefined,
+    codexWebSearchResultCacheLimit: undefined,
+    routingSessionAffinityRebindOn: undefined,
     antigravityConnectionPoolIdleTimeout: undefined,
     antigravityConnectionPoolMaxIdleConnsPerHost: undefined,
     codexLiveMediaRelayMaxSessions: undefined,
@@ -331,6 +334,23 @@ export function validateVisualAdditions(
       Object.assign(errors, { [key]: signed ? 'integer' : 'non_negative_integer' });
     }
   }
+  const cacheTTL = values.codexWebSearchResultCacheTTL.trim();
+  if (cacheTTL && (!dirtyFields || dirtyFields.has('codexWebSearchResultCacheTTL'))) {
+    const duration = /^[+-]?\d+$/.test(cacheTTL)
+      ? BigInt(cacheTTL) >= 0n && BigInt(cacheTTL) <= 9223372036n
+        ? Number(cacheTTL)
+        : undefined
+      : goDurationSeconds(cacheTTL);
+    if (duration === undefined || duration < 0)
+      errors.codexWebSearchResultCacheTTL = 'invalid_duration';
+  }
+  const rebind = values.routingSessionAffinityRebindOn.trim();
+  if (
+    rebind &&
+    (!dirtyFields || dirtyFields.has('routingSessionAffinityRebindOn')) &&
+    !['any', 'quota', 'never'].includes(rebind)
+  )
+    errors.routingSessionAffinityRebindOn = 'invalid_session_affinity_rebind';
   for (const key of [
     'videoResultAuthCacheTTL',
     'antigravityConnectionPoolIdleTimeout',

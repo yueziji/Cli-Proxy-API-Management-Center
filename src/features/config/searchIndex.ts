@@ -39,6 +39,8 @@ type Translate = (key: string) => string;
 const L = (key: string) => `config_management.visual.${key}`;
 
 export const CONFIG_FIELD_SEARCH_INDEX: ConfigFieldSearchEntry[] = [
+  ...FORK_CONFIG_SEARCH_ENTRIES.network,
+  ...FORK_CONFIG_SEARCH_ENTRIES.streaming,
   {
     fieldId: 'routingSessionAffinitySubagents',
     sectionId: 'network',

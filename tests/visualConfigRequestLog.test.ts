@@ -6,13 +6,17 @@ import { useVisualConfig } from '../src/hooks/useVisualConfig';
 import { runVisualConfig } from './helpers/visualConfig';
 
 describe('visual config request-log', () => {
-  test('preserves legacy coercion and only writes an explicit edited value', () => {
+  test('reads backend booleans and only writes an explicit edited value', () => {
     for (const [value, enabled] of [
       ['true', true],
       ['false', false],
-      ['"false"', true],
+      ['"false"', false],
+      ['off', false],
+      ['"NO"', false],
+      ['on', true],
+      ['"Yes"', true],
       ['0', false],
-      ['1', true],
+      ['1', false],
       ['null', false],
     ] as const) {
       const yaml = `observability:\n  logs:\n    request-log: ${value}\nfuture: retained # keep\n`;

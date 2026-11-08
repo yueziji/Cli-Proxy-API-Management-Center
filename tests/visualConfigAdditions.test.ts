@@ -50,10 +50,21 @@ describe('visual config additions', () => {
       const loaded = runVisualConfig(yaml);
       expect(loaded.visualValues[key]).toBe(kind === 'boolean' ? true : String(originalValue));
       expect(loaded.visualDirty).toBe(false);
-      const value = kind === 'boolean' ? false : kind === 'integer' ? '-1' : 'changed';
+      const value =
+        kind === 'boolean'
+          ? false
+          : kind === 'integer'
+            ? key === 'codexWebSearchResultCacheLimit'
+              ? '1'
+              : '-1'
+            : key === 'codexWebSearchResultCacheTTL'
+              ? '30m'
+              : key === 'routingSessionAffinityRebindOn'
+                ? 'quota'
+                : 'changed';
       const config = runVisualConfig(yaml, [{ [key]: value }]);
       const output = config.applyVisualChangesToYaml(yaml);
-      expect(parseDocument(output).getIn(path)).toBe(kind === 'integer' ? -1 : value);
+      expect(parseDocument(output).getIn(path)).toBe(kind === 'integer' ? Number(value) : value);
       expect(parseDocument(output).toJS()['api-keys']).toEqual(doc.toJS()['api-keys']);
       expect(output).toContain('# retained');
       expect([...config.visualDirtyFields]).toEqual([key]);

@@ -151,6 +151,23 @@ export function SectionNetwork({
           onChange={(routingSessionAffinityTTL) => onChange({ routingSessionAffinityTTL })}
           disabled={disabled}
         />
+        <SelectSetting
+          fieldId="routingSessionAffinityRebindOn"
+          label={t('config_management.visual.additions.routingSessionAffinityRebindOn.label')}
+          description={t('config_management.visual.additions.routingSessionAffinityRebindOn.hint')}
+          value={values.routingSessionAffinityRebindOn}
+          options={['', 'any', 'quota', 'never'].map((value) => ({
+            value,
+            label: t(
+              `config_management.visual.additions.routingSessionAffinityRebindOn.options.${value || 'default'}`
+            ),
+          }))}
+          disabled={disabled}
+          onChange={(routingSessionAffinityRebindOn) =>
+            onChange({ routingSessionAffinityRebindOn })
+          }
+          error={getValidationMessage(t, validationErrors?.routingSessionAffinityRebindOn)}
+        />
       </SettingList>
 
       <SettingList>

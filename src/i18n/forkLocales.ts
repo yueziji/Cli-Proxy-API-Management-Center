@@ -98,9 +98,9 @@ export const forkLocales = {
     config_management: {
       visual: {
         additions: configProviderLocales['zh-CN'].additions,
+        validation: configProviderLocales['zh-CN'].validation,
         sections: {
           ...requestLogLocales['zh-CN'].visual.sections,
-          headers: configProviderLocales['zh-CN'].headers,
         },
       },
     },
@@ -184,9 +184,9 @@ export const forkLocales = {
     config_management: {
       visual: {
         additions: configProviderLocales['zh-TW'].additions,
+        validation: configProviderLocales['zh-TW'].validation,
         sections: {
           ...requestLogLocales['zh-TW'].visual.sections,
-          headers: configProviderLocales['zh-TW'].headers,
         },
       },
     },
@@ -272,9 +272,9 @@ export const forkLocales = {
     config_management: {
       visual: {
         additions: configProviderLocales.en.additions,
+        validation: configProviderLocales.en.validation,
         sections: {
           ...requestLogLocales.en.visual.sections,
-          headers: configProviderLocales.en.headers,
         },
       },
     },
@@ -362,9 +362,9 @@ export const forkLocales = {
     config_management: {
       visual: {
         additions: configProviderLocales.ru.additions,
+        validation: configProviderLocales.ru.validation,
         sections: {
           ...requestLogLocales.ru.visual.sections,
-          headers: configProviderLocales.ru.headers,
         },
       },
     },

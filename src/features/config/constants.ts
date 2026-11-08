@@ -75,6 +75,7 @@ export const SECTION_VALIDATION_FIELDS: Record<VisualSectionId, readonly VisualC
       'authAutoRefreshWorkers',
       'transientErrorCooldownSeconds',
       'videoResultAuthCacheTTL',
+      'routingSessionAffinityRebindOn',
     ],
     logging: ['errorLogsMaxFiles', 'logsMaxTotalSizeMb', 'redisUsageQueueRetentionSeconds'],
     streaming: [
@@ -85,6 +86,8 @@ export const SECTION_VALIDATION_FIELDS: Record<VisualSectionId, readonly VisualC
     advanced: [
       'claudeHeaderTimezone',
       'codexStreamBootstrapTimeout',
+      'codexWebSearchResultCacheTTL',
+      'codexWebSearchResultCacheLimit',
       'antigravityConnectionPoolIdleTimeout',
       'antigravityConnectionPoolMaxIdleConnsPerHost',
       'codexLiveMediaRelayMaxSessions',

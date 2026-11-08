@@ -16,6 +16,9 @@ export type CodexLiveICEServerDraft = {
 };
 
 export type VisualConfigFieldPath =
+  | 'codexWebSearchResultCacheTTL'
+  | 'codexWebSearchResultCacheLimit'
+  | 'routingSessionAffinityRebindOn'
   | 'trustedProxies'
   | 'discoveryServiceType'
   | 'transientErrorCooldownSeconds'
@@ -42,6 +45,7 @@ export type VisualConfigFieldPath =
   | 'streaming.nonstreamKeepaliveInterval';
 
 export type VisualConfigValidationErrorCode =
+  | 'invalid_session_affinity_rebind'
   | 'invalid_trusted_proxies'
   | 'invalid_discovery_service_type'
   | 'invalid_duration'
