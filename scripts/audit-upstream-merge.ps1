@@ -109,7 +109,7 @@ try {
   $allPaths = @($trackedPaths) + @($untrackedPaths)
   $promotionPathPattern =
     '(^|/)(sponsor|sponsors|funding|donate|backer)(/|\.|$)|' +
-    'src/features/providers/(code0|fennoai|qiniucloud|claudeapi|sponsor)'
+    'src/features/providers/(code0|fennoai|qiniucloud|claudeapi|aicodemirror|sponsor)'
   $promotionPaths = @($allPaths | Where-Object { $_ -imatch $promotionPathPattern })
   if ($promotionPaths.Count -gt 0) {
     $issues.Add("Suspected promotion paths: $($promotionPaths.Count)")
@@ -131,7 +131,7 @@ try {
     }
   )
   $promotionTextPattern =
-    'affiliate|referral|agent/register|register\?[^[:space:]"'']*(aff|ref)=|' +
+    'affiliate|referral|agent/register|register\?[^[:space:]"'']*(aff|ref|invitecode)=|' +
     'github\.com/sponsors|buymeacoffee|opencollective|patreon'
   $promotionFiles = @()
   if ($trackedScanRoots.Count -gt 0) {
