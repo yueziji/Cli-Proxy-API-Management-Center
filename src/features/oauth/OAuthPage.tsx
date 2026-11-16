@@ -6,6 +6,7 @@ import { useAuthStore, useThemeStore } from '@/stores';
 import iconVertex from '@/assets/icons/vertex.svg';
 import iconCodex from '@/assets/icons/codex.svg';
 import { OAuthHeader } from './components/OAuthHeader';
+import { LoginProxyField } from './components/LoginProxyField';
 import { ProviderTile } from './components/ProviderTile';
 import { OAuthFlowDialog, type DialogHeading } from './components/OAuthFlowDialog';
 import { VertexImportDialog } from './components/VertexImportDialog';
@@ -158,6 +159,13 @@ export function OAuthPage() {
         providerCount={providerCount}
         waitingCount={waitingCount}
         addedCount={flows.addedCount}
+      />
+
+      {/* 可选登录代理：在点磁贴之前设好，不改变一键登录的快路径 */}
+      <LoginProxyField
+        value={flows.loginProxy}
+        rejectedValue={flows.loginProxyRejected}
+        onChange={flows.setLoginProxy}
       />
 
       <div className={styles.grid}>{providerCards.map(renderTile)}</div>

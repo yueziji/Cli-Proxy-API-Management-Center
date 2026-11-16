@@ -51,6 +51,24 @@ const pickModel = (testModel: string | undefined, models: ModelEntryInput[]): st
   return '';
 };
 
+// Match the backend compatibility helper: trim, strip the last parenthesized suffix,
+// and compare names before aliases without changing the model sent by pickModel.
+const resolveModelConfig = (model: string, models: ModelEntryInput[]) => {
+  const normalize = (value: string): string => {
+    const trimmed = value.trim();
+    const lastOpen = trimmed.lastIndexOf('(');
+    return (lastOpen !== -1 && trimmed.endsWith(')') ? trimmed.slice(0, lastOpen) : trimmed)
+      .trim()
+      .toLowerCase();
+  };
+  const normalized = normalize(model);
+  if (!normalized) return undefined;
+  return (
+    models.find((entry) => normalize(entry.name) === normalized) ??
+    models.find((entry) => normalize(entry.alias ?? '') === normalized)
+  );
+};
+
 const resolveBearerToken = (headers: Record<string, string>): string => {
   const auth = Object.entries(headers).find(([k]) => k.toLowerCase() === 'authorization')?.[1];
   if (!auth) return '';
@@ -170,7 +188,7 @@ export function useConnectivityTest(
       fallbackApiKey ?? '',
       authIndex ?? '',
       formHeaders,
-      models.map((it) => [it.name, it.alias ?? '']),
+      models.map((it) => [it.name, it.alias ?? '', it.useMaxCompletionTokens === true]),
     ]);
   }, [apiKey, authIndex, baseUrl, proxyUrl, brand, fallbackApiKey, testModel, formHeaders, models]);
 
@@ -263,7 +281,9 @@ export function useConnectivityTest(
               model,
               messages: [{ role: 'user', content: pickTestPrompt() }],
               stream: false,
-              max_tokens: DEFAULT_TEST_MAX_TOKENS,
+              ...(resolveModelConfig(model, models)?.useMaxCompletionTokens === true
+                ? { max_completion_tokens: DEFAULT_TEST_MAX_TOKENS }
+                : { max_tokens: DEFAULT_TEST_MAX_TOKENS }),
             }),
           },
           { timeout: DEFAULT_TIMEOUT_MS }
