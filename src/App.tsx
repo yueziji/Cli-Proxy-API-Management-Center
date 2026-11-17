@@ -31,6 +31,14 @@ const devPreviewRoutes = import.meta.env.DEV
           return { Component: QuotaTierPreview };
         },
       },
+      {
+        path: '/__preview/fonts',
+        HydrateFallback: () => null,
+        lazy: async () => {
+          const { FontPreview } = await import('@/features/appearance/preview/FontPreview');
+          return { Component: FontPreview };
+        },
+      },
     ]
   : [];
 
