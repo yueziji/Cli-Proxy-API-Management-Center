@@ -187,6 +187,10 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   pluginsEnabled: ['pluginsEnabled'],
   pluginStoreSources: ['pluginStoreSources'],
   pluginStoreAuth: ['pluginStoreAuth'],
+  antigravitySensitiveWordsReplace: ['antigravitySensitiveWordsReplace'],
+  antigravitySensitivePatternsReplace: ['antigravitySensitivePatternsReplace'],
+  devinSensitiveWordsReplace: ['devinSensitiveWordsReplace'],
+  devinSensitivePatternsReplace: ['devinSensitivePatternsReplace'],
   antigravitySensitiveWords: ['antigravitySensitiveWords'],
   devinSensitiveWords: ['devinSensitiveWords'],
   antigravitySignatureCacheEnabled: ['antigravitySignatureCacheEnabled'],
@@ -206,6 +210,7 @@ export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   payloadOverrideRules: ['payloadOverrideRules'],
   payloadOverrideRawRules: ['payloadOverrideRawRules'],
   payloadFilterRules: ['payloadFilterRules'],
+  payloadReplaceRules: ['payloadReplaceRules'],
   ...FORK_FIELD_VALUE_KEYS,
 };
 

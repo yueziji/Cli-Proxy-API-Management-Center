@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
+import { FieldLabel } from '@/components/ui/FieldLabel';
 import type { ProviderKeyConfig } from '@/types';
 import styles from './sharedForm.module.scss';
 
@@ -21,9 +22,15 @@ export function CodexApiKeySettings({
 
   return (
     <div className={styles.field}>
-      <label id={`${id}-disableCodexCloaking-label`} className={styles.label}>
-        {t('compatibilitySettings.codexKeyCloakingLabel')}
-      </label>
+      <FieldLabel
+        id={`${id}-disableCodexCloaking-label`}
+        htmlFor={`${id}-disableCodexCloaking`}
+        className={styles.labelLine}
+        labelClassName={styles.label}
+        label={t('compatibilitySettings.codexKeyCloakingLabel')}
+        hint={t('compatibilitySettings.codexKeyCloakingHint')}
+        hintId={`${id}-disableCodexCloaking-hint`}
+      />
       <Select
         id={`${id}-disableCodexCloaking`}
         value={disableCodexCloaking === undefined ? '' : String(disableCodexCloaking)}
@@ -45,9 +52,6 @@ export function CodexApiKeySettings({
         ariaLabelledBy={`${id}-disableCodexCloaking-label`}
         ariaDescribedBy={`${id}-disableCodexCloaking-hint`}
       />
-      <small id={`${id}-disableCodexCloaking-hint`} className={styles.labelHint}>
-        {t('compatibilitySettings.codexKeyCloakingHint')}
-      </small>
     </div>
   );
 }

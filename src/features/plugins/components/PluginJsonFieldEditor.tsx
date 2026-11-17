@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { InfoTip } from '@/components/ui/Tooltip';
 import {
   formatPluginJson,
   inspectPluginJsonField,
@@ -84,9 +85,18 @@ export function PluginJsonFieldEditor({
   };
 
   return (
-    <section className={styles.editor} aria-labelledby={`${id}-title`}>
+    <section
+      className={styles.editor}
+      aria-labelledby={`${id}-title`}
+      aria-describedby={description ? `${id}-desc` : undefined}
+    >
       <div className={styles.header}>
-        <h4 id={`${id}-title`}>{name}</h4>
+        <h4 id={`${id}-title`}>
+          {name}
+          {description ? (
+            <InfoTip content={description} label={name} descriptionId={`${id}-desc`} />
+          ) : null}
+        </h4>
         <div className={styles.actions}>
           <Button
             type="button"
@@ -121,7 +131,11 @@ export function PluginJsonFieldEditor({
           ) : null}
         </div>
       </div>
-      {description ? <p className={styles.hint}>{description}</p> : null}
+      {description ? (
+        <span id={`${id}-desc`} hidden>
+          {description}
+        </span>
+      ) : null}
       {structured ? (
         <>
           {rows.length === 0 ? (

@@ -2,6 +2,7 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select } from '@/components/ui/Select';
 import { SelectionCheckbox } from '@/components/ui/SelectionCheckbox';
+import { FieldLabel } from '@/components/ui/FieldLabel';
 import { getProviderModelCapabilities } from '../../descriptors';
 import { hasModality, MODEL_MODALITIES, toggleModality } from '../../modelOptions';
 import { THINKING_LEVELS } from '../../thinkingLevels';
@@ -33,9 +34,18 @@ export function ModelAdvancedFields({
     numeric = false,
     budget = false
   ) => (
-    <label className={styles.field}>
-      <span className={styles.label}>{t(`providersPage.modelOptions.${key}`)}</span>
+    <div className={styles.field}>
+      <FieldLabel
+        className={styles.labelLine}
+        labelClassName={styles.label}
+        htmlFor={`${id}-${key}`}
+        label={t(`providersPage.modelOptions.${key}`)}
+        hint={key === 'maxContextLength' ? t('providersPage.modelOptions.contextHint') : undefined}
+        hintId={key === 'maxContextLength' ? `${id}-${key}-hint` : undefined}
+      />
       <input
+        id={`${id}-${key}`}
+        aria-describedby={key === 'maxContextLength' ? `${id}-${key}-hint` : undefined}
         className={styles.input}
         value={entry[key] ?? ''}
         inputMode={numeric ? 'numeric' : undefined}
@@ -47,18 +57,27 @@ export function ModelAdvancedFields({
           })
         }
       />
-      {key === 'maxContextLength' ? (
-        <small>{t('providersPage.modelOptions.contextHint')}</small>
-      ) : null}
-    </label>
+    </div>
   );
   const modalityField = (
     key: 'inputModalitiesText' | 'outputModalitiesText',
     touchedKey: 'inputModalitiesTouched' | 'outputModalitiesTouched'
   ) => (
     <div className={styles.field}>
-      <span className={styles.label}>{t(`providersPage.modelOptions.${key}`)}</span>
-      <div className={styles.thinkingLevelGrid}>
+      <FieldLabel
+        className={styles.labelLine}
+        labelClassName={styles.label}
+        id={`${id}-${key}-label`}
+        label={t(`providersPage.modelOptions.${key}`)}
+        hint={t('providersPage.modelOptions.modalitiesHint')}
+        hintId={`${id}-${key}-hint`}
+      />
+      <div
+        className={styles.thinkingLevelGrid}
+        role="group"
+        aria-labelledby={`${id}-${key}-label`}
+        aria-describedby={`${id}-${key}-hint`}
+      >
         {MODEL_MODALITIES.map((modality) => {
           const checked = hasModality(entry[key], modality);
           return (
@@ -132,9 +151,23 @@ export function ModelAdvancedFields({
         <fieldset className={styles.thinkingFieldset}>
           <legend className={styles.label}>{t('providersPage.form.thinkingConfig')}</legend>
           <div className={styles.field}>
-            <label htmlFor={`${id}-thinking-mode`} className={styles.label}>
-              {t('providersPage.modelOptions.thinkingMode')}
-            </label>
+            <FieldLabel
+              className={styles.labelLine}
+              labelClassName={styles.label}
+              htmlFor={`${id}-thinking-mode`}
+              label={t('providersPage.modelOptions.thinkingMode')}
+              hint={
+                entry.thinkingJson?.trim() ? (
+                  <>
+                    {t('providersPage.modelOptions.thinkingHint')} <br />
+                    {t('providersPage.form.thinkingExistingHint')}
+                  </>
+                ) : (
+                  t('providersPage.modelOptions.thinkingHint')
+                )
+              }
+              hintId={`${id}-thinking-mode-hint`}
+            />
             <Select
               id={`${id}-thinking-mode`}
               ariaLabel={t('providersPage.modelOptions.thinkingMode')}
@@ -144,12 +177,10 @@ export function ModelAdvancedFields({
                 { value: 'default', label: t('providersPage.modelOptions.useDefault') },
                 { value: 'custom', label: t('providersPage.modelOptions.custom') },
               ]}
+              ariaDescribedBy={`${id}-thinking-mode-hint`}
               onChange={(mode) => onUpdate({ thinkingEnabled: mode === 'custom' })}
             />
           </div>
-          <p className={styles.thinkingExistingHint}>
-            {t('providersPage.modelOptions.thinkingHint')}
-          </p>
           <div className={styles.fieldRow}>
             {textField('thinkingMin', true, true)}
             {textField('thinkingMax', true, true)}
@@ -184,11 +215,6 @@ export function ModelAdvancedFields({
               />
             ))}
           </div>
-          {entry.thinkingJson?.trim() ? (
-            <p className={styles.thinkingExistingHint}>
-              {t('providersPage.form.thinkingExistingHint')}
-            </p>
-          ) : null}
         </fieldset>
       ) : null}
     </>

@@ -55,7 +55,6 @@ describe('OAuth behavior configuration UI', () => {
     const oauth = render(createElement(SectionOAuthBehavior, props));
     expect(oauth).toContain('<details');
     expect(oauth).toContain(text('oauthTitle'));
-    expect(oauth).toContain(text('oauthHint'));
     expect(oauth.match(/<details/g)).toHaveLength(1);
     expect(oauth).toContain('cfg-field-codexOptimizeMultiAgentV2');
     expect(oauth).toContain('cfg-field-codexLiveMediaRelayEnabled');
@@ -64,7 +63,38 @@ describe('OAuth behavior configuration UI', () => {
     expect(advanced).toContain('cfg-field-codexEnableApplyPatch');
     expect(advanced).toContain('cfg-field-claudeToolSearch');
     expect(oauth).not.toContain('cfg-field-claudeHeaderTimezone');
-    expect(oauth).toContain(text('liveRelayHint'));
+  });
+
+  test('keeps the OAuth-only scope note visible in the body and describes the group with it', () => {
+    const oauth = render(createElement(SectionOAuthBehavior, props));
+    // An InfoTip cannot live inside <summary>, so the summary carries the title only.
+    const summary = oauth.match(/<summary\b.*?<\/summary>/)?.[0] ?? '';
+    expect(summary).toContain(text('oauthTitle'));
+    expect(summary).not.toContain(text('oauthHint'));
+    expect(summary).not.toContain('<button');
+    const details = oauth.match(/<details\b[^>]*>/)?.[0] ?? '';
+    const scopeId = details.match(/aria-describedby="([^"]+)"/)?.[1];
+    expect(scopeId).toBeTruthy();
+    const note = oauth.match(new RegExp(`<div id="${scopeId}"[^>]*>([^<]*)</div>`))?.[1];
+    expect(note).toBe(text('oauthHint'));
+    // The live relay group description repeated its rows' tooltips (UDP, ICE credentials).
+    expect(oauth).not.toContain(text('liveRelayHint'));
+  });
+
+  test('keeps the ICE credential note visible and the other relay notes in InfoTips', () => {
+    const oauth = render(createElement(SectionOAuthBehavior, props));
+    const rowOf = (fieldId: string) =>
+      oauth.split(`id="cfg-field-${fieldId}"`)[1].split('id="cfg-field-')[0];
+    const ice = rowOf('codexLiveMediaRelayICEServers');
+    expect(ice).toContain(text('codexLiveMediaRelayICEServers.hint'));
+    expect(ice).not.toContain('data-info-tip');
+    expect(ice).not.toContain('visually-hidden');
+    for (const fieldId of ['codexLiveMediaRelayEnabled', 'codexLiveMediaRelayPublicIP']) {
+      const row = rowOf(fieldId);
+      expect(row).toContain('data-info-tip');
+      expect(row).toContain(text(`${fieldId}.hint`));
+      expect(row).toContain('visually-hidden-focusable');
+    }
   });
 
   test('renders labeled multi-line ICE URLs, masked credentials, and indexed removal actions', () => {
@@ -106,9 +136,13 @@ describe('OAuth behavior configuration UI', () => {
       SectionAdvanced,
     ]) {
       const markup = render(createElement(Section, { ...props, values, disabled: true }));
-      const controls = markup.match(/<(?:input|textarea|button)\b[^>]*>/g) ?? [];
+      const tags = markup.match(/<(?:input|textarea|button)\b[^>]*>/g) ?? [];
+      // InfoTip buttons only reveal explanations, so they stay usable in read-only mode.
+      const infoTips = tags.filter((tag) => tag.includes('data-info-tip'));
+      const controls = tags.filter((tag) => !tag.includes('data-info-tip'));
       expect(controls.length).toBeGreaterThan(0);
       for (const control of controls) expect(control).toContain('disabled=""');
+      for (const infoTip of infoTips) expect(infoTip).not.toContain('disabled');
     }
   });
 

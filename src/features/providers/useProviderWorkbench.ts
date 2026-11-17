@@ -116,7 +116,7 @@ const buildModelAliases = (
     })
     .filter((m) => m.name);
 
-const buildProviderKeyConfig = (
+export const buildProviderKeyConfig = (
   brand: 'gemini' | 'interactions' | 'codex' | 'meta' | 'xai' | 'claude' | 'vertex',
   input: ProviderEntryFormInput,
   existing?: ProviderKeyConfig | GeminiKeyConfig | null
@@ -155,6 +155,8 @@ const buildProviderKeyConfig = (
       mode: input.cloak.mode.trim() || undefined,
       strictMode: input.cloak.strictMode,
       sensitiveWords: parseTextList(input.cloak.sensitiveWordsText),
+      sensitiveWordsReplace: input.cloak.sensitiveWordsReplace,
+      sensitivePatternsReplace: input.cloak.sensitivePatternsReplace,
       cacheUserId: input.cloak.cacheUserId === true,
     };
   }

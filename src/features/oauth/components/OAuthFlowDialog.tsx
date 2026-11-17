@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
+import { InfoTip } from '@/components/ui/Tooltip';
 import { IconExternalLink, IconLoader2 } from '@/components/ui/icons';
 import type { ProviderFlowState } from '../hooks/useOAuthFlows';
 import { resolveFlowView, splitAuthUrl, type FlowView } from '../flowView';
@@ -37,6 +38,8 @@ export interface OAuthFlowDialogProps {
   /** 提供商专属文案：`auth_login.<id>_<suffix>` 或插件模板。 */
   text: (suffix: string) => string;
   supportsCallback: boolean;
+  /** 提供商专属的登录注意事项，挂在「打开授权页」步骤标题后的 InfoTip 里。 */
+  signInNote?: string;
   onStart: () => void;
   onCancel: () => void;
   onCallbackChange: (value: string) => void;
@@ -65,10 +68,6 @@ export function OAuthFlowDialog(props: OAuthFlowDialogProps) {
   );
 }
 
-function ProviderHint({ text }: Pick<OAuthFlowDialogProps, 'text'>) {
-  return <p className={styles.hint}>{text('oauth_hint')}</p>;
-}
-
 function FlowBody(props: OAuthFlowDialogProps & { view: Exclude<FlowView, 'success'> }) {
   const { t } = useTranslation();
   const { view, providerId, state, text, onStart } = props;
@@ -77,7 +76,6 @@ function FlowBody(props: OAuthFlowDialogProps & { view: Exclude<FlowView, 'succe
   if (view !== 'flow') {
     return (
       <div className={styles.stack}>
-        <ProviderHint text={text} />
         {view === 'failed' && (
           <div className={styles.alert} role="alert">
             {text('oauth_status_error')} {state.error || ''}
@@ -94,7 +92,6 @@ function FlowBody(props: OAuthFlowDialogProps & { view: Exclude<FlowView, 'succe
 
   return (
     <div className={styles.stack}>
-      <ProviderHint text={text} />
       {state.proxyUrl && (
         <p className={styles.proxyNote}>
           <span>{t('auth_login.login_proxy_in_use')}</span>
@@ -136,25 +133,37 @@ function FlowBody(props: OAuthFlowDialogProps & { view: Exclude<FlowView, 'succe
 function Step({
   title,
   titleFor,
+  note,
   aside,
   children,
 }: {
   title: string;
   titleFor?: string;
+  /** 只在需要时才读的补充说明：标题后的 InfoTip。 */
+  note?: string;
   aside?: ReactNode;
   children: ReactNode;
 }) {
+  const titleElement = titleFor ? (
+    <label className={styles.stepTitle} htmlFor={titleFor}>
+      {title}
+    </label>
+  ) : (
+    <span className={styles.stepTitle}>{title}</span>
+  );
   return (
     <li className={styles.step}>
       <span className={styles.stepIndex} aria-hidden="true" />
       <div className={styles.stepBody}>
         <div className={styles.stepHead}>
-          {titleFor ? (
-            <label className={styles.stepTitle} htmlFor={titleFor}>
-              {title}
-            </label>
+          {note ? (
+            // InfoTip 自带前导间距：与标题同处一个行内容器，不吃 stepHead 的 flex gap
+            <span>
+              {titleElement}
+              <InfoTip content={note} label={title} />
+            </span>
           ) : (
-            <span className={styles.stepTitle}>{title}</span>
+            titleElement
           )}
           {aside}
         </div>
@@ -164,13 +173,13 @@ function Step({
   );
 }
 
-function OpenStep({ state, text }: OAuthFlowDialogProps) {
+function OpenStep({ state, text, signInNote }: OAuthFlowDialogProps) {
   const { t } = useTranslation();
   const url = state.url;
   const parts = url ? splitAuthUrl(url) : null;
 
   return (
-    <Step title={t('auth_login.step_open_auth_page')}>
+    <Step title={t('auth_login.step_open_auth_page')} note={signInNote}>
       <div className={styles.urlField} aria-busy={!url}>
         {parts ? (
           <span className={styles.urlText} title={url}>
@@ -340,7 +349,6 @@ function SuccessView({ text, onStart, onViewAuthFiles }: OAuthFlowDialogProps) {
         <path className={styles.successCheck} d="M16 27l7 7 14-15" />
       </svg>
       <div className={styles.resultTitle}>{text('oauth_status_success')}</div>
-      <p className={styles.resultHint}>{t('auth_login.success_saved_hint')}</p>
       <div className={styles.resultActions}>
         <button type="button" className={styles.secondary} onClick={onViewAuthFiles}>
           {t('auth_login.view_auth_files')}

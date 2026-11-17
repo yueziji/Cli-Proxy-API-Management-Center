@@ -27,7 +27,7 @@ test('Russian quota reset messages resolve locally and interpolate the account a
   }
 });
 
-test('Russian auth-file headers have local labels, JSON help and validation errors', async () => {
+test('Russian auth-file headers have local labels, JSON placeholders and validation errors', async () => {
   const i18n = createInstance();
   await i18n.init({
     lng: 'ru',
@@ -38,8 +38,6 @@ test('Russian auth-file headers have local labels, JSON help and validation erro
   const messages = {
     headers_label: 'Пользовательские заголовки (headers)',
     headers_placeholder: '{\n  "Header-Name": "value"\n}',
-    headers_hint:
-      'Введите пользовательские HTTP-заголовки в виде JSON-объекта, например: {"X-My-Header": "value"}',
     headers_invalid_json: 'Заголовки должны быть записаны в корректном формате JSON.',
     headers_invalid_object: 'Заголовки должны быть JSON-объектом.',
     headers_invalid_value: 'Значение каждого заголовка должно быть строкой.',
