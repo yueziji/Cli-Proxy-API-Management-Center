@@ -15,14 +15,20 @@ import dashboard from '@/features/dashboard/dashboard.module.scss';
 import styles from './FontPreview.module.scss';
 
 const FONTS = [
-  { id: 'original', title: '原有字体', sample: '清晰，熟悉。', note: '系统无衬线 · 对照' },
   {
     id: 'wenkai',
-    title: '霞鹜文楷',
+    title: '原版文楷',
     sample: '字里，有呼吸。',
-    note: '柔和楷意 · 书卷气',
+    note: '常规正文 · 对照',
+  },
+  {
+    id: 'wenkai-medium',
+    title: '文楷加粗版',
+    sample: '字里，有呼吸。',
+    note: '正文更厚实 · 保留楷意',
     recommended: true,
   },
+  { id: 'original', title: '系统字体', sample: '清晰，熟悉。', note: '系统无衬线 · 对照' },
   { id: 'song', title: '轻宋体', sample: '让界面像一页书。', note: '细致宋体 · 对照' },
 ] as const;
 
@@ -66,7 +72,7 @@ const PROVIDERS = [
 ];
 
 export function FontPreview() {
-  const [font, setFont] = useState<(typeof FONTS)[number]['id']>('wenkai');
+  const [font, setFont] = useState<(typeof FONTS)[number]['id']>('wenkai-medium');
   const [applyToBody, setApplyToBody] = useState(true);
   const [theme, setTheme] = useState<(typeof THEMES)[number]['id']>('light');
   const [section, setSection] = useState<'overview' | 'details'>('overview');
@@ -82,8 +88,8 @@ export function FontPreview() {
         <header className={styles.toolbar}>
           <div>
             <p className={styles.kicker}>APPEARANCE / 字体试验</p>
-            <h1 className={styles.title}>给界面一点书卷气。</h1>
-            <p className={styles.description}>柔和一点，从容一点。切换字体，看看哪一种更舒服。</p>
+            <h1 className={styles.title}>书卷气，也可以更清晰。</h1>
+            <p className={styles.description}>切换原版和加粗版，看看小字是否更舒服。</p>
           </div>
           <div className={styles.themeControls} role="group" aria-label="预览主题">
             {THEMES.map((option) => (
@@ -120,6 +126,23 @@ export function FontPreview() {
           ))}
         </div>
 
+        <section className={styles.weightComparison} aria-label="正文粗细对照">
+          {[
+            ['wenkai', '原版正文'],
+            ['wenkai-medium', '加粗正文'],
+          ].map(([id, label]) => (
+            <article key={id} data-font={id}>
+              <h2>{label}</h2>
+              {[12, 14, 16].map((size) => (
+                <div key={size} className={styles.comparisonLine}>
+                  <span>{size}px</span>
+                  <p style={{ fontSize: size }}>管理连接，观察流量，把复杂留在后台。</p>
+                </div>
+              ))}
+            </article>
+          ))}
+        </section>
+
         <div className={styles.applicationControls}>
           <label>
             <input
@@ -134,7 +157,9 @@ export function FontPreview() {
             {font === 'original'
               ? '原有字体对照'
               : applyToBody
-                ? '标题与正文一起预览'
+                ? font === 'wenkai-medium'
+                  ? '正文加粗，标题和按钮保持原有笔画'
+                  : '标题与正文一起预览'
                 : '先看标题，正文保持原有字体'}
           </span>
         </div>
@@ -356,9 +381,11 @@ export function FontPreview() {
             <strong>{selectedFont.title}</strong> ·{' '}
             {font === 'original'
               ? '系统无衬线字体'
-              : font === 'wenkai'
-                ? '霞鹜文楷，柔和的楷体风格'
-                : 'Noto Serif SC，常规字重'}
+              : font === 'song'
+                ? 'Noto Serif SC，常规字重'
+                : font === 'wenkai-medium'
+                  ? '霞鹜文楷，正文使用 Medium'
+                  : '霞鹜文楷，正文使用 Regular'}
             ；数字、模型 ID 和代码保持等宽。
           </p>
           <p>

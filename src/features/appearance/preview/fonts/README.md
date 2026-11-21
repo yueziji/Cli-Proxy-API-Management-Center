@@ -1,8 +1,10 @@
 # Preview fonts
 
 `lxgw-wenkai-regular-preview.woff2` and `lxgw-wenkai-medium-preview.woff2`
-are text subsets of LXGW WenKai's Regular and Medium fonts. The preview uses
-the original font's Latin glyphs too, for a consistent, soft appearance.
+are the original text subsets of LXGW WenKai's Regular and Medium fonts.
+The preview now reuses the UI subsets in `src/assets/fonts` to match the
+production glyphs and support additional comparison text. The original
+preview subsets are retained here.
 
 Source: https://github.com/lxgw/LxgwWenKai
 License: SIL Open Font License 1.1, see `WenKai-OFL.txt`.

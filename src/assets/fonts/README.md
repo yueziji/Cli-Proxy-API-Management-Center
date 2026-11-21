@@ -1,9 +1,10 @@
 # LXGW WenKai UI fonts
 
-The UI uses local Regular and Medium WOFF2 subsets of LXGW WenKai. Medium is
-used for all heavier CSS weights to retain the soft stroke weight selected in
-the preview. Numeric telemetry and code retain the existing monospace font.
-Vite embeds these files in the single-file production HTML.
+The UI uses the local Medium WOFF2 subset of LXGW WenKai for all CSS weights,
+including normal-weight body text and controls, matching the thicker preview.
+Numeric telemetry and code retain the existing monospace font. Vite embeds
+only Medium in the single-file production HTML. Regular is retained for the
+development preview's comparison with the original appearance.
 
 The subsets include all characters in `src/i18n/**/*.json` and
 `src/i18n/**/*.ts`, printable Latin characters, Latin extensions, Cyrillic,

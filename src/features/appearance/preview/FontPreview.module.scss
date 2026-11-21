@@ -8,16 +8,16 @@
 
 @font-face {
   font-family: 'Preview LXGW WenKai';
-  src: url('./fonts/lxgw-wenkai-regular-preview.woff2') format('woff2');
-  font-weight: 400;
+  src: url('../../../assets/fonts/lxgw-wenkai-regular.woff2') format('woff2');
+  font-weight: 100 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
   font-family: 'Preview LXGW WenKai';
-  src: url('./fonts/lxgw-wenkai-medium-preview.woff2') format('woff2');
-  font-weight: 500 700;
+  src: url('../../../assets/fonts/lxgw-wenkai-medium.woff2') format('woff2');
+  font-weight: 500 900;
   font-style: normal;
   font-display: swap;
 }
@@ -28,6 +28,10 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
 .page {
   --preview-reading-font: #{$wenkai};
   --preview-heading-weight: 500;
+  --preview-body-weight: 400;
+  &[data-font='wenkai-medium'] {
+    --preview-body-weight: 500;
+  }
   &[data-font='song'] {
     --preview-reading-font: #{$serif};
     --preview-heading-weight: 400;
@@ -41,6 +45,7 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
   background: var(--bg-secondary);
   color: var(--text-primary);
   font-family: $font-sans;
+  font-weight: 400;
 
   &[data-theme='light'] {
     --bg-secondary: #faf9f5;
@@ -121,7 +126,7 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
 
 .fontControls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 26px;
 }
@@ -143,6 +148,10 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
     background: var(--bg-primary);
   }
   &[data-font='wenkai'] .optionSample {
+    font-family: $wenkai;
+    font-weight: 400;
+  }
+  &[data-font='wenkai-medium'] .optionSample {
     font-family: $wenkai;
     font-weight: 500;
   }
@@ -185,6 +194,46 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
   color: var(--text-secondary);
   font-size: 11px;
 }
+.weightComparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+  article {
+    min-width: 0;
+    padding: 18px 22px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-primary);
+  }
+  h2 {
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  p {
+    font-family: $wenkai;
+    font-weight: 400;
+    line-height: 1.8;
+  }
+  [data-font='wenkai-medium'] p {
+    font-weight: 500;
+  }
+}
+.comparisonLine {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  & + & {
+    margin-top: 8px;
+  }
+  > span {
+    flex-shrink: 0;
+    color: var(--text-tertiary);
+    font-family: $font-mono;
+    font-size: 10px;
+  }
+}
 .applicationControls {
   display: flex;
   flex-wrap: wrap;
@@ -221,7 +270,9 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
   border-radius: 16px;
   overflow: hidden;
   font-family: $font-sans;
+  font-weight: 400;
   &[data-font='wenkai'],
+  &[data-font='wenkai-medium'],
   &[data-font='song'] {
     h2,
     .brand,
@@ -233,15 +284,14 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
   }
   &[data-body-font='true'] {
     font-family: var(--preview-reading-font);
-    font-weight: 400;
+    font-weight: var(--preview-body-weight);
     .bodyLabel {
       font-family: var(--preview-reading-font);
     }
     .heroDescription,
     .typeSample > p,
-    .navigation li,
     .metricNote {
-      font-weight: 400;
+      font-weight: var(--preview-body-weight);
     }
   }
   code {
@@ -475,7 +525,15 @@ $wenkai: 'Preview LXGW WenKai', 'Palatino Linotype', 'Kaiti SC', KaiTi, serif;
     gap: 16px;
   }
   .fontControls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+  }
+  .weightComparison {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    article {
+      padding: 14px;
+    }
   }
   .fontOption {
     padding: 12px 10px;
