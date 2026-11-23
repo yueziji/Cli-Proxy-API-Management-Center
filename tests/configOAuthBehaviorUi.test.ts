@@ -38,7 +38,7 @@ describe('OAuth behavior configuration UI', () => {
     const additions = CONFIG_FIELD_SEARCH_INDEX.filter((entry) =>
       entry.labelKey.includes('.additions.')
     );
-    expect(additions).toHaveLength(33);
+    expect(additions).toHaveLength(34);
     for (const entry of additions) {
       const own = sections[entry.sectionId as keyof typeof sections];
       expect(own).toContain(`id="cfg-field-${entry.fieldId}"`);

@@ -15,7 +15,7 @@ import { mergeLocale } from '@/i18n/mergeLocale';
 import en from '@/i18n/locales/en.json';
 import { normalizeConfigResponse } from '@/services/api/transformers';
 import { buildProviderGroups } from '@/features/providers/useProviderWorkbench';
-import { ProviderResourceTable } from '@/features/providers/components/ProviderResourceTable';
+import { ResourceCard } from '@/features/providers/components/ResourceCard';
 import { ProviderResourceCards } from '@/features/providers/components/ProviderResourceCards';
 
 const i18n = createInstance();
@@ -71,13 +71,20 @@ describe('fork provider UI', () => {
     }
   });
 
-  test('table and cards display the provider name alongside a masked key', () => {
+  test('resource cards display the provider name alongside a masked key', () => {
     const group = { name: '主力渠道', keys: [{ 'api-key': 'fixture-long-key-for-masking' }] };
     const config = normalizeConfigResponse({ 'api-keys': { codex: [group] } });
     const resources = buildProviderGroups(config).find((g) => g.id === 'codex')!.resources;
     const props = { resources, onView: () => {}, onEdit: () => {}, onDelete: () => {} };
     for (const element of [
-      createElement(ProviderResourceTable, props),
+      createElement(ResourceCard, {
+        ...props,
+        resource: resources[0],
+        selected: false,
+        disableMutations: false,
+        usage: null,
+        onToggleDisabled: () => {},
+      }),
       createElement(ProviderResourceCards, props),
     ]) {
       const markup = render(element);
@@ -90,6 +97,7 @@ describe('fork provider UI', () => {
   test('keeps the OAuth provider order and both Kimi login tiles', () => {
     const markup = render(createElement(OAuthPage));
     const providers = [
+      'copilot',
       'meta',
       'codex',
       'anthropic',

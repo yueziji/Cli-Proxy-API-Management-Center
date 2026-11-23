@@ -119,7 +119,7 @@ describe('provider probe proxy forwarding', () => {
 
   test('the base form passes its editable proxy to probe hooks', () => {
     const base = readFileSync('src/features/providers/sheets/forms/BaseProviderForm.tsx', 'utf8');
-    expect(base.match(/proxyUrl: form\.proxyUrl/g)).toHaveLength(2);
+    expect(base.match(/proxyUrl: probeProxyUrl \?\? form\.proxyUrl/g)).toHaveLength(2);
   });
 });
 

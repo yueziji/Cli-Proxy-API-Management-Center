@@ -3,8 +3,17 @@ import { apiClient } from './client';
 import { guardConfigConnection } from './configValue';
 import { isRecord } from '@/utils/helpers';
 import { normalizeApiKeyEntry, normalizeProviderGroups } from './transformers';
+import {
+  normalizeNativeProviderGroup,
+  serializeNativeGroup,
+  replaceNativeGroupSettings,
+  type NativeProviderGroupConfig,
+} from './nativeProviderGroups';
+import { serializeConnectionPool } from './connectionPool';
+import { serializeErrorRule } from './errorRules';
 import { serializeModelOptions } from './providerModels';
 import { withoutAuthIndex, withoutProviderAuthIndexes } from './providerMetadata';
+import { applyNativeDisabled } from './nativeDisabled';
 import type {
   GeminiKeyConfig,
   OpenAIProviderConfig,
@@ -50,12 +59,7 @@ const serializeRuntimePolicy = (config: ProviderRuntimePolicy, supportsErrors = 
   const payload: Record<string, unknown> = {};
   if (config.requestRetry !== undefined) payload['request-retry'] = config.requestRetry;
   if (supportsErrors && config.requestScopedErrors !== undefined) {
-    payload['request-scoped-errors'] = config.requestScopedErrors.map((rule) => ({
-      ...(rule.status !== undefined ? { status: rule.status } : {}),
-      ...(rule.match !== undefined ? { match: rule.match } : {}),
-      ...(rule.matchRegex !== undefined ? { 'match-regexr': rule.matchRegex } : {}),
-      ...(rule.action !== undefined ? { action: rule.action } : {}),
-    }));
+    payload['request-scoped-errors'] = config.requestScopedErrors.map(serializeErrorRule);
   }
   return payload;
 };
@@ -82,6 +86,7 @@ const applyPolicyIntent = (
 const serializeProviderKey = (config: ProviderKeyConfig, family: ProviderFamily) => {
   const payload: Record<string, unknown> = {
     'api-key': config.apiKey,
+    ...serializeConnectionPool(config),
     ...serializeRuntimePolicy(config),
   };
   if (config.priority !== undefined) payload.priority = config.priority;
@@ -94,6 +99,8 @@ const serializeProviderKey = (config: ProviderKeyConfig, family: ProviderFamily)
     if (config.disableCodexCloaking !== undefined)
       payload['disable-codex-cloaking'] = config.disableCodexCloaking;
   }
+  if (family === 'claude' && config.nativeToolSearch !== undefined)
+    payload['native-tool-search'] = config.nativeToolSearch;
   if (family === 'claude' && config.rebuildMidSystemMessage !== undefined) {
     payload['rebuild-mid-system-message'] = config.rebuildMidSystemMessage;
   }
@@ -140,10 +147,10 @@ const serializeVertexModelAliases = (models?: ModelAlias[]) =>
         .map((model) => {
           const name = typeof model?.name === 'string' ? model.name.trim() : '';
           const alias = typeof model?.alias === 'string' ? model.alias.trim() : '';
-          if (!name || !alias) return null;
+          if (!name) return null;
           return {
             name,
-            alias,
+            ...(alias ? { alias } : {}),
             ...serializeModelOptions(model, false, true),
           };
         })
@@ -153,7 +160,13 @@ const serializeVertexModelAliases = (models?: ModelAlias[]) =>
 const serializeVertexKey = (config: ProviderKeyConfig) => {
   const payload: Record<string, unknown> = {
     'api-key': config.apiKey,
+    ...serializeConnectionPool(config),
     ...serializeRuntimePolicy(config, false),
+    ...(config.interactions !== undefined ? { interactions: config.interactions } : {}),
+    ...(config.openapi !== undefined ? { openapi: config.openapi } : {}),
+    ...(config.openapiLocation?.trim()
+      ? { 'openapi-location': config.openapiLocation.trim() }
+      : {}),
   };
   if (config.disableCooling !== undefined) payload['disable-cooling'] = config.disableCooling;
   if (config.priority !== undefined) payload.priority = config.priority;
@@ -174,6 +187,7 @@ const serializeVertexKey = (config: ProviderKeyConfig) => {
 const serializeGeminiKey = (config: GeminiKeyConfig) => {
   const payload: Record<string, unknown> = {
     'api-key': config.apiKey,
+    ...serializeConnectionPool(config),
     ...serializeRuntimePolicy(config),
   };
   if (config.priority !== undefined) payload.priority = config.priority;
@@ -214,6 +228,8 @@ const serializeOpenAIProvider = (provider: OpenAIProviderConfig) => {
   return payload;
 };
 
+export { normalizeNativeProviderGroup, type NativeProviderGroupConfig };
+
 export type ProviderFamily =
   | 'gemini'
   | 'interactions'
@@ -223,6 +239,7 @@ export type ProviderFamily =
   | 'claude'
   | 'vertex'
   | 'openai-compatibility';
+export type NativeProviderFamily = Exclude<ProviderFamily, 'openai-compatibility'>;
 type KeyConfig = ProviderKeyConfig | GeminiKeyConfig;
 const equal = (a: unknown, b: unknown): boolean => {
   if (a === b) return true;
@@ -244,25 +261,33 @@ export const readProviderGroups = (
   raw: unknown,
   family: ProviderFamily
 ): Record<string, unknown>[] => {
-  if (!isRecord(raw) || !isRecord(raw['api-keys'])) return [];
+  if (!isRecord(raw)) throw conflict();
+  if (raw['api-keys'] === undefined) return [];
+  if (!isRecord(raw['api-keys'])) throw conflict();
   const groups = raw['api-keys'][family];
   if (groups === undefined) return [];
   if (!Array.isArray(groups) || !groups.every((g) => isRecord(g) && Array.isArray(g.keys)))
     throw conflict();
   return groups;
 };
-const getGroups = async (family: ProviderFamily) => {
+const guardProviderConnection = () => {
   const assertConnection = guardConfigConnection();
   const session = useAuthStore.getState();
+  return () => {
+    assertConnection();
+    const current = useAuthStore.getState();
+    if (
+      session.apiBase !== current.apiBase ||
+      session.managementKey !== current.managementKey ||
+      session.isAuthenticated !== current.isAuthenticated
+    )
+      throw conflict();
+  };
+};
+const getGroups = async (family: ProviderFamily) => {
+  const assertConnection = guardProviderConnection();
   const raw = await apiClient.get('/config');
   assertConnection();
-  const current = useAuthStore.getState();
-  if (
-    session.apiBase !== current.apiBase ||
-    session.managementKey !== current.managementKey ||
-    session.isAuthenticated !== current.isAuthenticated
-  )
-    throw conflict();
   return readProviderGroups(raw, family);
 };
 // Remove the old UI-only field at known config locations, not inside opaque
@@ -279,15 +304,21 @@ const cleanModelTestFields = (value: Record<string, unknown>) => {
     models: value.models.map((model) => (isRecord(model) ? removeTestModel(model) : model)),
   };
 };
-const putGroups = (family: ProviderFamily, groups: Record<string, unknown>[]) =>
-  apiClient.put(
+const putGroups = (
+  family: ProviderFamily,
+  groups: Record<string, unknown>[],
+  etag?: string,
+  client = apiClient
+) =>
+  client.put(
     `/config/api-keys/${family}`,
     groups.map(withoutProviderAuthIndexes).map((group) => ({
       ...cleanModelTestFields(family === 'openai-compatibility' ? removeTestModel(group) : group),
       keys: (group.keys as unknown[]).map((key) =>
         isRecord(key) ? cleanModelTestFields(key) : key
       ),
-    }))
+    })),
+    etag ? { headers: { 'If-Match': etag } } : undefined
   );
 
 const equalGroup = (a: Record<string, unknown>, b: Record<string, unknown>) =>
@@ -456,6 +487,42 @@ const createKey = async (family: ProviderFamily, config: KeyConfig) => {
     },
   ]);
 };
+function editNativeMember(
+  family: ProviderFamily,
+  group: Record<string, unknown>,
+  rawKey: Record<string, unknown>,
+  original: KeyConfig,
+  config: KeyConfig
+) {
+  const serialize = keySerializer(family);
+  const before = serialize(original);
+  const after = serialize(config);
+  delete before['base-url'];
+  delete after['base-url'];
+  const rawModels = rawKey.models ?? group.models;
+  const next = applyProviderChanges(rawKey, before, after, group);
+  applyPolicyIntent(next, rawKey, config, after);
+  preserveModelMetadata(
+    next,
+    rawModels,
+    before.models,
+    after.models,
+    original.models,
+    config.models,
+    family === 'vertex' ? serializeVertexModelAliases : serializeModelAliases
+  );
+  // Response metadata belongs to credentials, not arbitrary nested maps such as headers.
+  delete next['auth-index'];
+  return next;
+}
+
+function createNativeMember(family: NativeProviderFamily, config: KeyConfig) {
+  const key = keySerializer(family)(config);
+  delete key['base-url'];
+  applyPolicyIntent(key, {}, config, { ...key });
+  return key;
+}
+
 const updateKey = async (
   family: ProviderFamily,
   apiKey: string,
@@ -478,35 +545,13 @@ const updateKey = async (
     (c) => c.source?.keyIndex === keyIndex
   );
   if (!original) throw conflict();
-  const serialize = keySerializer(family);
-  const before = serialize(original);
-  const after = serialize(config);
   const nextGroup = { ...group };
   const name = config.name?.trim();
   if (name) nextGroup.name = name;
-  if (!equal(before['base-url'], after['base-url'])) {
-    if (after['base-url'] === undefined) delete nextGroup['base-url'];
-    else nextGroup['base-url'] = after['base-url'];
-  }
-  delete before['base-url'];
-  delete after['base-url'];
-  const rawModels = keys[keyIndex].models ?? group.models;
-  const rawKey = keys[keyIndex];
-  keys[keyIndex] = applyProviderChanges(rawKey, before, after, group);
-  applyPolicyIntent(keys[keyIndex], rawKey, config, after);
-  preserveModelMetadata(
-    keys[keyIndex],
-    rawModels,
-    before.models,
-    after.models,
-    original.models,
-    config.models,
-    family === 'vertex' ? serializeVertexModelAliases : serializeModelAliases
-  );
-  // Response metadata belongs to credentials, not arbitrary nested maps such as headers.
-  delete keys[keyIndex]['auth-index'];
+  keys[keyIndex] = editNativeMember(family, group, keys[keyIndex], original, config);
   groups[index] = { ...nextGroup, keys };
   await putGroups(family, groups);
+  return { groups, groupIndex: index, group: groups[index] };
 };
 const deleteKey = async (
   family: ProviderFamily,
@@ -526,6 +571,7 @@ const deleteKey = async (
   if (matches.length !== 1) throw conflict();
   groups[index] = { ...groups[index], keys: keys.filter((_, i) => i !== matches[0]) };
   await putGroups(family, groups);
+  return { groups, groupIndex: index, group: groups[index] };
 };
 const serializeOpenAIGroup = serializeOpenAIProvider;
 const findOpenAISource = (groups: Record<string, unknown>[], source?: ProviderSource): number => {
@@ -533,7 +579,178 @@ const findOpenAISource = (groups: Record<string, unknown>[], source?: ProviderSo
   return locateProviderGroup(groups, source);
 };
 
+// All group editor operations replace a family list, never an array index path. Bind the
+// write to the exact config bytes just read so even a change after snapshot matching is safe.
+const mutateNativeGroups = async (
+  family: NativeProviderFamily,
+  change: (groups: Record<string, unknown>[]) => Record<string, unknown>[]
+) => {
+  const assertConnection = guardProviderConnection();
+  // Axios resolves its request interceptor asynchronously. Pin the destination as well
+  // as checking the revision so a queued write cannot pick up another session's key.
+  const client = apiClient.captureConnection();
+  const response = await client.getRaw('/config');
+  assertConnection();
+  const etag: unknown = response.headers.etag;
+  if (typeof etag !== 'string' || !etag) throw conflict();
+  const groups = change(readProviderGroups(response.data, family));
+  await putGroups(family, groups, etag, client);
+  assertConnection();
+  return groups;
+};
+
+const nativeGroupIndex = (groups: Record<string, unknown>[], source: ProviderSource) => {
+  if (source.keyIndex !== undefined) throw conflict();
+  return locateProviderGroup(groups, source);
+};
+
+async function changeSingleNativeGroup(
+  family: NativeProviderFamily,
+  source: ProviderSource,
+  update: (group: Record<string, unknown>) => Record<string, unknown>
+) {
+  let groupIndex = -1;
+  const groups = await mutateNativeGroups(family, (current) => {
+    groupIndex = nativeGroupIndex(current, source);
+    current[groupIndex] = update(current[groupIndex]);
+    return current;
+  });
+  return { groups, groupIndex, group: groups[groupIndex] };
+}
+
+/** Ordered result rows. An indexed row without config carries an opaque member unchanged. */
+export interface NativeConnectionMember {
+  originalKeyIndex?: number;
+  config?: ProviderKeyConfig;
+  /** Desired on/off state; omitted keeps whatever the key resolves to. */
+  disabled?: boolean;
+}
+
+async function saveNativeConnection(
+  family: NativeProviderFamily,
+  source: ProviderSource | undefined,
+  settings: Record<string, unknown>,
+  members: readonly NativeConnectionMember[],
+  /** Turn the whole group on or off before per-key states are applied. */
+  allDisabled?: boolean
+) {
+  let groupIndex = -1;
+  const groups = await mutateNativeGroups(family, (current) => {
+    groupIndex = source ? nativeGroupIndex(current, source) : current.length;
+    const group = source ? current[groupIndex] : { keys: [] };
+    const rawKeys = group.keys as unknown[];
+    // Compare with the *old* group defaults. Diffing against the edited defaults
+    // would accidentally pin inherited values onto every unchanged credential.
+    const originals = new Map(
+      (normalizeProviderGroups([group]) as KeyConfig[]).map((row) => [row.source!.keyIndex, row])
+    );
+    const used = new Set<number>();
+    const keys = members.map(({ originalKeyIndex: index, config }) => {
+      if (index === undefined) {
+        if (!config || config.source) throw conflict();
+        return createNativeMember(family, config);
+      }
+      if (!Number.isSafeInteger(index) || index < 0 || index >= rawKeys.length || used.has(index))
+        throw conflict();
+      used.add(index);
+      const raw = rawKeys[index];
+      if (!config) return raw;
+      const original = originals.get(index);
+      if (!original || !isRecord(raw)) throw conflict();
+      if (config.source && (config.source.keyIndex !== index || !equal(config.source.group, group)))
+        throw conflict();
+      return editNativeMember(family, group, raw, original, config);
+    });
+    const nextSettings = { ...settings };
+    if (typeof nextSettings.name !== 'string' || !nextSettings.name.trim()) {
+      const names = new Set(current.map((entry) => entry.name));
+      let number = current.length + 1;
+      while (names.has(`${family}-${number}`)) number++;
+      nextSettings.name = source ? group.name : `${family}-${number}`;
+    }
+    current[groupIndex] = applyNativeDisabled(
+      { ...replaceNativeGroupSettings(group, nextSettings), keys },
+      { all: allDisabled, keys: members.map((member) => member.disabled) }
+    );
+    return current;
+  });
+  return { groups, groupIndex, group: groups[groupIndex] };
+}
+
 export const providersApi = {
+  saveNativeConnection,
+  createRawNativeGroup: async (
+    family: NativeProviderFamily,
+    settings: Record<string, unknown>,
+    firstApiKey?: string
+  ) => {
+    const keys = firstApiKey?.trim() ? [{ 'api-key': firstApiKey.trim() }] : [];
+    const groups = await mutateNativeGroups(family, (current) => [
+      ...current,
+      replaceNativeGroupSettings({ keys }, settings),
+    ]);
+    const groupIndex = groups.length - 1;
+    return { group: groups[groupIndex], groupIndex, groups };
+  },
+  updateRawNativeGroup: (
+    family: NativeProviderFamily,
+    source: ProviderSource,
+    settings: Record<string, unknown>
+  ) =>
+    changeSingleNativeGroup(family, source, (group) => replaceNativeGroupSettings(group, settings)),
+  createNativeGroup: (family: NativeProviderFamily, config: NativeProviderGroupConfig) =>
+    mutateNativeGroups(family, (groups) => [
+      ...groups,
+      { ...serializeNativeGroup(config, keySerializer(family)), keys: [] },
+    ]),
+  updateNativeGroup: (
+    family: NativeProviderFamily,
+    source: ProviderSource,
+    config: NativeProviderGroupConfig
+  ) =>
+    mutateNativeGroups(family, (groups) => {
+      const index = nativeGroupIndex(groups, source);
+      const group = groups[index];
+      const original = normalizeNativeProviderGroup(group);
+      const serialize = keySerializer(family);
+      const before = serializeNativeGroup(original, serialize);
+      const after = serializeNativeGroup(config, serialize);
+      const next = applyProviderChanges(group, before, after);
+      applyPolicyIntent(next, group, config, after);
+      preserveModelMetadata(
+        next,
+        group.models,
+        before.models,
+        after.models,
+        original.models,
+        config.models,
+        family === 'vertex' ? serializeVertexModelAliases : serializeModelAliases
+      );
+      groups[index] = next;
+      return groups;
+    }),
+  setNativeGroupDisabled: (
+    family: NativeProviderFamily,
+    source: ProviderSource,
+    disabled: boolean
+  ) =>
+    changeSingleNativeGroup(family, source, (group) =>
+      applyNativeDisabled(group, { all: disabled })
+    ),
+  deleteNativeGroup: (family: NativeProviderFamily, source: ProviderSource) =>
+    mutateNativeGroups(family, (groups) => {
+      const index = nativeGroupIndex(groups, source);
+      return groups.filter((_, i) => i !== index);
+    }),
+  appendNativeGroupKey: (
+    family: NativeProviderFamily,
+    source: ProviderSource,
+    config: ProviderKeyConfig
+  ) =>
+    changeSingleNativeGroup(family, source, (group) => {
+      const key = createNativeMember(family, config);
+      return { ...group, keys: [...(group.keys as unknown[]), key] };
+    }),
   createGeminiKey: (config: GeminiKeyConfig) => createKey('gemini', config),
   updateGeminiKey: (apiKey: string, baseUrl: string | undefined, config: GeminiKeyConfig) =>
     updateKey('gemini', apiKey, baseUrl, config),

@@ -1,4 +1,7 @@
 import { FORK_VISUAL_DEFAULTS, type ForkVisualConfigValues } from '@/features/config/forkFields';
+import type { ErrorRuleDraft } from '@/features/providers/errorRules';
+
+export type OAuthChannelRules = { channel: string; rules: ErrorRuleDraft[] };
 
 export type PayloadParamValueType = 'string' | 'number' | 'boolean' | 'json';
 export type DisableImageGenerationMode = 'false' | 'true' | 'chat' | 'passthrough';
@@ -19,6 +22,8 @@ export type VisualConfigFieldPath =
   | 'codexWebSearchResultCacheTTL'
   | 'codexWebSearchResultCacheLimit'
   | 'routingSessionAffinityRebindOn'
+  | 'serverId'
+  | 'oauthErrorRules'
   | 'trustedProxies'
   | 'discoveryServiceType'
   | 'transientErrorCooldownSeconds'
@@ -46,6 +51,8 @@ export type VisualConfigFieldPath =
 
 export type VisualConfigValidationErrorCode =
   | 'invalid_session_affinity_rebind'
+  | 'invalid_server_id'
+  | 'invalid_oauth_error_rules'
   | 'invalid_trusted_proxies'
   | 'invalid_discovery_service_type'
   | 'invalid_duration'
@@ -139,6 +146,8 @@ export type PluginStoreAuthRule = {
 
 /** UI draft keys; YAML persistence uses the v8 tree, not these flattened names. */
 export type VisualConfigValues = {
+  oauthErrorRules: OAuthChannelRules[];
+  serverId: string;
   githubToken: string;
   trustedProxies: string[];
   discoveryEnabled: boolean;
@@ -248,6 +257,8 @@ export const makeClientId = () => {
 
 export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   ...FORK_VISUAL_DEFAULTS,
+  oauthErrorRules: [],
+  serverId: '',
   githubToken: '',
   trustedProxies: [],
   discoveryEnabled: false,

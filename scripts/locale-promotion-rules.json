@@ -1,5 +1,10 @@
 {
   "forbiddenPaths": [
+    "providersPage.picker.featured",
+    "providersPage.picker.featuredBadge",
+    "providersPage.picker.oneKey",
+    "providersPage.picker.offer",
+    "providersPage.picker.moreQuickConnect",
     "nav.quick_start",
     "nav_meta.quick_start",
     "auth_login.kimi_sign_up_button",

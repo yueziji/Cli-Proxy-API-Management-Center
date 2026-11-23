@@ -2,6 +2,7 @@ import type { BuiltInOAuthProvider } from '@/services/api';
 import { getPluginTitle, resolvePluginAssetURL } from '@/features/plugins/pluginResources';
 import type { PluginListEntry } from '@/types';
 import iconMeta from '@/assets/icons/meta.svg';
+import iconCopilot from '@/assets/icons/copilot.svg';
 import iconCodex from '@/assets/icons/codex.svg';
 import iconClaude from '@/assets/icons/claude.svg';
 import iconAntigravity from '@/assets/icons/antigravity.svg';
@@ -46,6 +47,14 @@ export type OAuthProviderCard = BuiltInOAuthProviderCard | PluginOAuthProviderCa
 
 /** 展示顺序即数组顺序，内置提供商沿用本仓库的次序。 */
 export const OAUTH_PROVIDERS: BuiltInOAuthProviderCard[] = [
+  {
+    kind: 'builtin',
+    id: 'copilot',
+    label: 'GitHub Copilot',
+    titleKey: 'auth_login.copilot_oauth_title',
+    icon: iconCopilot,
+    flow: 'device',
+  },
   {
     kind: 'builtin',
     id: 'meta',

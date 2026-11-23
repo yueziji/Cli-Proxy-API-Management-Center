@@ -7,7 +7,6 @@ import { I18nextProvider } from 'react-i18next';
 import en from '@/i18n/locales/en.json';
 import { BaseProviderForm } from '@/features/providers/sheets/forms/BaseProviderForm';
 import { CheckboxField } from '@/features/providers/sheets/forms/CheckboxField';
-import type { ProviderBrand } from '@/features/providers/types';
 
 const i18n = createInstance();
 await i18n.init({ lng: 'en', resources: { en: { translation: en } } });
@@ -25,7 +24,7 @@ const REMOVED = {
   disabled: "Disabled entries won't be used by the gateway",
 };
 
-const renderBase = (brand: ProviderBrand) =>
+const renderBase = (brand: NativeProviderFamily) =>
   render(
     createElement(BaseProviderForm, {
       brand,
@@ -33,7 +32,7 @@ const renderBase = (brand: ProviderBrand) =>
       mode: 'create',
       mutating: false,
       formId: 'f',
-      onSubmit: async () => {},
+      onNativeSubmit: async () => {},
     })
   );
 

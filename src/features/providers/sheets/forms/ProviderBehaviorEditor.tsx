@@ -1,11 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Collapsible } from '@/components/ui/Collapsible';
 import type { ProviderBehaviorOptions } from '@/types/provider';
 import { getProviderBehaviorCapabilities } from '../../descriptors';
 import type { ProviderBrand } from '../../types';
 import { CodexApiKeySettings } from './CodexApiKeySettings';
 import { CheckboxField } from './CheckboxField';
 import styles from './sharedForm.module.scss';
+import { FormDisclosure } from './FormSection';
 
 interface ProviderBehaviorEditorProps {
   brand: ProviderBrand;
@@ -33,7 +33,7 @@ export function ProviderBehaviorEditor({
     />
   );
   return (
-    <Collapsible label={t('providersPage.behavior.title')}>
+    <FormDisclosure label={t('providersPage.behavior.title')}>
       <div className={styles.section}>
         {capabilities.alphaSearch ? checkbox('alphaSearch') : null}
         {capabilities.disableCodexCloaking ? (
@@ -46,6 +46,6 @@ export function ProviderBehaviorEditor({
         {capabilities.rebuildMidSystemMessage ? checkbox('rebuildMidSystemMessage') : null}
         {capabilities.supportPromptCacheKey ? checkbox('supportPromptCacheKey') : null}
       </div>
-    </Collapsible>
+    </FormDisclosure>
   );
 }

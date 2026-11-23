@@ -429,7 +429,8 @@
     "quota_refresh_single": "Kotayı Yenile",
     "quota_refresh_hint": "Yalnızca Bu Kimlik Bilgisinin Kotasını Yenile",
     "quota_refresh_success": "“{{name}}” için Kota Yenilendi",
-    "quota_refresh_failed": "“{{name}}” için Kota Yenilenemedi: {{message}}"
+    "quota_refresh_failed": "“{{name}}” için Kota Yenilenemedi: {{message}}",
+    "filter_copilot": "GitHub Copilot"
   },
   "antigravity_subscription": {
     "plan_unknown": "Bilinmiyor",
@@ -975,7 +976,16 @@
     "login_proxy_clear": "Temizle",
     "login_proxy_invalid": "Geçersiz proxy URL'si. Bir ana bilgisayarla birlikte http, https, socks5 veya socks5h kullanın (socks5 için port gerekir); yol veya sorgu eklemeyin.",
     "login_proxy_in_use": "Giriş proxy üzerinden yapılıyor",
-    "copied": "Kopyalandı"
+    "copied": "Kopyalandı",
+    "copilot_oauth_title": "GitHub Copilot OAuth",
+    "copilot_oauth_button": "GitHub Copilot ile Giriş Yap",
+    "copilot_open_link": "Bağlantıyı Aç",
+    "copilot_copy_link": "Bağlantıyı Kopyala",
+    "copilot_oauth_status_waiting": "Kimlik Doğrulama Bekleniyor...",
+    "copilot_oauth_status_success": "Kimlik Doğrulama Başarılı!",
+    "copilot_oauth_status_error": "Kimlik Doğrulama Başarısız:",
+    "copilot_oauth_start_error": "GitHub Copilot OAuth Başlatılamadı:",
+    "copilot_oauth_polling_error": "Kimlik Doğrulama Durumu Kontrol Edilemedi:"
   },
   "stats": {
     "success": "Başarılı",
@@ -1165,7 +1175,11 @@
           "hint": "Varsayılan Kapalı. Yalnızca Yönetim Hizmetinin Var Olduğunu Duyurur. Uzak Erişim İzinlerini Değiştirmez."
         },
         "discoveryTitle": "Yerel Ağ Keşfi",
-        "discoveryHint": "Çoklu Yayını Destekleyen Fiziksel Arayüzler ve Geri Döngü Olmayan Bir Dinleyici Gerekir. Docker Genellikle Host Ağı İster. Erişilebilirlik Garanti Değildir."
+        "discoveryHint": "Çoklu Yayını Destekleyen Fiziksel Arayüzler ve Geri Döngü Olmayan Bir Dinleyici Gerekir. Docker Genellikle Host Ağı İster. Erişilebilirlik Garanti Değildir.",
+        "serverId": {
+          "label": "Dağıtım kimliği",
+          "hint": "Bu dağıtımın sabit UUID değeri. Boş kaydedilirse yeni bir kimlik oluşturulur."
+        }
       },
       "additions": {
         "oauthTitle": "OAuth Sağlayıcı Davranışı",
@@ -1251,7 +1265,7 @@
         },
         "antigravityConnectionPoolMaxIdleConnsPerHost": {
           "label": "Ana Makine Başına En Fazla Boşta Bağlantı",
-          "hint": "Kimlik Bilgisi Başına Her Yukarı Akış Ana Makinesi için Tutulan En Fazla Boşta Bağlantı. Varsayılan: 2. Üst Sınır 100. Sıfır, Go Varsayılanı 2 Değerini Kullanır. Negatif Değer Kısa Ömürlü Bağlantılara Geçirir."
+          "hint": "Kimlik bilgisi başına her üst sunucu için en fazla boşta bağlantı sayısı. Boş bırakılırsa varsayılan 2 kullanılır. Üst sınır 100’dür. Sıfır veya negatif değer kısa süreli bağlantı kullanır."
         },
         "xaiInjectXSearch": {
           "label": "x_search Ekle",
@@ -1284,6 +1298,11 @@
         "codexLiveMediaRelayICEServers": {
           "label": "ICE Sunucuları",
           "hint": "stun:, stuns:, turn: veya turns: URL'leri Kullanan İsteğe Bağlı STUN/TURN Sunucuları. TURN Kimlik Bilgileri JSON Yapılandırma API Değerinden Çıkarılır. Kimlik Bilgisini Parola Olarak Gir ve Gizlileri Ekran Görüntülerinden ve Günlüklerden Uzak Tut."
+        },
+        "oauthErrorRules": {
+          "label": "OAuth istek hata kuralları",
+          "hint": "Her OAuth kanalı için üst sunucu hatalarını sırayla eşleştirerek başka kimlik bilgilerine geçişi ve beklemeyi yönetin.",
+          "channel": "OAuth kanalı (eklenti kanalı da girilebilir)"
         }
       },
       "search": {
@@ -1549,7 +1568,9 @@
         "payload_replace_invalid_positions": "Seçili rolün tüm mesajlarını seçin veya pozitif tam sayılardan oluşan boş olmayan bir konum listesi girin. İkisini birden seçmeyin.",
         "payload_replace_invalid_paths": "En az bir boş olmayan JSON yolu girin. Yollar rol, all veya positions ile birlikte kullanılamaz.",
         "payload_replace_invalid_models": "Adı boş olmayan ve koşulları geçerli en az bir model ekleyin.",
-        "payload_replace_invalid_replacements": "En az bir geçerli değiştirme ekleyin. Düz metin kaynağı boş olamaz; düzenli ifadeler Go RE2 kullanır. Boş değiştirme metni eşleşmeyi siler."
+        "payload_replace_invalid_replacements": "En az bir geçerli değiştirme ekleyin. Düz metin kaynağı boş olamaz; düzenli ifadeler Go RE2 kullanır. Boş değiştirme metni eşleşmeyi siler.",
+        "invalid_server_id": "Tire içeren ve sıfır olmayan bir UUID girin.",
+        "invalid_oauth_error_rules": "{{channel}} için durum kodunu, eşleşmeleri ve eylemi kontrol edin."
       },
       "common": {
         "edit": "Düzenle",
@@ -2075,7 +2096,9 @@
       "save": "Kaydet",
       "create": "Oluştur",
       "enable": "Etkinleştir",
-      "disable": "Devre Dışı Bırak"
+      "disable": "Devre Dışı Bırak",
+      "newFor": "{{provider}} ekle",
+      "addProvider": "Sağlayıcı ekle"
     },
     "categories": {
       "title": "Sağlayıcılar",
@@ -2092,12 +2115,6 @@
       "openaiCompatibility": "OpenAI Uyumlu"
     },
     "table": {
-      "key": "Anahtar",
-      "baseUrl": "Temel URL",
-      "prefix": "Önek",
-      "models": "Modeller/Üst Bilgiler",
-      "status": "Durum",
-      "actions": "Eylemler",
       "metrics": {
         "models": "Modeller",
         "keys": "Anahtarlar",
@@ -2106,8 +2123,9 @@
       "websocketsTag": "WebSockets",
       "cloakTag": "Cloak",
       "cliProfileTag": "CLI Profili",
-      "empty": "Henüz Kaynak Yok. Eklemek için \"Yeni\" Seçeneğine Tıkla.",
-      "filterPlaceholder": "Anahtar, URL veya Önek Ara…"
+      "filterPlaceholder": "Anahtar, URL veya Önek Ara…",
+      "emptyBrand": "Henüz {{provider}} yapılandırması yok",
+      "noMatch": "Geçerli filtrelerle eşleşen kaynak yok"
     },
     "status": {
       "active": "Aktif",
@@ -2200,7 +2218,15 @@
         "baseUrlRequired": "Temel URL Zorunlu",
         "weightInteger": "Zamanlama Ağırlığı Tam Sayı Olmalıdır",
         "weightMax": "Zamanlama Ağırlığı {{max}} Değerini Aşamaz"
-      }
+      },
+      "sections": {
+        "connection": "Bağlantı",
+        "connectivity": "Bağlantı testi",
+        "routing": "Yönlendirme",
+        "advanced": "Gelişmiş"
+      },
+      "headerName": "Başlık adı",
+      "headerValue": "Başlık değeri"
     },
     "delete": {
       "title": "Kaynağı Sil",
@@ -2262,10 +2288,74 @@
         "selectAll": "Tümünü Seç",
         "clear": "Temizle",
         "empty": "Henüz Yapılandırılmış Model Yok"
-      }
+      },
+      "clearFilters": "Filtreleri temizle"
     },
     "modelCatalog": {
       "notLoaded": "Yüklenmedi"
+    },
+    "connections": {
+      "edit": "Bağlantıyı düzenle",
+      "create": "Bağlantı ekle",
+      "search": "Bağlantı, anahtar, URL veya ön ek ara…",
+      "keyCount_one": "{{count}} anahtar",
+      "keyCount_other": "{{count}} anahtar",
+      "keysActive_one": "{{active}}/{{count}} anahtar etkin",
+      "keysActive_other": "{{active}}/{{count}} anahtar etkin",
+      "disableKeys": "“{{name}}” içindeki tüm anahtarları devre dışı bırak",
+      "enableKeys": "“{{name}}” içindeki tüm anahtarları etkinleştir"
+    },
+    "nativeGroup": {
+      "defaults": "Bağlantı varsayılanları",
+      "description": "Anahtarlar kendi ayarlarını belirtmedikçe bu değerleri devralır. Temel URL tüm anahtarlar için geçerlidir.",
+      "name": "Bağlantı adı",
+      "headersJson": "İstek başlıkları (JSON nesnesi)",
+      "excluded": "Hariç tutulan modeller (her satıra bir model)",
+      "pool": "Bağlantı havuzu",
+      "configurePool": "Bağlantı havuzunu yapılandır",
+      "poolHint": "Havuz eklemek varsayılan olarak bağlantıları yeniden kullanmayı etkinleştirir. Her anahtarın bağlantıları ayrıdır. Zaman aşımı veya sınır sıfır ya da negatifse bağlantılar yeniden kullanılmaz.",
+      "poolEnabled": "Bağlantıları yeniden kullan",
+      "poolAuto": "Varsayılan (etkin)",
+      "poolTimeout": "Boşta kalan bağlantı zaman aşımı",
+      "poolLimit": "Sunucu başına en fazla boşta kalan bağlantı",
+      "invalidLimit": "En fazla boşta kalan bağlantı sayısı güvenli bir tam sayı olmalıdır.",
+      "modelNameRequired": "Her model için sağlayıcıdaki model adını girin.",
+      "disabled": "Bu anahtar grubunu devre dışı bırak"
+    },
+    "groupActions": {
+      "search": "Bağlantı, anahtar, URL veya önek ara…",
+      "create": "Bağlantı oluştur",
+      "edit": "Bağlantıyı düzenle",
+      "delete": "Bağlantıyı sil",
+      "append": "Anahtar ekle",
+      "confirm": "“{{name}}” bağlantısı ve tüm anahtarları ({{count}}) silinsin mi?",
+      "settings": "Bağlantı ayarları"
+    },
+    "nativeKey": {
+      "routing": "Protokol ayarları",
+      "nativeToolSearch": "Anthropic yerel araç araması için özel uç noktaya güven",
+      "interactions": "Vertex Interactions API kullan",
+      "openapi": "Vertex OpenAPI uç noktasını kullan",
+      "location": "OpenAPI bölgesi",
+      "pool": "Bağlantı havuzu",
+      "poolHint": "Özel ayarlar, burada veya grupta devre dışı bırakılmadıkça havuzu etkinleştirir. Boş alanlar üst ayarları kullanır. Sıfır veya negatif zaman aşımı ya da sınır yeniden kullanımı kapatır.",
+      "reuse": "Sunucu bağlantılarını yeniden kullan",
+      "timeout": "Boşta kalma süresi (ör. 5m)",
+      "maxIdle": "Sunucu başına en fazla boşta bağlantı",
+      "invalidMaxIdle": "Boşta bağlantı sınırı güvenli bir tam sayı olmalıdır.",
+      "inheritHint": "Yalnızca bu anahtar için farklı olan alanları doldurun; boş alanlar bağlantı ayarlarını devralır.",
+      "disableKey": "Bu anahtarı devre dışı bırak",
+      "disableShort": "Kapalı"
+    },
+    "card": {
+      "requests": "İstekler"
+    },
+    "picker": {
+      "official": "Resmî API’ler",
+      "custom": "Özel",
+      "connect": "Bağla",
+      "connected": "{{count}} bağlı",
+      "onboardingTitle": "İlk yapay zekâ sağlayıcınızı bağlayın"
     }
   },
   "claude_reset": {
@@ -2373,5 +2463,16 @@
     "remove_pattern": "{{row}}. regex satırını sil",
     "move_up": "{{row}}. regex satırını yukarı taşı",
     "move_down": "{{row}}. regex satırını aşağı taşı"
+  },
+  "copilot_quota": {
+    "title": "GitHub Copilot Kotası",
+    "empty_title": "GitHub Copilot Kimlik Bilgisi Yok",
+    "empty_desc": "Kotayı Sormak için GitHub Copilot OAuth ile Giriş Yap veya Bir GitHub Copilot Kimlik Dosyası Yükle.",
+    "idle": "GitHub Copilot Kotasını Sormak için Tıkla",
+    "loading": "GitHub Copilot Kotası Sorgulanıyor…",
+    "load_failed": "Kota Sorgulanamadı: {{message}}",
+    "remaining": "%{{percent}} Kaldı",
+    "premium": "Premium etkileşimler",
+    "unavailable": "Kota alınamadı. Copilot kimlik bilgilerini kontrol edip tekrar deneyin."
   }
 }

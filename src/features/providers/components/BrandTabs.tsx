@@ -1,0 +1,118 @@
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { scrollProviderTabs } from '@/features/authFiles/components/providerTabsWheel';
+import { connectionCounts } from '../resourceView';
+import type { ProviderBrand, ProviderGroup } from '../types';
+import { BrandLogo } from './BrandLogo';
+import styles from './BrandTabs.module.scss';
+
+interface BrandTabsProps {
+  /** Supported protocols in display order. */
+  groups: ProviderGroup[];
+  activeBrand: ProviderBrand;
+  onSelect: (brand: ProviderBrand) => void;
+  /** Builds the id shared by a tab and the panel it controls. */
+  tabId: (brand: ProviderBrand) => string;
+  panelId: string;
+}
+
+/** Scrollable protocol tabs with roving keyboard focus. */
+export function BrandTabs({ groups, activeBrand, onSelect, tabId, panelId }: BrandTabsProps) {
+  const { t } = useTranslation();
+  const stripRef = useRef<HTMLDivElement>(null);
+  const [overflow, setOverflow] = useState({ start: false, end: false });
+
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const onWheel = (event: WheelEvent) => scrollProviderTabs(strip, event);
+    // Fade only the edges that actually hide tabs, so the strip never looks cut off for nothing.
+    const measure = () => {
+      const max = strip.scrollWidth - strip.clientWidth;
+      const next = { start: strip.scrollLeft > 1, end: strip.scrollLeft < max - 1 };
+      setOverflow((prev) => (prev.start === next.start && prev.end === next.end ? prev : next));
+    };
+    measure();
+    strip.addEventListener('wheel', onWheel, { passive: false });
+    strip.addEventListener('scroll', measure, { passive: true });
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    observer?.observe(strip);
+    return () => {
+      strip.removeEventListener('wheel', onWheel);
+      strip.removeEventListener('scroll', measure);
+      observer?.disconnect();
+    };
+  }, [groups.length]);
+
+  // Keep the active tab visible when it changes (narrow screens scroll the strip).
+  useEffect(() => {
+    const active = stripRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    active?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [activeBrand]);
+
+  const focusBrand = (brand: ProviderBrand) => {
+    onSelect(brand);
+    // Focus after React commits the new roving tabindex.
+    requestAnimationFrame(() => document.getElementById(tabId(brand))?.focus());
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const index = groups.findIndex((group) => group.id === activeBrand);
+    if (index < 0 || groups.length === 0) return;
+    let next = -1;
+    if (event.key === 'ArrowRight') next = (index + 1) % groups.length;
+    else if (event.key === 'ArrowLeft') next = (index - 1 + groups.length) % groups.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = groups.length - 1;
+    if (next < 0) return;
+    event.preventDefault();
+    focusBrand(groups[next].id);
+  };
+
+  return (
+    <div className={styles.bar}>
+      <div
+        ref={stripRef}
+        className={styles.strip}
+        data-overflow-start={overflow.start || undefined}
+        data-overflow-end={overflow.end || undefined}
+        role="tablist"
+        aria-label={t('providersPage.categories.title')}
+      >
+        {groups.map((group) => {
+          const active = group.id === activeBrand;
+          const counts = connectionCounts(group);
+          const total = counts.total;
+          return (
+            <button
+              key={group.id}
+              id={tabId(group.id)}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              aria-controls={panelId}
+              tabIndex={active ? 0 : -1}
+              className={`${styles.tab} ${active ? styles.tabActive : ''}`}
+              onClick={() => onSelect(group.id)}
+              onKeyDown={handleKeyDown}
+            >
+              <BrandLogo brand={group.id} size={18} />
+              <span className={styles.label}>{t(`providersPage.providerNames.${group.id}`)}</span>
+              {total > 0 ? (
+                <span
+                  className={styles.count}
+                  title={t('providersPage.categories.activeCount', {
+                    active: counts.active,
+                    total,
+                  })}
+                >
+                  {total}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

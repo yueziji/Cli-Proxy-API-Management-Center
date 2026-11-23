@@ -429,7 +429,8 @@
     "policy_rules_hint": "Các quy tắc tùy chỉnh được ưu tiên theo thứ tự danh sách. Kế thừa hoặc danh sách trống sẽ sử dụng quy tắc kế thừa; điều này không vô hiệu hóa chúng. Mẫu biểu thức chính quy (Regex) dùng cú pháp của Go.",
     "policy_retry_invalid": "Nhập một số nguyên an toàn không âm, hoặc chọn Kế thừa.",
     "policy_aliases_invalid": "Nhập tên model và bí danh không để trống cho mỗi hàng mới hoặc đã chỉnh sửa.",
-    "policy_rules_invalid": "Hoàn thành mỗi quy tắc đã chỉnh sửa với mã trạng thái dương, một hành động và ít nhất một điều kiện khớp không để trống."
+    "policy_rules_invalid": "Hoàn thành mỗi quy tắc đã chỉnh sửa với mã trạng thái dương, một hành động và ít nhất một điều kiện khớp không để trống.",
+    "filter_copilot": "GitHub Copilot"
   },
   "antigravity_subscription": {
     "plan_unknown": "Không rõ",
@@ -931,7 +932,16 @@
     "kimi_ai_oauth_status_success": "Xác thực thành công!",
     "kimi_ai_oauth_status_error": "Xác thực thất bại:",
     "kimi_ai_oauth_start_error": "Không thể bắt đầu đăng nhập Kimi quốc tế:",
-    "kimi_ai_oauth_polling_error": "Không thể kiểm tra trạng thái xác thực:"
+    "kimi_ai_oauth_polling_error": "Không thể kiểm tra trạng thái xác thực:",
+    "copilot_oauth_title": "GitHub Copilot OAuth",
+    "copilot_oauth_button": "Đăng nhập bằng GitHub Copilot",
+    "copilot_open_link": "Mở liên kết",
+    "copilot_copy_link": "Sao chép liên kết",
+    "copilot_oauth_status_waiting": "Đang chờ xác thực...",
+    "copilot_oauth_status_success": "Xác thực thành công!",
+    "copilot_oauth_status_error": "Xác thực thất bại:",
+    "copilot_oauth_start_error": "Không thể bắt đầu GitHub Copilot OAuth:",
+    "copilot_oauth_polling_error": "Không thể kiểm tra trạng thái xác thực:"
   },
   "stats": {
     "success": "Thành công",
@@ -1343,7 +1353,9 @@
         "payload_replace_invalid_positions": "Chọn tất cả tin nhắn của vai trò đã chọn hoặc nhập danh sách vị trí gồm các số nguyên dương, không chọn cả hai.",
         "payload_replace_invalid_paths": "Nhập ít nhất một đường dẫn JSON không rỗng. Không dùng đường dẫn cùng vai trò, all hoặc positions.",
         "payload_replace_invalid_models": "Thêm ít nhất một mô hình có tên không rỗng và các điều kiện hợp lệ.",
-        "payload_replace_invalid_replacements": "Thêm ít nhất một phép thay thế hợp lệ. Văn bản nguồn không được rỗng; biểu thức chính quy dùng Go RE2. Văn bản thay thế rỗng sẽ xóa phần khớp."
+        "payload_replace_invalid_replacements": "Thêm ít nhất một phép thay thế hợp lệ. Văn bản nguồn không được rỗng; biểu thức chính quy dùng Go RE2. Văn bản thay thế rỗng sẽ xóa phần khớp.",
+        "invalid_server_id": "Nhập UUID khác không có dấu gạch nối.",
+        "invalid_oauth_error_rules": "Kiểm tra mã trạng thái, điều kiện khớp và hành động của {{channel}}."
       },
       "common": {
         "edit": "Chỉnh sửa",
@@ -1389,7 +1401,11 @@
           "hint": "Mặc định tắt. Chỉ thông báo dịch vụ quản lý tồn tại; không thay đổi quyền truy cập từ xa."
         },
         "discoveryTitle": "Khám phá mạng cục bộ (LAN)",
-        "discoveryHint": "Yêu cầu giao diện mạng vật lý hỗ trợ multicast và địa chỉ lắng nghe non-loopback. Docker thường cần host networking; không đảm bảo khả năng tiếp cận."
+        "discoveryHint": "Yêu cầu giao diện mạng vật lý hỗ trợ multicast và địa chỉ lắng nghe non-loopback. Docker thường cần host networking; không đảm bảo khả năng tiếp cận.",
+        "serverId": {
+          "label": "ID triển khai",
+          "hint": "UUID cố định của bản triển khai. Lưu giá trị trống sẽ tạo ID mới."
+        }
       },
       "additions": {
         "oauthTitle": "Hành vi của provider OAuth",
@@ -1475,7 +1491,7 @@
         },
         "antigravityConnectionPoolMaxIdleConnsPerHost": {
           "label": "Số kết nối nhàn rỗi tối đa trên mỗi host",
-          "hint": "Số kết nối nhàn rỗi tối đa được duy trì cho mỗi host upstream trên mỗi credential. Mặc định: 2; giới hạn tối đa 100. Bằng 0 sẽ dùng mặc định của Go là 2; giá trị âm sẽ chuyển sang kết nối ngắn hạn."
+          "hint": "Số kết nối nhàn rỗi tối đa cho mỗi máy chủ nguồn và mỗi thông tin xác thực. Để trống để dùng mặc định 2, giới hạn là 100. Giá trị 0 hoặc âm sử dụng kết nối ngắn hạn."
         },
         "xaiInjectXSearch": {
           "label": "Chèn x_search",
@@ -1508,6 +1524,11 @@
         "codexLiveMediaRelayICEServers": {
           "label": "Máy chủ ICE",
           "hint": "Các máy chủ STUN/TURN tùy chọn dùng URL stun:, stuns:, turn:, hoặc turns:. Thông tin xác thực TURN được bỏ qua trong API cấu hình JSON. Nhập thông tin xác thực dưới dạng mật khẩu và không để lộ bí mật trong ảnh chụp màn hình hay log."
+        },
+        "oauthErrorRules": {
+          "label": "Quy tắc lỗi yêu cầu OAuth",
+          "hint": "Đối chiếu lỗi từ máy chủ nguồn theo thứ tự cho từng kênh OAuth để quyết định chuyển thông tin xác thực và thời gian chờ.",
+          "channel": "Kênh OAuth (có thể nhập kênh của plugin)"
         }
       },
       "payload_replace": {
@@ -1947,7 +1968,9 @@
       "save": "Lưu",
       "create": "Tạo",
       "enable": "Bật",
-      "disable": "Tắt"
+      "disable": "Tắt",
+      "newFor": "Thêm {{provider}}",
+      "addProvider": "Thêm nhà cung cấp"
     },
     "categories": {
       "title": "Provider",
@@ -1964,12 +1987,6 @@
       "meta": "Muse (Meta)"
     },
     "table": {
-      "key": "Key",
-      "baseUrl": "Base URL",
-      "prefix": "Tiền tố",
-      "models": "Model/Header",
-      "status": "Trạng thái",
-      "actions": "Hành động",
       "metrics": {
         "models": "Model",
         "keys": "Key",
@@ -1977,9 +1994,10 @@
       },
       "websocketsTag": "WebSocket",
       "cloakTag": "Cloak",
-      "empty": "Chưa có tài nguyên nào, nhấn \"Mới\" để thêm.",
       "filterPlaceholder": "Tìm key, URL, tiền tố…",
-      "cliProfileTag": "Hồ sơ CLI"
+      "cliProfileTag": "Hồ sơ CLI",
+      "emptyBrand": "Chưa có cấu hình {{provider}}",
+      "noMatch": "Không có tài nguyên phù hợp với bộ lọc"
     },
     "status": {
       "active": "Đang hoạt động",
@@ -2072,7 +2090,15 @@
       "fingerprintProfile": "Dấu vân tay yêu cầu",
       "fingerprintProfileDefault": "Mặc định (do phía gọi kiểm soát)",
       "fingerprintProfileClaudeCodeCli": "Claude Code CLI",
-      "fingerprintProfileHint": "Mặc định giữ nguyên prompt và header của phía gọi, hoặc chọn sử dụng dấu vân tay yêu cầu của Claude Code CLI."
+      "fingerprintProfileHint": "Mặc định giữ nguyên prompt và header của phía gọi, hoặc chọn sử dụng dấu vân tay yêu cầu của Claude Code CLI.",
+      "sections": {
+        "connection": "Kết nối",
+        "connectivity": "Kiểm tra kết nối",
+        "routing": "Điều phối",
+        "advanced": "Nâng cao"
+      },
+      "headerName": "Tên header",
+      "headerValue": "Giá trị header"
     },
     "delete": {
       "title": "Xóa tài nguyên",
@@ -2134,7 +2160,8 @@
         "selectAll": "Chọn tất cả",
         "clear": "Xóa",
         "empty": "Chưa cấu hình model nào"
-      }
+      },
+      "clearFilters": "Xóa bộ lọc"
     },
     "modelCatalog": {
       "notLoaded": "Chưa tải"
@@ -2222,6 +2249,69 @@
         "continue": "Tiếp tục",
         "continue-and-cooldown": "Tiếp tục và cooldown"
       }
+    },
+    "connections": {
+      "edit": "Chỉnh sửa kết nối",
+      "create": "Thêm kết nối",
+      "search": "Tìm theo kết nối, khóa, URL hoặc tiền tố…",
+      "keyCount_one": "{{count}} khóa",
+      "keyCount_other": "{{count}} khóa",
+      "keysActive_one": "{{active}}/{{count}} khóa đang bật",
+      "keysActive_other": "{{active}}/{{count}} khóa đang bật",
+      "disableKeys": "Tắt tất cả khóa trong “{{name}}”",
+      "enableKeys": "Bật tất cả khóa trong “{{name}}”"
+    },
+    "nativeGroup": {
+      "defaults": "Thiết lập mặc định của kết nối",
+      "description": "Các khóa kế thừa thiết lập này trừ khi có giá trị ghi đè riêng. URL cơ sở áp dụng cho mọi khóa.",
+      "name": "Tên kết nối",
+      "headersJson": "Tiêu đề yêu cầu (đối tượng JSON)",
+      "excluded": "Mô hình bị loại trừ (mỗi dòng một mô hình)",
+      "pool": "Nhóm kết nối",
+      "configurePool": "Cấu hình nhóm kết nối",
+      "poolHint": "Khi thêm nhóm kết nối, tính năng tái sử dụng kết nối được bật theo mặc định. Mỗi khóa có các kết nối riêng. Nếu thời gian chờ hoặc giới hạn bằng 0 hay âm, kết nối sẽ không được tái sử dụng.",
+      "poolEnabled": "Tái sử dụng kết nối",
+      "poolAuto": "Mặc định (bật)",
+      "poolTimeout": "Thời gian chờ của kết nối nhàn rỗi",
+      "poolLimit": "Số kết nối nhàn rỗi tối đa trên mỗi máy chủ",
+      "invalidLimit": "Số kết nối nhàn rỗi tối đa phải là số nguyên an toàn.",
+      "modelNameRequired": "Nhập tên mô hình phía nhà cung cấp cho từng mô hình.",
+      "disabled": "Tắt nhóm khóa này"
+    },
+    "groupActions": {
+      "search": "Tìm kết nối, khóa, URL hoặc tiền tố…",
+      "create": "Tạo kết nối",
+      "edit": "Sửa kết nối",
+      "delete": "Xóa kết nối",
+      "append": "Thêm khóa",
+      "confirm": "Xóa kết nối “{{name}}” và tất cả {{count}} khóa?",
+      "settings": "Cài đặt kết nối"
+    },
+    "nativeKey": {
+      "routing": "Cài đặt giao thức",
+      "nativeToolSearch": "Tin cậy điểm cuối tùy chỉnh để tìm công cụ gốc của Anthropic",
+      "interactions": "Dùng Vertex Interactions API",
+      "openapi": "Dùng điểm cuối Vertex OpenAPI",
+      "location": "Khu vực OpenAPI",
+      "pool": "Nhóm kết nối",
+      "poolHint": "Cấu hình tùy chỉnh bật nhóm kết nối trừ khi bị tắt tại đây hoặc ở nhóm cha. Trường trống sẽ kế thừa. Thời gian chờ hoặc giới hạn không dương sẽ tắt tái sử dụng.",
+      "reuse": "Tái sử dụng kết nối đến máy chủ",
+      "timeout": "Thời gian chờ khi rảnh (ví dụ: 5m)",
+      "maxIdle": "Số kết nối rảnh tối đa mỗi máy chủ",
+      "invalidMaxIdle": "Số kết nối rảnh tối đa phải là số nguyên an toàn.",
+      "inheritHint": "Chỉ điền những gì khóa này khác biệt; trường để trống sẽ kế thừa cài đặt kết nối.",
+      "disableKey": "Tắt khóa này",
+      "disableShort": "Tắt"
+    },
+    "card": {
+      "requests": "Yêu cầu"
+    },
+    "picker": {
+      "official": "API chính thức",
+      "custom": "Tùy chỉnh",
+      "connect": "Kết nối",
+      "connected": "Đã kết nối {{count}}",
+      "onboardingTitle": "Kết nối nhà cung cấp AI đầu tiên"
     }
   },
   "devin_quota": {
@@ -2373,5 +2463,16 @@
     "remove_pattern": "Xóa quy tắc regex dòng {{row}}",
     "move_up": "Chuyển quy tắc regex dòng {{row}} lên",
     "move_down": "Chuyển quy tắc regex dòng {{row}} xuống"
+  },
+  "copilot_quota": {
+    "title": "Quota GitHub Copilot",
+    "empty_title": "Không có credential GitHub Copilot",
+    "empty_desc": "Đăng nhập bằng GitHub Copilot OAuth hoặc tải lên file credential GitHub Copilot để truy vấn quota.",
+    "idle": "Nhấn để truy vấn quota GitHub Copilot",
+    "loading": "Đang truy vấn quota GitHub Copilot…",
+    "load_failed": "Truy vấn quota thất bại: {{message}}",
+    "remaining": "Còn lại {{percent}}%",
+    "premium": "Tương tác cao cấp",
+    "unavailable": "Không thể lấy hạn mức. Hãy kiểm tra thông tin xác thực Copilot và thử lại."
   }
 }

@@ -10,6 +10,7 @@ const MODEL_MODALITY_SET = new Set<string>(MODEL_MODALITIES);
 export interface ModelOptionsInput {
   displayName?: string;
   maxContextLength?: string;
+  openapi?: boolean;
   forceMapping?: boolean;
   isCompat?: boolean;
   supportConfigurationUpdate?: boolean;
@@ -35,6 +36,7 @@ export function readModelOptions(model: ModelAlias): ModelOptionsInput & {
   return {
     displayName: model.displayName,
     maxContextLength: model.maxContextLength?.toString(),
+    openapi: model.openapi,
     forceMapping: model.forceMapping,
     isCompat: model.isCompat,
     supportConfigurationUpdate: model.supportConfigurationUpdate,
@@ -124,6 +126,7 @@ export function buildModelOptions(entry: ModelEntryInput): Partial<ModelAlias> {
   return {
     displayName: entry.displayName?.trim() || undefined,
     maxContextLength: numberValue(entry.maxContextLength),
+    openapi: entry.openapi,
     forceMapping: entry.forceMapping,
     isCompat: entry.isCompat,
     supportConfigurationUpdate: entry.supportConfigurationUpdate,
