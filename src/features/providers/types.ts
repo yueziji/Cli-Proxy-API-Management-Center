@@ -3,6 +3,7 @@
  */
 
 import type { ProviderSource } from '@/types';
+import type { MemberModes } from '@/services/api/nativeProviderGroups';
 import type { ThinkingLevel } from './thinkingLevels';
 import type { RuntimePolicyDraft } from './runtimePolicy';
 import type { ModelOptionsInput } from './modelOptions';
@@ -119,6 +120,7 @@ export interface ApiKeyEntryInput {
   sourceIndex?: number;
   apiKey: string;
   existingApiKey?: string;
+  savedProxyUrl?: string;
   proxyUrl: string;
   weight?: number;
   authIndex?: string;
@@ -134,6 +136,7 @@ export interface CloakInput {
 }
 
 export interface ProviderEntryFormInput extends ProviderBehaviorOptions, NativeKeyOptions {
+  memberModes?: MemberModes;
   /** OpenAI 创建时只在 apiKeyEntries 中传 */
   apiKey: string;
   /** 提供商分组名称；OpenAI 必填，其余留空使用自动名称或保留原名。 */

@@ -46,8 +46,8 @@ describe('v8 API-key auth indexes', () => {
         'live-index'
       );
       expect(
-        (normalizeProviderGroups([group], true)[0] as OpenAIProviderConfig).apiKeyEntries[0]
-          .authIndex
+        (normalizeProviderGroups([group], 'openai-compatibility')[0] as OpenAIProviderConfig)
+          .apiKeyEntries[0].authIndex
       ).toBe('live-index');
       expect(
         normalizeOpenAIProvider({ ...group, keys: [], [spelling]: 'group-index' })?.authIndex
@@ -143,7 +143,10 @@ describe('v8 API-key auth indexes', () => {
       auth_index: 'group',
       keys: [{ 'api-key': 'synthetic', auth_index: 'key' }],
     };
-    const selected = normalizeProviderGroups([group], true)[0] as OpenAIProviderConfig;
+    const selected = normalizeProviderGroups(
+      [group],
+      'openai-compatibility'
+    )[0] as OpenAIProviderConfig;
     const writes = backend('openai-compatibility', [{ ...group, auth_index: 'refreshed' }]);
     await providersApi.updateOpenAIProviderDisabled(0, true, selected.source);
     expect(writes).toEqual([

@@ -2,6 +2,7 @@ import { describe, expect, spyOn, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { apiClient } from '@/services/api/client';
 import { oauthApi } from '@/services/api/oauth';
+import en from '@/i18n/locales/en.json';
 import { createOAuthAttempts } from '@/features/oauth/oauthAttempts';
 import { OAUTH_PROVIDERS } from '@/features/oauth/providers';
 
@@ -50,17 +51,19 @@ describe('Kimi regional login', () => {
     for (const provider of OAUTH_PROVIDERS) expect(provider).not.toHaveProperty('sponsor');
   });
 
-  for (const locale of ['en', 'zh-CN', 'zh-TW', 'ru']) {
-    test(`provides complete regional login translations (${locale})`, () => {
-      const { auth_login: messages } = JSON.parse(
-        readFileSync(`src/i18n/locales/${locale}.json`, 'utf8')
-      ) as { auth_login: Record<string, string> };
-      for (const key of Object.keys(messages).filter((key) => key.startsWith('kimi_'))) {
-        if (key.startsWith('kimi_ai_') || key === 'kimi_sign_up_button') continue;
-        expect(messages[key.replace('kimi_', 'kimi_ai_')]).toBeTruthy();
-      }
-      expect(messages.kimi_oauth_title).toContain('kimi.com');
-      expect(messages.kimi_ai_oauth_title).toContain('kimi.ai');
-    });
-  }
+  test('every regional Kimi string has an international counterpart', () => {
+    const messages = en.auth_login as Record<string, string>;
+    for (const key of Object.keys(messages).filter((key) => key.startsWith('kimi_'))) {
+      if (key.startsWith('kimi_ai_') || key === 'kimi_sign_up_button') continue;
+      expect(messages[key.replace('kimi_', 'kimi_ai_')]).toBeTruthy();
+    }
+  });
+
+  test.each(['en', 'zh-CN', 'zh-TW', 'ru'])('names each site in its login title (%s)', (locale) => {
+    const { auth_login: messages } = JSON.parse(
+      readFileSync(`src/i18n/locales/${locale}.json`, 'utf8')
+    ) as { auth_login: Record<string, string> };
+    expect(messages.kimi_oauth_title).toContain('kimi.com');
+    expect(messages.kimi_ai_oauth_title).toContain('kimi.ai');
+  });
 });

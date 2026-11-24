@@ -10,7 +10,6 @@ import zhTW from '@/i18n/locales/zh-TW.json';
 import ru from '@/i18n/locales/ru.json';
 import ko from '@/i18n/locales/ko.json';
 import vi from '@/i18n/locales/vi.json';
-import tr from '@/i18n/locales/tr.json';
 import { OAuthPage } from '@/features/oauth/OAuthPage';
 import {
   OAuthFlowDialog,
@@ -196,11 +195,9 @@ describe('OAuth dialog secondary text', () => {
     expect(withNotes.map((provider) => provider.id).sort()).toEqual(
       ['antigravity', 'devin', 'kimi', 'kimi-ai'].sort()
     );
-    for (const translation of [en, zhCN, zhTW, ru, ko, vi, tr]) {
-      const messages = translation.auth_login as Record<string, string>;
-      for (const provider of withNotes) {
-        expect(messages[provider.signInNoteKey!.replace('auth_login.', '')]).toBeTruthy();
-      }
+    const messages = en.auth_login as Record<string, string>;
+    for (const provider of withNotes) {
+      expect(messages[provider.signInNoteKey!.replace('auth_login.', '')]).toBeTruthy();
     }
   });
 

@@ -35,6 +35,8 @@ import type {
   NativeSection,
 } from './types';
 
+import { memberFields } from './nativeConnectionForm';
+import type { MemberModes } from '@/services/api/nativeProviderGroups';
 import type { NativeConnectionFormOutput } from './nativeConnectionForm';
 import { buildNativeSections, isNativeFamily } from './nativeSections';
 import type { NativeConnectionMember, NativeProviderFamily } from '@/services/api/providers';
@@ -210,7 +212,7 @@ function buildNativeMemberConfig(
   existing?: ProviderKeyConfig
 ) {
   const edited = buildProviderKeyConfig(family, row.input, existing);
-  if (!row.initialInput) return edited;
+  if (!row.initialInput) return { config: edited };
   const initial = buildProviderKeyConfig(family, row.initialInput, existing);
   const config = applyDraftDelta(existing ?? { apiKey: '' }, initial, edited);
   if (initial.cloak && edited.cloak && config.cloak !== existing?.cloak) {
@@ -230,7 +232,22 @@ function buildNativeMemberConfig(
       )
     );
   }
-  return config;
+  // The effective-value diff alone cannot express pinning the same value, an
+  // explicit empty collection, or removing an override. Carry only edited intents.
+  const fieldModes: Partial<MemberModes> = {};
+  for (const field of memberFields) {
+    const mode = row.input.memberModes?.[field];
+    if (!mode) continue;
+    const key = field === 'excludedModelsText' ? 'excludedModels' : field;
+    if (
+      mode === row.initialInput.memberModes?.[field] &&
+      JSON.stringify(edited[key]) === JSON.stringify(initial[key])
+    )
+      continue;
+    fieldModes[field] = mode;
+    Object.assign(config, { [key]: edited[key] });
+  }
+  return { config, fieldModes };
 }
 
 /** Preserve opaque keys that are absent from the native editor. */
@@ -256,7 +273,7 @@ export function buildNativeConnectionMembers(
     members.push({
       ...(row.unchanged && originalKeyIndex !== undefined
         ? { originalKeyIndex }
-        : { originalKeyIndex, config: buildNativeMemberConfig(family, row, existing) }),
+        : { originalKeyIndex, ...buildNativeMemberConfig(family, row, existing) }),
       ...(row.disabled !== undefined ? { disabled: row.disabled } : {}),
     });
   }

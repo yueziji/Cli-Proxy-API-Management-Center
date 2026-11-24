@@ -120,7 +120,7 @@ describe('model is-compat management contract', () => {
       },
     ];
     const saved = backend('openai-compatibility', groups);
-    const [row] = normalizeProviderGroups(groups, true) as OpenAIProviderConfig[];
+    const [row] = normalizeProviderGroups(groups, 'openai-compatibility') as OpenAIProviderConfig[];
     const models = [...row.models!].reverse();
     models[1] = { ...models[1], isCompat: false };
     await providersApi.updateOpenAIProvider(row.name, 0, { ...row, models });
